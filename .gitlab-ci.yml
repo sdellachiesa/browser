@@ -1,0 +1,47 @@
+variables:
+  CONTAINER_IMAGE: "gitlab.inf.unibz.it:4567/lter/browser/browser"
+
+stages:
+  - build
+
+#test:
+#  stage: test
+#  image: golang:1.10
+#  before_script:
+#    - go get -d github.com/influxdata/telegraf
+#    - cd /go/src/github.com/influxdata/telegraf
+#    - git fetch --all --tags
+#    - git checkout tags/${TELEGRAF_TAG} -b ${TELEGRAF_TAG}
+#    - make deps
+#  script:
+#    - cd ${CI_PROJECT_DIR}
+#    - go test
+#  only:
+#    - master
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
+  script:
+    - echo ${CONTAINER_IMAGE}
+    - docker build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_SHA} .
+    - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+  only:
+   - master
+
+#deploy_staging:
+#  stage: deploy
+#  before_script:
+#   - wget https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl
+#   - mv kubectl /usr/bin/
+#   - chmod +x /usr/bin/kubectl
+#  script:
+#    - kubectl set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+#  environment:
+#    name: staging
+#  only:
+#    - master
