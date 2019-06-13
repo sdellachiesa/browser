@@ -1,5 +1,5 @@
 variables:
-  CONTAINER_IMAGE: "gitlab.inf.unibz.it:4567/lter/browser/browser"
+  CONTAINER_IMAGE: "gitlab.inf.unibz.it:4567/lter/browser"
 
 stages:
   - build
