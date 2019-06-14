@@ -3,10 +3,11 @@ variables:
 
 stages:
   - build
+#  - deploy
 
 #test:
 #  stage: test
-#  image: golang:1.10
+#  image: golang:1.12
 #  before_script:
 #    - go get -d github.com/influxdata/telegraf
 #    - cd /go/src/github.com/influxdata/telegraf
@@ -21,7 +22,7 @@ stages:
 
 build:
   stage: build
-  image: docker:latest
+  image: docker:18.09.6
   services:
     - docker:dind
   before_script:
@@ -31,17 +32,28 @@ build:
     - docker build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_SHA} .
     - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
   only:
+    - tags
+  only:
    - master
 
-#deploy_staging:
+#deploy_production:
 #  stage: deploy
+#  image: docker:18.09.6
+#  services:
+#    - docker:dind
 #  before_script:
-#   - wget https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl
-#   - mv kubectl /usr/bin/
-#   - chmod +x /usr/bin/kubectl
+#    - wget https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl
+#    - mv kubectl /usr/bin/
+#    - chmod +x /usr/bin/kubectl
+#    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
 #  script:
-#    - kubectl set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+#    - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+#    - docker tag ${CONTAINER_IMAGE}:${CI_COMMIT_SHA} ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
+#    - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
+#    - kubectl --namespace eurac-alpenv-browser set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
 #  environment:
-#    name: staging
+#    name: production
+#  only:
+#    - tags
 #  only:
 #    - master
