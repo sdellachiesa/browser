@@ -43,8 +43,9 @@
 			body {
 				margin: 0:
 				padding: 0;
+				color: #000000;
+				font: Arial, sans-serif;
 				font-size: small;
-				color: rgba(0,0,0,.54);
 			}
 			html, body {
 				height: 100%;
@@ -61,8 +62,12 @@
 			.brd-left {
 				border-left: 1px solid #cccccc;
 			}
-			.fullHeight {
-				height: 100%;
+			.navbar-text {
+					color: rgba(0,0,0,.54);
+			}
+			.text {
+				font-size: 1.2em;
+      				line-height: 1.4;
 			}
 		</style>
 
@@ -79,8 +84,21 @@
 
 	<div class="container-fluid">
 		<div class="row">
-			<div class="col-md-2">
+			<div class="col-md-3 text">
 			<!-- left side begin -->
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut in convallis arcu. Etiam ac pharetra tellus. Quisque aliquam, dolor in semper laoreet, tellus mi convallis leo, vel fermentum lorem quam ut felis. Morbi cursus quam vel purus fringilla, sit amet suscipit urna bibendum. Pellentesque aliquet finibus diam quis luctus. Nunc at lorem in ex congue varius. Donec id nisi sit amet dui pulvinar placerat. Vivamus in convallis enim, eget aliquet elit. Nullam dignissim, augue posuere tempus mollis, urna felis gravida risus, nec varius justo nulla non ante. Donec nulla tortor, placerat vel venenatis eu, blandit sit amet augue. Sed magna purus, bibendum congue nibh hendrerit, venenatis aliquam libero. Aliquam eu condimentum enim.</p>
+
+<p>Maecenas id semper purus, a pharetra erat. Etiam nec malesuada est. Integer non nunc vitae orci dictum mattis id ac sapien. Suspendisse potenti. Praesent iaculis enim non mi vehicula bibendum nec vel nunc. Vivamus eu neque sed lorem malesuada luctus. Cras non ex vitae metus hendrerit auctor. Integer enim metus, varius et vehicula ornare, dignissim et enim. Fusce ut odio quis velit porttitor gravida. Phasellus in orci elit.</p>
+
+<p>Cras ipsum ante, luctus id varius ac, ultrices nec nisi. Suspendisse ut malesuada eros. Aliquam tincidunt eget diam a rutrum. Maecenas ultrices augue sed nibh fringilla gravida. Sed et posuere mauris, ac blandit arcu. In hac habitasse platea dictumst. Morbi id bibendum libero, sit amet varius quam. Aliquam feugiat elementum purus, et aliquet elit lobortis vel. Integer et orci at ipsum accumsan luctus sagittis vitae quam. Nullam euismod vel felis id pellentesque. Nullam rhoncus efficitur ante lobortis maximus. Pellentesque vestibulum nulla vel nulla porta, quis fringilla nisl rhoncus.</p>
+
+
+
+			<!-- left side end -->
+			</div>
+
+			<div class="col-md-3">
+			<!-- middle side begin -->
 				<form id="filters" name="filter">
 	  				<div class="form-group">
 	    					<label for="stations">Select station:</label>
@@ -120,10 +138,10 @@
 				<br>
 				<button type="submit" class="btn btn-primary" id="submit">Query</button>
 
-			<!-- left side end -->
+			<!-- middle side end -->
 			</div>
-			<div class="col-md-10">
-				<div id="map" style="height: 90vh"></div>
+			<div class="col-md-6">
+				<div id="map" style="height: 80vh"></div>
 			</div>
 
 		</div>
