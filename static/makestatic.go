@@ -1,4 +1,4 @@
-// lic	sss
+// Copyright 2019 Eurac Research. All rights reserved.
 
 // +build ignore
 
@@ -15,11 +15,11 @@ import (
 	"go/format"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 	"unicode/utf8"
 )
-
-var files = []string{}
 
 func main() {
 	if err := makestatic(); err != nil {
@@ -34,22 +34,42 @@ func makestatic() error {
 		return err
 	}
 	defer f.Close()
+
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "%v\n\n%v\n\npackage static\n\n", license, warning)
 	fmt.Fprintf(buf, "func init() { files = map[string]string{\n")
-	for _, fn := range files {
-		b, err := ioutil.ReadFile(fn)
+
+	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(buf, "\t%q: ", fn)
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if filepath.Ext(info.Name()) == ".go" || strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(buf, "\t%q: ", path)
 		if utf8.Valid(b) {
 			fmt.Fprintf(buf, "`%s`", sanitize(b))
 		} else {
 			fmt.Fprintf(buf, "%q", b)
 		}
 		fmt.Fprintln(buf, ",\n")
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
+
 	fmt.Fprintln(buf, "}}")
 	fmtbuf, err := format.Source(buf.Bytes())
 	if err != nil {
