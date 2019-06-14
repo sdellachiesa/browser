@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -25,7 +24,6 @@ type server struct {
 	//key string
 }
 
-// TODO: Should we only return a http.Handler?
 func newServer(options ...func(s *server) error) (*server, error) {
 	s := &server{mux: http.NewServeMux()}
 
@@ -75,7 +73,7 @@ func (s *server) handleAPI(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
 		return
 	}
-	log.Println("hit api handler Say yes")
+
 	method := r.FormValue("method")
 	log.Println(method)
 	var (
@@ -83,34 +81,8 @@ func (s *server) handleAPI(w http.ResponseWriter, r *http.Request) {
 		err  error
 	)
 	switch method {
-	case "stations":
-		landuse := r.FormValue("landuse")
-		fields := r.FormValue("fields")
-
-		if landuse != "" {
-			landuse = fmt.Sprintf(" WHERE landuse =~ /%s/", strings.ReplaceAll(landuse, ",", "|"))
-		}
-
-		if fields != "" {
-			q := fmt.Sprintf("SELECT %s FROM /.*/ LIMIT 1", fields)
-			response, err := s.db.Query(client.NewQuery(q, s.database, ""))
-			if err != nil || response.Error() != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			var f []string
-			for _, result := range response.Results {
-				for _, row := range result.Series {
-					f = append(f, row.Name)
-				}
-			}
-			fields = fmt.Sprintf("FROM %s", strings.Join(f, ","))
-		}
-
-		q := fmt.Sprintf("SHOW TAG VALUES %s WITH KEY =~ /.*/%s", fields, landuse)
-		log.Println(q)
-		response, err := s.db.Query(client.NewQuery(q, s.database, ""))
+	case "stations": // return station names
+		response, err := s.db.Query(client.NewQuery("SHOW TAG VALUES FROM /.*/ WITH KEY = station", s.database, ""))
 		if err != nil || response.Error() != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -120,71 +92,16 @@ func (s *server) handleAPI(w http.ResponseWriter, r *http.Request) {
 			resp = result.Series
 		}
 	case "fields":
+		q := "SHOW MEASUREMENTS"
+
 		stations := r.FormValue("stations")
 		if stations != "" {
-			stations = fmt.Sprintf("FROM %s", stations)
+			q = fmt.Sprintf("SHOW MEASUREMENTS WHERE station='%s'", stations)
 		}
 
-		q := fmt.Sprintf("SHOW FIELD KEYS %s", stations)
-		log.Println(q)
 		response, err := s.db.Query(client.NewQuery(q, s.database, ""))
 		if err != nil || response.Error() != nil {
 			http.Error(w, err.Error(), http.StatusMethodNotAllowed)
-			return
-		}
-
-		for _, result := range response.Results {
-			resp = result.Series
-		}
-	case "series":
-		where := []string{}
-		stations := r.FormValue("stations")
-		if stations == "" {
-			stations = "/.*/"
-		}
-		fields := r.FormValue("fields")
-		if fields == "" {
-			fields = "*"
-		}
-		sDate := r.FormValue("start")
-		if sDate != "" {
-			where = append(where, fmt.Sprintf("time >= '%s'", sDate))
-		}
-		eDate := r.FormValue("end")
-		if eDate != "" {
-			where = append(where, fmt.Sprintf("time <= '%s'", eDate))
-		}
-		landuse := r.FormValue("landuse")
-		if landuse != "" {
-			where = append(where, fmt.Sprintf("landuse =~ /%s/", landuse))
-		}
-		altitude := strings.Split(r.FormValue("altitude"), ";")
-		if len(altitude) == 2 {
-			aMin, err := strconv.ParseInt(altitude[0], 10, 64)
-			if err != nil {
-				break
-			}
-			aMax, err := strconv.ParseInt(altitude[1], 10, 64)
-			if err != nil {
-				break
-			}
-			where = append(where, fmt.Sprintf("altitude >= %d AND altitude <= %d", aMin, aMax))
-		}
-
-		filter := ""
-		if len(where) > 0 {
-			filter = "WHERE " + strings.Join(where, " AND ")
-		}
-
-		q := fmt.Sprintf("SELECT %s FROM %s %s", fields, stations, filter)
-		log.Println(q)
-		response, err := s.db.Query(client.NewQuery(q, s.database, ""))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if response.Error() != nil {
-			http.Error(w, response.Error().Error(), http.StatusInternalServerError)
 			return
 		}
 
