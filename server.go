@@ -5,147 +5,94 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
-	"path"
-	"strings"
-	"time"
-
-	"gitlab.inf.unibz.it/lter/browser/static"
 
 	client "github.com/influxdata/influxdb1-client/v2"
+	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
 
-type server struct {
-	db       client.Client
-	database string
-	mux      *http.ServeMux
-	// key to prevent request forgery; static for server's lifetime.
-	//key string
+type Backend struct {
+	Influx  client.Client
+	SnipeIT *snipeit.Client
+
+	Database string
 }
 
-func newServer(options ...func(s *server) error) (*server, error) {
-	s := &server{mux: http.NewServeMux()}
+type APIHandler struct {
+	db  *Backend
+	mux *http.ServeMux
+}
 
-	for _, o := range options {
-		if err := o(s); err != nil {
-			return nil, err
-		}
+func NewAPIHandler(b *Backend) *APIHandler {
+	a := &APIHandler{
+		db:  b,
+		mux: http.NewServeMux(),
 	}
 
-	if s.db == nil {
-		return nil, fmt.Errorf("must provide an option func that specifies a store")
-	}
+	a.mux.HandleFunc("/api/v1/stations/", a.handleStations)
+	a.mux.HandleFunc("/api/v1/measurements/", a.handleMeasurements)
+	a.mux.HandleFunc("/api/v1/series/", a.handleSeries)
+	a.mux.HandleFunc("/api/v1/metadata/", a.handleMetadata)
+	a.mux.HandleFunc("/api/v1/templates/", a.handleTemplates)
 
-	s.mux.HandleFunc("/", s.handleStatic)
-	s.mux.HandleFunc("/healthz", s.handleHealthz)
-	s.mux.HandleFunc("/_api", s.handleAPI)
-
-	return s, nil
+	return a
 }
 
-func (s *server) handleStatic(w http.ResponseWriter, r *http.Request) {
-	p := r.URL.Path[1:]
-	if p == "" {
-		p = "index.html"
-	}
-
-	b, err := static.File(p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	http.ServeContent(w, r, path.Base(p), time.Now(), strings.NewReader(b))
+func (a *APIHandler) key(r *http.Request) string {
+	_, p := a.mux.Handler(r)
+	return r.URL.Path[len(p):]
 }
 
-func (s *server) handleHealthz(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
-}
-
-// ServeHTTP satisfies the http.Handler interface.
-func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.mux.ServeHTTP(w, r)
-}
-
-func (s *server) handleAPI(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
+func (a *APIHandler) handleStations(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
-	method := r.FormValue("method")
-	log.Println(method)
 	var (
-		resp interface{}
-		err  error
+		l   []*snipeit.Location
+		err error
 	)
-	switch method {
-	case "stations": // return station names
-		response, err := s.db.Query(client.NewQuery("SHOW TAG VALUES FROM /.*/ WITH KEY = station", s.database, ""))
-		if err != nil || response.Error() != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		for _, result := range response.Results {
-			resp = result.Series
-		}
-	case "fields":
-		q := "SHOW MEASUREMENTS"
-
-		stations := r.FormValue("stations")
-		if stations != "" {
-			q = fmt.Sprintf("SHOW MEASUREMENTS WHERE station='%s'", stations)
-		}
-
-		response, err := s.db.Query(client.NewQuery(q, s.database, ""))
-		if err != nil || response.Error() != nil {
-			http.Error(w, err.Error(), http.StatusMethodNotAllowed)
-			return
-		}
-
-		for _, result := range response.Results {
-			resp = result.Series
-		}
-	case "query":
-		query := `
-SELECT {{ if .select }} {{- .select -}} {{ else }} * {{ end }}
-FROM {{ if .from }} {{-  .from -}} {{ else }} /.*/ {{ end }}
-{{ if .where -}}
-WHERE {{.where}}
-{{ end }}`
-		data := map[string]interface{}{
-			"from":   r.FormValue("stations"),
-			"select": r.FormValue("fields"),
-			"where":  strings.Join([]string{"landuse = $1 OR landuse = $2", "time >= $3 AND time <= $4", "altitue >= $5 AND altitude <= $6"}, " AND "),
-		}
-
-		q, err := prepareQuery(query, data)
+	key := a.key(r)
+	if key != "" {
+	} else {
+		l, _, err = a.db.SnipeIT.Locations(&snipeit.LocationOptions{key})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		log.Println(q)
-
-		resp = struct {
-			Query string
-		}{q}
-	default:
-		resp = struct {
-			Error string
-		}{"no method passed"}
 	}
 
-	j, err := json.Marshal(resp)
+	j, err := json.MarshalIndent(l, " ", "	")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
+}
 
+func (a *APIHandler) handleMeasurements(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("not yet implemented"))
+}
+
+func (a *APIHandler) handleSeries(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("not yet implemented"))
+}
+
+func (a *APIHandler) handleMetadata(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("not yet implemented"))
+}
+
+func (a *APIHandler) handleTemplates(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("not yet implemented"))
+}
+
+// ServeHTTP satisfies the http.Handler interface.
+func (a *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.mux.ServeHTTP(w, r)
 }
 
 func prepareQuery(tmpl string, data map[string]interface{}) (string, error) {
