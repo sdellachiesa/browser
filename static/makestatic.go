@@ -5,7 +5,7 @@
 // This file is adapted from augie.upspin.io/cmd/upspin-ui/static/makestatic.go.
 //
 // Command makestatic reads a set of files and writes a Go source file to
-// "static.go" that declares a map of string constants containing contents of
+// "assets.go" that declares a map of string constants containing contents of
 // the input files. It is intended to be invoked via "go generate".
 package main
 
@@ -29,7 +29,7 @@ func main() {
 }
 
 func makestatic() error {
-	f, err := os.Create("static.go")
+	f, err := os.Create("assets.go")
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func makestatic() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile("static.go", fmtbuf, 0666)
+	return ioutil.WriteFile("assets.go", fmtbuf, 0666)
 }
 
 // sanitize prepares a valid UTF-8 string as a raw string constant.
