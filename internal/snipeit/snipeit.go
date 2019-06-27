@@ -53,7 +53,7 @@ func NewClient(baseURL, token string) (*Client, error) {
 }
 
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-	u, err := c.BaseURL.Parse(urlStr)
+	u, err := c.BaseURL.Parse(strings.TrimPrefix(urlStr, "/"))
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", c.token)
 
 	return req, nil
@@ -135,7 +135,7 @@ type LocationOptions struct {
 
 // Location represents a Snipe-IT location.
 type Location struct {
-	ID             int       `json:"id,omitempty"`
+	ID             int64     `json:"id,omitempty"`
 	Name           string    `json:"name,omitempty"`
 	Image          string    `json:"image,omitempty"`
 	Address        string    `json:"address,omitempty"`
@@ -144,14 +144,14 @@ type Location struct {
 	State          string    `json:"state,omitempty"`
 	Country        string    `json:"country,omitempty"`
 	Zip            string    `json:"zip,omitempty"`
-	AssetsAssigned int       `json:"assigned_assets_count,omitempty"`
-	Assets         int       `json:"assets_count,omitempty"`
-	Users          int       `json:"users_count,omitempty"`
+	AssetsAssigned int64     `json:"assigned_assets_count,omitempty"`
+	Assets         int64     `json:"assets_count,omitempty"`
+	Users          int64     `json:"users_count,omitempty"`
 	Currency       string    `json:"currency,omitempty"`
 	CreatedAt      Timestamp `json:"created_at,omitempty"`
 	UpdatedAt      Timestamp `json:"updated_at,omitempty"`
 	Parent         struct {
-		ID   int    `json:"id,omitempty"`
+		ID   int64  `json:"id,omitempty"`
 		Name string `json:"name,omitempty"`
 	} `json:"parent,omitempty"`
 	Manager  string     `json:"manager,omitempty"`
@@ -177,7 +177,7 @@ func (c *Client) Locations(opt *LocationOptions) ([]*Location, *http.Response, e
 	}
 
 	var response struct {
-		Total int
+		Total int64
 		Rows  []*Location
 	}
 	resp, err := c.Do(req, &response)
@@ -191,15 +191,16 @@ func (c *Client) Locations(opt *LocationOptions) ([]*Location, *http.Response, e
 // Location by ID.
 //
 // Snipe-IT API doc: https://snipe-it.readme.io/reference#locations-1
-func (c *Client) Location(id int) (*Location, *http.Response, error) {
-	u := fmt.Sprintf("location/%d", id)
+func (c *Client) Location(id int64) (*Location, *http.Response, error) {
+	u := fmt.Sprintf("locations/%d", id)
+
 	req, err := c.NewRequest(http.MethodGet, u, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var l *Location
-	resp, err := c.Do(req, &l)
+	l := new(Location)
+	resp, err := c.Do(req, l)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -210,48 +211,48 @@ func (c *Client) Location(id int) (*Location, *http.Response, error) {
 // HardwareOptions specifies a subset of optional query
 // parameters for listing assets.
 type HardwareOptions struct {
-	LocationID int `url:"location_id,omitempty"`
+	LocationID int64 `url:"location_id,omitempty"`
 }
 
 // Hardware represents a Snipe-IT hardware object.
 type Hardware struct {
-	ID       int    `json:"id,omitempty"`
+	ID       int64  `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	AssetTag string `json:"asset_tag,omitempty"`
 	Serial   string `json:"serial,omitempty"`
 	Model    struct {
-		ID   int    `json:"id,omitempty"`
+		ID   int64  `json:"id,omitempty"`
 		Name string `json:"name,omitempty"`
 	} `json:"model,omitempty"`
 	ModelNumber string `json:"model_number,omitempty"`
 	StatusLabel struct {
-		ID         int    `json:"id,omitempty"`
+		ID         int64  `json:"id,omitempty"`
 		Name       string `json:"name,omitempty"`
 		StatusMeta string `json:"status_meta,omitempty"`
 	} `json:"status_label,omitempty"`
 	Category struct {
-		ID   int    `json:"id,omitempty"`
+		ID   int64  `json:"id,omitempty"`
 		Name string `json:"name,omitempty"`
 	} `json:"category,omitempty"`
 	Manufacturer struct {
-		ID   int    `json:"id,omitempty"`
+		ID   int64  `json:"id,omitempty"`
 		Name string `json:"name,omitempty"`
 	} `json:"manufacturer,omitempty"`
 	Supplier struct {
-		ID   int    `json:"id,omitempty"`
+		ID   int64  `json:"id,omitempty"`
 		Name string `json:"name,omitempty"`
 	} `json:"supplier,omitempty"`
 	Notes       string `json:"notes,omitempty"`
 	OrderNumber string `json:"order_number,omitempty"`
 	Company     string `json:"company,omitempty"`
-	Location    int    `json:"location,omitempty"`
+	Location    int64  `json:"location,omitempty"`
 	RtdLocation struct {
-		ID   int    `json:"id,omitempty"`
+		ID   int64  `json:"id,omitempty"`
 		Name string `json:"name,omitempty"`
 	} `json:"rtd_location,omitempty"`
 	Image      string `json:"image,omitempty"`
 	AssignedTo struct {
-		ID        int    `json:"id,omitempty"`
+		ID        int64  `json:"id,omitempty"`
 		Username  string `json:"username,omitempty"`
 		Name      string `json:"name,omitempty"`
 		Firstname string `json:"first_name,omitempty"`
@@ -267,7 +268,7 @@ type Hardware struct {
 	PurchaseDate     Timestamp     `json:"purchase_date,omitempty"`
 	LastCheckout     Timestamp     `json:"last_checkout,omitempty"`
 	ExpectedCheckin  Timestamp     `json:"expected_checkin,omitempty"`
-	PurchaseCost     int           `json:"purchase_cost,omitempty"`
+	PurchaseCost     int64         `json:"purchase_cost,omitempty"`
 	UserCanCheckout  bool          `json:"user_can_checkout,omitempty"`
 	CustomFields     []interface{} `json:"custom_fields,omitempty"`
 	AvailableActions struct {
@@ -295,7 +296,7 @@ func (c *Client) Hardware(opt *HardwareOptions) ([]*Hardware, *http.Response, er
 	}
 
 	var response struct {
-		Total int
+		Total int64
 		Rows  []*Hardware
 	}
 	resp, err := c.Do(req, &response)

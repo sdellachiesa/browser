@@ -46,7 +46,7 @@ func TestLocations(t *testing.T) {
 }
 
 func TestLocation(t *testing.T) {
-	mux.HandleFunc("/location/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/locations/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
 		testHeaders(t, r)
 		fmt.Fprint(w, `{"id": 1, "name": "Test"}`)
