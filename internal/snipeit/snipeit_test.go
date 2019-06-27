@@ -45,6 +45,24 @@ func TestLocations(t *testing.T) {
 	}
 }
 
+func TestLocation(t *testing.T) {
+	mux.HandleFunc("/location/", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		testHeaders(t, r)
+		fmt.Fprint(w, `{"id": 1, "name": "Test"}`)
+	})
+
+	location, _, err := testClient.Location(1)
+	if err != nil {
+		t.Errorf("Location returned error: %v", err)
+	}
+
+	var want = &Location{ID: 1, Name: "Test"}
+	if !reflect.DeepEqual(location, want) {
+		t.Errorf("Location returned %v, want %+v", location, want)
+	}
+}
+
 func TestHardware(t *testing.T) {
 	mux.HandleFunc("/hardware", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)

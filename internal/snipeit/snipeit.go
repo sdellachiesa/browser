@@ -7,6 +7,8 @@ package snipeit
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -28,6 +30,13 @@ type Client struct {
 // NewClient returns a new Snipe-IT API client with provided base URL.
 // If base URL does not have a trailing slash, one is added automatically.
 func NewClient(baseURL, token string) (*Client, error) {
+	if baseURL == "" {
+		return nil, errors.New("a baseURL must be provided")
+	}
+	if token == "" {
+		return nil, errors.New("a token must be provided")
+	}
+
 	baseEndpoint, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -126,31 +135,34 @@ type LocationOptions struct {
 
 // Location represents a Snipe-IT location.
 type Location struct {
-	ID             int        `json:"id,omitempty"`
-	Name           string     `json:"name,omitempty"`
-	Image          string     `json:"image,omitempty"`
-	Address        string     `json:"address,omitempty"`
-	Address2       string     `json:"address2,omitempty"`
-	City           string     `json:"city,omitempty"`
-	State          string     `json:"state,omitempty"`
-	Country        string     `json:"country,omitempty"`
-	Zip            string     `json:"zip,omitempty"`
-	AssetsAssigned int        `json:"assigned_assets_count,omitempty"`
-	Assets         int        `json:"assets_count,omitempty"`
-	Users          int        `json:"users_count,omitempty"`
-	Currency       string     `json:"currency,omitempty"`
-	CreatedAt      Timestamp  `json:"created_at,omitempty"`
-	UpdatedAt      Timestamp  `json:"updated_at,omitempty"`
-	Parent         string     `json:"parent,omitempty"`
-	Manager        string     `json:"manager,omitempty"`
-	Children       []Location `json:"children,omitempty"`
-	Actions        struct {
+	ID             int       `json:"id,omitempty"`
+	Name           string    `json:"name,omitempty"`
+	Image          string    `json:"image,omitempty"`
+	Address        string    `json:"address,omitempty"`
+	Address2       string    `json:"address2,omitempty"`
+	City           string    `json:"city,omitempty"`
+	State          string    `json:"state,omitempty"`
+	Country        string    `json:"country,omitempty"`
+	Zip            string    `json:"zip,omitempty"`
+	AssetsAssigned int       `json:"assigned_assets_count,omitempty"`
+	Assets         int       `json:"assets_count,omitempty"`
+	Users          int       `json:"users_count,omitempty"`
+	Currency       string    `json:"currency,omitempty"`
+	CreatedAt      Timestamp `json:"created_at,omitempty"`
+	UpdatedAt      Timestamp `json:"updated_at,omitempty"`
+	Parent         struct {
+		ID   int    `json:"id,omitempty"`
+		Name string `json:"name,omitempty"`
+	} `json:"parent,omitempty"`
+	Manager  string     `json:"manager,omitempty"`
+	Children []Location `json:"children,omitempty"`
+	Actions  struct {
 		Update bool
 		Delete bool
 	} `json:"available_actions,omitempty"`
 }
 
-// List locations
+// Locations lists all locations.
 //
 // Snipe-IT API doc: https://snipe-it.readme.io/reference#locations
 func (c *Client) Locations(opt *LocationOptions) ([]*Location, *http.Response, error) {
@@ -174,6 +186,25 @@ func (c *Client) Locations(opt *LocationOptions) ([]*Location, *http.Response, e
 	}
 
 	return response.Rows, resp, nil
+}
+
+// Location by ID.
+//
+// Snipe-IT API doc: https://snipe-it.readme.io/reference#locations-1
+func (c *Client) Location(id int) (*Location, *http.Response, error) {
+	u := fmt.Sprintf("location/%d", id)
+	req, err := c.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var l *Location
+	resp, err := c.Do(req, &l)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return l, resp, nil
 }
 
 // HardwareOptions specifies a subset of optional query
