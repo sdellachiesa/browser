@@ -1,7 +1,7 @@
-// Package snipeit provides a client for using the Snipe-IT API.
+// Copyright 2019 Eurac Research. All rights reserved.
 //
-// The aim of the client is to implement only a subset of Snipe-IT API
-// needed for the LTER project. Not more not less.
+// Package snipeit provides a client for communicating with the
+// Snipe-IT API and defines Snipe-IT specific data types.
 package snipeit
 
 import (
@@ -52,6 +52,7 @@ func NewClient(baseURL, token string) (*Client, error) {
 	return c, nil
 }
 
+// NewRequest
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
 	u, err := c.BaseURL.Parse(strings.TrimPrefix(urlStr, "/"))
 	if err != nil {
@@ -104,9 +105,9 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	return resp, err
 }
 
-// addOptions adds the parameters in opt as URL query parameters to s. opt
+// AddOptions adds the parameters in opt as URL query parameters to s. opt
 // must be a struct whose fields may contain "url" tags.
-func addOptions(s string, opt interface{}) (string, error) {
+func (c *Client) AddOptions(s string, opt interface{}) (string, error) {
 	v := reflect.ValueOf(opt)
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		return s, nil
@@ -166,7 +167,7 @@ type Location struct {
 //
 // Snipe-IT API doc: https://snipe-it.readme.io/reference#locations
 func (c *Client) Locations(opt *LocationOptions) ([]*Location, *http.Response, error) {
-	u, err := addOptions("locations", opt)
+	u, err := c.AddOptions("locations", opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -281,11 +282,11 @@ type Hardware struct {
 	} `json:"available_actions,omitempty"`
 }
 
-// List Hardware
+// Hardware lists all Hardware.
 //
 // https://snipe-it.readme.io/reference#hardware-list
 func (c *Client) Hardware(opt *HardwareOptions) ([]*Hardware, *http.Response, error) {
-	u, err := addOptions("hardware", opt)
+	u, err := c.AddOptions("hardware", opt)
 	if err != nil {
 		return nil, nil, err
 	}

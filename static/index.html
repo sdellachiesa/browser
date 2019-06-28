@@ -9,9 +9,8 @@
 		<!-- Bootstrap -->
 		<link rel="stylesheet" href="/bootstrap.min.css">
 		<link rel="stylesheet" href="/bootstrap-datepicker3.min.css">
+		<link rel="stylesheet" href="/bootstrap-select.min.css">
 		<link rel="stylesheet" href="/ion.rangeSlider.min.css">
-		<link rel="stylesheet" href="/selectize.bootstrap3.css">
-
 		<link rel="stylesheet" href="/leaflet.css">
 
 		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -19,36 +18,45 @@
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="/bootstrap.min.js"></script>
 		<script src="/bootstrap-datepicker.min.js"></script>
+		<script src="/bootstrap-select.min.js"></script>
 		<script src="/ion.rangeSlider.min.js"></script>
-		<script src="/selectize.min.js"></script>
 		<script src="/leaflet.js"></script>
 		<script src="/script.js"></script>
 		<script>
 		$(document).ready(function() {
 			browser({
 				'stationEl':	'#stations',
-				'fieldEl': '#fields',
-				'landuseEl': '#landuse',
-				'altitudeEl': '#altitude',
-				'dateEl': '#datepicker',
-				'sDateEl': '#startDate',
-				'eDateEl': '#endDate',
-				'metaEl': '#metadata',
-				'submitEl': '#submit',
-				'mapEl': 'map',
+				'fieldEl': 		'#fields',
+				'landuseEl': 	'#landuse',
+				'altitudeEl': 	'#altitude',
+				'dateEl': 		'#datepicker',
+				'sDateEl': 		'#startDate',
+				'eDateEl': 		'#endDate',
+				'submitEl': 	'#submit',
+				'mapEl': 		'map',
 			});
 		});
 		</script>
 		<style>
+			html, body {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+			}
 			body {
-				margin: 0:
+				margin: 0;
 				padding: 0;
 				color: #000000;
 				font: Arial, sans-serif;
 				font-size: small;
 			}
-			html, body {
+			#content {
+				display: flex;
+				flex-flow: column;
 				height: 100%;
+			}
+			.brd {
+				border: 1px solid #cccccc;
 			}
 			.brd-top {
 				border-top: 1px solid #cccccc;
@@ -64,97 +72,114 @@
 			}
 			.navbar-text {
 					color: rgba(0,0,0,.54);
-			}
+			}	
 			.text {
 				font-size: 1.2em;
-      				line-height: 1.4;
+				line-height: 1.2;
+			}
+			.dropdown-menu {
+				font-size: 11px;
+			}	
+			.row {
+				margin-bottom: 20px;
+			}
+			a {
+				color: #000; 
+			}
+			.headline {
+				font-size: 1.6em;
+				line-height: 1.6;
+			}
+			.headline > a {	
+				text-decoration: underline;
+			}
+			.fill {
+				flex-grow : 1;
+			}
+			#map {
+				z-index: 1;
 			}
 		</style>
 
- 	</head>
- 	<body>
+	</head>
+	<body>
+	
+	<div id="content">
 
- 	<nav class="navbar">
-  		<div class="container-fluid" style="border-bottom: 1px solid #cccccc;">
-    			<div class="navbar-header">
-     				<h4 class="navbar-text">Data Browser</h4>
-    			</div>
+	<nav class="navbar">
+		<div class="container-fluid" style="border-bottom: 1px solid #cccccc;">
+				<div class="navbar-header">
+					<h4 class="navbar-text">Data Browser</h4>
+				</div>
 
-    			 <ul class="nav navbar-nav navbar-right">
-    			 	<li class="dropdown">
-    			 	<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login with <span class="caret"></span></a>
-    			 	<ul class="dropdown-menu">
-    			 		<li><a href="/login/sns">ScientificNET</a></li>
-    			 	</ul>
-    			 	</li>
-    			 </ul>
-  		</div>
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login with <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="/login/sns">ScientificNET</a></li>
+						</ul>
+					</li>
+				</ul>
+		</div>
 	</nav>
 
-	<div class="container-fluid">
+	<div class="container">
 		<div class="row">
-			<div class="col-md-3 text">
-			<!-- left side begin -->
-			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut in convallis arcu. Etiam ac pharetra tellus. Quisque aliquam, dolor in semper laoreet, tellus mi convallis leo, vel fermentum lorem quam ut felis. Morbi cursus quam vel purus fringilla, sit amet suscipit urna bibendum. Pellentesque aliquet finibus diam quis luctus. Nunc at lorem in ex congue varius. Donec id nisi sit amet dui pulvinar placerat. Vivamus in convallis enim, eget aliquet elit. Nullam dignissim, augue posuere tempus mollis, urna felis gravida risus, nec varius justo nulla non ante. Donec nulla tortor, placerat vel venenatis eu, blandit sit amet augue. Sed magna purus, bibendum congue nibh hendrerit, venenatis aliquam libero. Aliquam eu condimentum enim.</p>
-
-<p>Maecenas id semper purus, a pharetra erat. Etiam nec malesuada est. Integer non nunc vitae orci dictum mattis id ac sapien. Suspendisse potenti. Praesent iaculis enim non mi vehicula bibendum nec vel nunc. Vivamus eu neque sed lorem malesuada luctus. Cras non ex vitae metus hendrerit auctor. Integer enim metus, varius et vehicula ornare, dignissim et enim. Fusce ut odio quis velit porttitor gravida. Phasellus in orci elit.</p>
-
-<p>Cras ipsum ante, luctus id varius ac, ultrices nec nisi. Suspendisse ut malesuada eros. Aliquam tincidunt eget diam a rutrum. Maecenas ultrices augue sed nibh fringilla gravida. Sed et posuere mauris, ac blandit arcu. In hac habitasse platea dictumst. Morbi id bibendum libero, sit amet varius quam. Aliquam feugiat elementum purus, et aliquet elit lobortis vel. Integer et orci at ipsum accumsan luctus sagittis vitae quam. Nullam euismod vel felis id pellentesque. Nullam rhoncus efficitur ante lobortis maximus. Pellentesque vestibulum nulla vel nulla porta, quis fringilla nisl rhoncus.</p>
-
-
-
-			<!-- left side end -->
-			</div>
-
-			<div class="col-md-3">
-			<!-- middle side begin -->
-				<form id="filters" name="filter">
-	  				<div class="form-group">
-	    					<label for="stations">Select station:</label>
-	    					<select multiple class="form-control" id="stations" name="stations"></select>
-	  				</div>
-
-	  				<div class="form-group">
-	    					<label for="fields">Select measurement:</label>
-	    					<select multiple class="form-control" id="fields" name="fields"></select>
-	  				</div>
-
-	  				<div class="form-group">
-	    					<label for="landuse">Select land use:</label>
-	    					<select multiple class="form-control" id="landuse" name="landuse"></select>
-	  				</div>
-
-	  				<div class="form-group">
-	    					<label for="dateRange">Pick a date range:</label>
-	    					<div class="input-daterange input-group" id="datepicker">
-	    						<input type="text" class="input-sm form-control" name="startDate" id="startDate" autocomplete="off">
-	    						<span class="input-group-addon">to</span>
-	    						<input type="text" class="input-sm form-control" name="endDate"  id="endDate" autocomplete="off">
-						</div>
-	  				</div>
-
-	  				<div class="form-group">
-	    					<label for="altitude">Select altitude range[m]:</label>
-	    					<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
-	  				</div>
-
-					<div class="checkbox">
-    						<label>
-      							<input type="checkbox" id="metadata"> <b>Additional Metadata</b>
-    						</label>
-  					</div>
-				</form>
-				<br>
-				<button type="submit" class="btn btn-primary" id="submit">Query</button>
-
-			<!-- middle side end -->
-			</div>
-			<div class="col-md-6">
-				<div id="map" style="height: 80vh"></div>
-			</div>
-
+				<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal/Val di Mazia</a>. 
+				To download data <mark>select at least one station and one measurement</mark>.
+				</p>
 		</div>
+		<form method="POST" action="/api/v1/series/" target="_blank"  id="filters" name="filter">
+		<div class="row">
+			<div class="col-md-2">
+				<div class="form-group">
+					<label for="fields">Select measurement:</label>
+					<select multiple class="selectpicker form-control" data-selected-text-format="count > 3" id="fields" name="fields" data-live-search="true"></select>
+				</div>
+			</div>
+			<div class="col-md-2">
+				<div class="form-group">
+					<label for="stations">Select station:</label>
+					<select multiple class="selectpicker form-control" data-selected-text-format="count > 3" id="stations" name="stations" data-live-search="true"></select>
+				</div>
+			</div>
+			<div class="col-md-2">
+				<div class="form-group">
+					<label for="landuse">Select land use:</label>
+					<select multiple class="selectpicker form-control" data-selected-text-format="count > 3" id="landuse" name="landuse" data-live-search="true"></select>
+			</div>
+			</div>
+			<div class="col-md-3">
+				<div class="form-group">
+					<label for="dateRange">Pick a date range:</label>
+					<div class="input-daterange input-group" id="datepicker">
+						<input type="text" class="input-sm form-control" name="startDate" id="startDate" autocomplete="off">
+						<span class="input-group-addon">to</span>
+						<input type="text" class="input-sm form-control" name="endDate"  id="endDate" autocomplete="off">
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3">
+				<div class="form-group">
+					<label for="altitude">Select altitude range[m]:</label>
+					<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<p>
+					<button disabled placeholder="Please select at least one measurement and station..."  type="submit" class="btn btn-primary " id="submit">Download</button> <br>	
+				</p>
+				<p>
+					<br><b>Disclaimer:</b> Meteorologial data downloaded form this app comes with no warranty and has not been validated by the data provider nor by the authors of the app.
+				</p>
+			</div>
+		</div>
+	</form>
+	</div>
 
+	<div id="map" class="fill"></div>
 	</div>
 
 	</body>

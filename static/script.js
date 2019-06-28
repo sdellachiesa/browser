@@ -17,8 +17,61 @@ function error(err) {
 	alert(err)
 }
 
+// FormatDate formats the given date to yyyy-mm-dd.
+function FormatDate(date) {
+	return date.toISOString().slice(0, 10)
+}
 
+// SetDefaultDate sets the give dat value on the given
+// element.
+function SetDefaultDate(el, date) {
+	$(el).val(FormatDate(date))
+	$(el).datepicker().on("hide", function() {
+		if ($(this).val() != "") {
+			return
+		}
+		$(this).val(FormatDate(date))
+	});
+}
 
+// Landuse maps the landuse key to its full description.
+function Landuse(key) {
+	switch(key) {
+		case "pa":
+			return "Pasture"
+		case "me":
+			return "Meadow"
+		case "fo":
+			return "Climate station in the forest"
+		case "sf":
+			return "SapFlow"
+		case "de":
+			return "Dendrometer"
+		case "ro":
+			return "Rock"
+		case "bs":
+			return "Bare soil"
+	}
+}
+
+// Download enables the download botton if at least one
+// station and one measurement was selected.
+function Download(stationEl, fieldEl, submitEl) {
+	if ($(stationEl).val() == null) {
+		$(submitEl).attr("disabled", "disabled");
+		return
+	}
+
+	if ($(fieldEl).val() == null) {
+		$(submitEl).attr("disabled", "disabled");
+		return
+	}
+
+	$(submitEl).removeAttr("disabled");
+}
+
+// browser sets up the client for filtering and
+// downloading data.
 // opts is an object with these keys
 //	stationEl - stations select element
 //	fieldEl - fields select element
@@ -31,178 +84,28 @@ function error(err) {
 //	submitEl - submit button element
 //	mapEl - map element
 function browser(opts) {
-	var landuse = [
-		{key: "pa", name: "Pasture"},
-		{key: "me", name: "Meadow"},
-		{key: "fo", name: "Climate station in the forest"},
-		{key: "sf", name: "SapFlow"},
-		{key: "de", name: "Dendrometer"},
-		{key: "ro", name: "Rock"},
-		{key: "bs", name: "Bare soil"}
-	]
+	$.fn.selectpicker.Constructor.DEFAULTS.styleBase = "btn-sm";
 
 	$(opts.dateEl).datepicker({
 		todayHighlight: true,
+		endDate: new Date(),
 		format: 'yyyy-mm-dd',
 	});
 
+	var endDate = new Date()
+	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6))
+	SetDefaultDate(opts.sDateEl, startDate)
+	SetDefaultDate(opts.eDateEl, endDate)
+
 	$(".js-range-slider").ionRangeSlider({
 		skin: "round",
-      	  	type: "double",
-       	 	min: 900,
-        		max: 2500,
+		type: "double",
+		min: 900,
+		max: 2500,
 		grid: true
- 	});
+	 });
 
-	var $elSelectStation = $(opts.stationEl).selectize({
-		plugins: ['remove_button'],
-    		delimiter: ',',
-    		persist: false,
-    		valueField: 'name',
-    		labelField: 'name',
-		searchField: 'name',
-		create: false,
-		onInitialize: function() {
-			$.ajax("/_api", {
-				method: "POST",
-				data:  {
-					method: "stations"
-				},
-				dataType: "json",
-				success: function(data) {
-					$elSelectStation[0].selectize.clearOptions();
-					$elSelectStation[0].selectize.addOption(data);
-				},
-				error: errorHandler(error)
-			});
-		}
-    	});
-
-	var $elSelectLanduse = $(opts.landuseEl).selectize({
-		plugins: ['remove_button'],
-    		persist: false,
-		create: false,
-		valueField: 'key',
-    		labelField: 'name',
-		searchField: 'name',
-		options: landuse
-    	});
-
-	var $elSelectFields = $(opts.fieldEl).selectize({
-		plugins: ['remove_button'],
-    		delimiter: ',',
-    		persist: false,
-		create: false,
-		valueField: 'name',
-    		labelField: 'name',
-		searchField: 'name',
-		onInitialize: function() {
-			$.ajax("/_api", {
-				method: "POST",
-				data:  {
-					method: "fields"
-				},
-				dataType: "json",
-				success: function(data) {
-					var fields = []
-					data.forEach(function(v, i) {
-						v.values.forEach(function(f, k){
-							fields.push({name: f[0]})
-						});
-					});
-
-					$elSelectFields[0].selectize.clearOptions();
-					$elSelectFields[0].selectize.addOption(fields);
-				},
-				error: errorHandler(error)
-			});
-		}
-    	});
-
-	$(opts.stationEl).change(function() {
-		console.log("stations change")
-		$.ajax("/_api", {
-				method: "POST",
-				data:  {
-					method: "fields",
-					stations: $elSelectStation[0].selectize.getValue().join(",")
-				},
-				dataType: "json",
-				success: function(data) {
-					console.log(data)
-					var fields = []
-					data.forEach(function(v, i) {
-						v.values.forEach(function(f, k){
-							fields.push({name: f[0]})
-						});
-					});
-				///	var control = $elSelectFields[0].selectize
-
-					//control.getValue().forEach(function(item, index) {
-				//		console.log($.grep(fields, function(obj) { return obj.name == item }))
-				//	});
-
-					$elSelectFields[0].selectize.addOption(fields);
-				},
-				error: errorHandler(error)
-			});
-	});
-
-	$(opts.fieldEl).change(function() {
-		console.log("field change")
-		$.ajax("/_api", {
-				method: "POST",
-				data:  {
-					method: "stations",
-					fields: $elSelectFields[0].selectize.getValue().join(",")
-				},
-				dataType: "json",
-				success: function(data) {
-					//$elSelectStation[0].selectize.clearOptions();
-					$elSelectStation[0].selectize.addOption(data);
-				},
-				error: errorHandler(error)
-			});
-	});
-
-
-	$(opts.submitEl).click(function() {
-		$.ajax("/_api", {
-			method: "POST",
-			data: {
-				method: "series",
-				stations: $elSelectStation[0].selectize.getValue().join(","),
-				landuse: $elSelectLanduse[0].selectize.getValue().join(","),
-				fields: $elSelectFields[0].selectize.getValue().join(","),
-				start: $(opts.sDateEl).val(),
-				end: $(opts.eDateEl).val(),
-				altitude: $(opts.altitudeEl).val()
-			},
-			dataType: "json",
-			success: function(data) {
-				var dataSet = []
-				var header = []
-				data.forEach(function(item, index) {
-					item.columns.forEach(function(col, i) {
-						header.push({title: col})
-					});
-					item.values.forEach(function(val, i) {
-						dataSet.push(val)
-					});
-				});
-
-			//	$('#tbl").destroy();
-				$("#tbl").DataTable({
-					data: dataSet,
-					columns: header
-				})
-			//	table(data)
-			},
-			error: errorHandler(error)
-		});
-	});
-
-	// initalize map
+	 // Initalize map.
 	var map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
 	L.control.scale({position: "bottomright"}).addTo(map);
 	L.control.zoom({position: "bottomright"}).addTo(map);
@@ -210,10 +113,165 @@ function browser(opts) {
 		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
 	}).addTo(map);
 	
+	// initialize station,landuse and map points.
+	$.ajax("/api/v1/stations/", {
+		method: "POST",
+		dataType: "json",
+		success: function(data) {
+			var mapBound = [];
+			
+			Object.keys(data).map(function(objectKey, index) {
+				var v = data[objectKey];
+			
+				// station dropdown
+				AddOption(opts.stationEl, v.Name, v.Name);
 
-	map.on("click", function(e) {
-		console.log(map.getZoom());
-		console.log(map.getCenter());
+				// landuse dropdown
+				AddOption(opts.landuseEl, v.Landuse, Landuse(v.Landuse));
+
+				var marker = L.marker([v.Latitude, v.Longitude]).addTo(map);
+				marker.bindPopup(`<div id="${v.Name}mappopup">
+				<p>
+				<b>Name:</b>  ${v.Name}<br>
+				<b>Altitude:</b> ${v.Altitude} m
+				</p>
+				</div>`);
+				mapBound.push(new L.latLng(v.Latitude, v.Longitude));
+			});
+			
+			map.fitBounds(mapBound);
+		},
+		error: errorHandler(error)
 	});
 
+	// initialize fields
+	$.ajax("/api/v1/fields/", {
+		method: "POST",
+		dataType: "json",
+		success: function(data) {
+			
+			data.forEach(function(item) {
+				// field dropdown
+				AddOption(opts.fieldEl, item, item);
+			});
+		},
+		error: errorHandler(error)
+	});
+
+	// Handle field update event: update stations and landuse.
+	$(opts.fieldEl).on('changed.bs.select', function(){
+		$.ajax("/api/v1/stations/", {
+			method: "POST",
+			data: JSON.stringify({
+				fields: $(opts.fieldEl).val(),
+			}),
+			dataType: "json",
+			success: function(data) {
+				var selStations = $(opts.stationEl).val();
+				var selLanduse = $(opts.landuseEl).val();
+
+				$(opts.stationEl).find('option').remove();
+				$(opts.landuseEl).find('option').remove();
+				
+				Object.keys(data).map(function(objectKey, index) {
+					var v = data[objectKey];
+					
+					AddOption(opts.stationEl, v.Name, v.Name, selStations);
+					AddOption(opts.landuse, v.Landuse, Landuse(v.Landuse), selLanduse);
+				});
+			},
+			error: errorHandler(error)
+		});
+		Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+	});
+
+	// Handle station update event: update fields and landuse.
+	$(opts.stationEl).on('changed.bs.select', function(){
+		// update fields
+		$.ajax("/api/v1/fields/", {
+			method: "POST",
+			data: JSON.stringify({
+				stations: $(opts.stationEl).val(),
+			}),
+			dataType: "json",
+			success: function(data) {
+				var selFields = $(opts.fieldEl).val();
+				$(opts.fieldEl).find('option').remove();
+				data.forEach(function(item){
+					AddOption(opts.fieldEl, item, item, selFields);
+				});
+				
+			},
+			error: errorHandler(error)
+		});
+
+		// update landuse
+		$.ajax("/api/v1/stations/", {
+			method: "POST",
+			data: JSON.stringify({
+				stations: $(opts.stationEl).val(),
+			}),
+			dataType: "json",
+			success: function(data) {
+				var selLanduse = $(opts.landuseEl).val();
+				$(opts.landuseEl).find('option').remove();
+				Object.keys(data).map(function(objectKey, index) {
+					var v = data[objectKey];
+					AddOption(opts.landuseEl, v.Landuse, Landuse(v.Landuse), selLanduse);
+				});
+			},
+			error: errorHandler(error)
+		});
+		Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+	});
+
+	// Handle landuse update event: update fields and stations.
+	$(opts.landuseEl).on('changed.bs.select', function(){
+		$.ajax("/api/v1/stations/", {
+			method: "POST",
+			data: JSON.stringify({
+				landuse: $(opts.landuseEl).val(),
+			}),
+			dataType: "json",
+			success: function(data) {
+				var selStations = $(opts.stationEl).val();
+				var selFields = $(opts.fieldEl).val();
+				
+				$(opts.fieldEl).find('option').remove();
+				$(opts.stationEl).find('option').remove();
+
+				Object.keys(data).map(function(objectKey, index) {
+					var v = data[objectKey];
+
+					v.Measurements.forEach(function(item) {
+						AddOption(opts.fieldEl, item, item, selFields);
+					});
+
+					AddOption(opts.stationEl, v.Name, v.Name, selStations);
+				});
+			},
+			error: errorHandler(error)
+		});
+		Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+	});
+
+}
+
+// AddOption adds an option html item to the given element.
+function AddOption(el, value, text, currentSelected) {
+	// If option already exists do not add it.
+	if ($(el +" option[value='"+value+"']").length > 0) {
+		return
+	}
+
+	var selected = "";
+	if (currentSelected != null && currentSelected.includes(value)) {
+		$(el).append('<option value="'+value+'" selected>'+text+'</option>');
+		$(el).selectpicker('refresh');
+		return
+	}
+
+	$(el).append('<option value="'+value+'">'+text+'</option>');
+	$(el).selectpicker('refresh');
+	return
 }

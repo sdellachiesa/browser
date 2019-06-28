@@ -1,3 +1,4 @@
+// Copyright 2019 Eurac Research. All rights reserved.
 package main
 
 import (
@@ -5,17 +6,16 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
+	"gitlab.inf.unibz.it/lter/browser"
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
-	"gitlab.inf.unibz.it/lter/browser/internal/lter"
-	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
+	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 
-	"github.com/peterbourgon/ff"
+	client "github.com/influxdata/influxdb1-client/v2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
 
-	client "github.com/influxdata/influxdb1-client/v2"
+	"github.com/peterbourgon/ff"
 )
 
 const defaultAddr = "localhost:8888" // default webserver address
@@ -29,13 +29,13 @@ func main() {
 		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
 		influxUser     = fs.String("influx-username", "", "Influx username")
 		influxPass     = fs.String("influx-password", "", "Influx password")
-		influxDatabase = fs.String("influx-database", "lter", "Influx database name")
-		snipeitAddr    = fs.String("snipeit-addr", "", "SnipeIT API URL")
-		snipeitToken   = fs.String("snipeit-token", "", "SnipeIT API Token")
-		oauthClientID  = fs.String("oauth-clientid", "", "")
-		oauthSecret    = fs.String("oauth-secret", "", "")
-		oauthRedirect  = fs.String("oauth-redirect", "", "")
-		_              = fs.String("config", "", "Config file (optional)")
+		influxDatabase = fs.String("influx-database", "lter_dqc", "Influx database name")
+		//snipeitAddr    = fs.String("snipeit-addr", "", "SnipeIT API URL")
+		//snipeitToken   = fs.String("snipeit-token", "", "SnipeIT API Token")
+		oauthClientID = fs.String("oauth-clientid", "", "")
+		oauthSecret   = fs.String("oauth-secret", "", "")
+		oauthRedirect = fs.String("oauth-redirect", "", "")
+		_             = fs.String("config", "", "Config file (optional)")
 	)
 
 	ff.Parse(fs, os.Args[1:],
@@ -45,25 +45,13 @@ func main() {
 	)
 
 	// InfluxDB client
-	ic, err := client.NewHTTPClient(client.HTTPConfig{
+	ic, err := influx.New(client.HTTPConfig{
 		Addr:     *influxAddr,
 		Username: *influxUser,
 		Password: *influxPass,
-	})
+	}, *influxDatabase)
 	if err != nil {
 		log.Fatalf("influx: could not create client: %v\n", err)
-	}
-	defer ic.Close()
-
-	_, _, err = ic.Ping(10 * time.Second)
-	if err != nil {
-		log.Fatalf("influx: error connecting to influx server: %v\n", err)
-	}
-
-	// SnipeIT API client
-	sc, err := snipeit.NewClient(*snipeitAddr, *snipeitToken)
-	if err != nil {
-		log.Fatalf("snipeIT: could not create client: %v\n", err)
 	}
 
 	// ScientifcNET OAuth2
@@ -75,11 +63,8 @@ func main() {
 		RedirectURL:  *oauthRedirect,
 	}
 
-	s := auth.Handler(lter.NewServer(&lter.Backend{
-		Influx:   ic,
-		SnipeIT:  sc,
-		Database: *influxDatabase,
-	}), oauthConfig)
+	ds := browser.NewDatastore(nil, ic)
+	s := auth.Handler(browser.NewServer(ds), oauthConfig)
 
 	log.Printf("Starting server on %s\n", *httpAddr)
 	log.Fatal(http.ListenAndServe(*httpAddr, s))
