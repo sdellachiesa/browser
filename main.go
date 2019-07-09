@@ -8,8 +8,11 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff"
+	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 	"gitlab.inf.unibz.it/lter/browser/static"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/microsoft"
 
 	client "github.com/influxdata/influxdb1-client/v2"
 )
@@ -28,10 +31,10 @@ func main() {
 		influxDatabase = fs.String("influx-database", "lter", "Influx database name")
 		snipeitAddr    = fs.String("snipeit-addr", "", "SnipeIT API URL")
 		snipeitToken   = fs.String("snipeit-token", "", "SnipeIT API Token")
-		//oauthClientID  = fs.String("oauth-clientid", "", "")
-		//oauthSecret   = fs.String("oauth-secret", "", "")
-		//oauthRedirect = fs.String("oauth-redirect", "", "")
-		_ = fs.String("config", "", "Config file (optional)")
+		oauthClientID  = fs.String("oauth-clientid", "", "")
+		oauthSecret    = fs.String("oauth-secret", "", "")
+		oauthRedirect  = fs.String("oauth-redirect", "", "")
+		_              = fs.String("config", "", "Config file (optional)")
 	)
 
 	ff.Parse(fs, os.Args[1:],
@@ -62,13 +65,22 @@ func main() {
 		log.Fatalf("snipeIT: could not create client: %v\n", err)
 	}
 
+	// ScientifcNET OAuth2
+	oauthConfig := &oauth2.Config{
+		ClientID:     *oauthClientID,
+		ClientSecret: *oauthSecret,
+		Scopes:       []string{"https://graph.microsoft.com/.default"},
+		Endpoint:     microsoft.AzureADEndpoint("scientificnet.onmicrosoft.com"),
+		RedirectURL:  *oauthRedirect,
+	}
+
 	m := http.NewServeMux()
 	m.Handle("/", static.Handler())
-	m.Handle("/api/", NewAPIHandler(&Backend{
+	m.Handle("/api/", auth.Handler(NewAPIHandler(&Backend{
 		Influx:   ic,
 		SnipeIT:  sc,
 		Database: *influxDatabase,
-	}))
+	}), oauthConfig))
 
 	srv := &http.Server{
 		Addr:    *httpAddr,
