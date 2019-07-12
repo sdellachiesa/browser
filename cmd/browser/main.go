@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/peterbourgon/ff"
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
+	"gitlab.inf.unibz.it/lter/browser/internal/lter"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
-	"gitlab.inf.unibz.it/lter/browser/static"
+
+	"github.com/peterbourgon/ff"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
 
@@ -74,19 +75,12 @@ func main() {
 		RedirectURL:  *oauthRedirect,
 	}
 
-	m := http.NewServeMux()
-	m.Handle("/", static.Handler())
-	m.Handle("/api/", auth.Handler(NewAPIHandler(&Backend{
+	s := auth.Handler(lter.NewServer(&lter.Backend{
 		Influx:   ic,
 		SnipeIT:  sc,
 		Database: *influxDatabase,
-	}), oauthConfig))
-
-	srv := &http.Server{
-		Addr:    *httpAddr,
-		Handler: m,
-	}
+	}), oauthConfig)
 
 	log.Printf("Starting server on %s\n", *httpAddr)
-	log.Fatal(srv.ListenAndServe())
+	log.Fatal(http.ListenAndServe(*httpAddr, s))
 }
