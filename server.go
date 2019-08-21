@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"text/template"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/static"
@@ -24,13 +25,49 @@ func NewServer(b Backend) *Server {
 		mux: http.NewServeMux(),
 	}
 
-	s.mux.Handle("/", static.Handler())
+	s.mux.HandleFunc("/", s.handleIndex)
+	s.mux.Handle("/static/", static.Handler())
 
 	s.mux.HandleFunc("/api/v1/fields/", s.handleFields)
 	s.mux.HandleFunc("/api/v1/stations/", s.handleStations)
 	s.mux.HandleFunc("/api/v1/series/", s.handleSeries)
 
 	return s
+}
+
+func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	fields, err := s.db.Fields(&QueryOptions{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	stations, err := s.db.Stations(&QueryOptions{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := static.File("static/base.tmpl")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	t, err := template.New("base").Parse(tmpl)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = t.Execute(w, struct {
+		Fields   []string
+		Stations map[string]*Station
+	}{fields, stations})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *Server) handleStations(w http.ResponseWriter, r *http.Request) {
@@ -49,11 +86,6 @@ func (s *Server) handleStations(w http.ResponseWriter, r *http.Request) {
 		log.Printf("handleStations: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-	if len(opts.Fields) == 0 {
-		opts.Fields = []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"}
 	}
 
 	resp, err := s.db.Stations(opts)
@@ -89,12 +121,6 @@ func (s *Server) handleFields(w http.ResponseWriter, r *http.Request) {
 		log.Printf("handleFields: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-	if len(opts.Fields) == 0 {
-		log.Println("yess")
-		opts.Fields = []string{"^t_air$", "^air_t$", "^tair$", "^rh$", "^air_rh$", "^wind_dir$", "^mean_wind_direction$", "^wind_speed_avg$", "^mean_wind_speed$", "^wind_speed_max$"}
 	}
 
 	resp, err := s.db.Fields(opts)

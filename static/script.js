@@ -115,52 +115,53 @@ function browser(opts) {
 	}).addTo(map);
 	
 	// initialize station,landuse and map points.
-	$.ajax("/api/v1/stations/", {
-		method: "POST",
-		dataType: "json",
-		success: function(data) {
-			var mapBound = [];
-			console.log(data)
-			Object.keys(data).map(function(objectKey, index) {
-				var v = data[objectKey];
-			
-				// station dropdown
-				AddOption(opts.stationEl, v.Name, v.Name);
+	//$.ajax("/api/v1/stations/", {
+	//	method: "POST",
+	//	dataType: "json",
+	//	success: function(data) {
+	//		var mapBound = [];
+	//		console.log(data)
+	//		Object.keys(data).map(function(objectKey, index) {
+	//			var v = data[objectKey];
+	//		
+	//			// station dropdown
+	//			AddOption(opts.stationEl, v.Name, v.Name);
 
-				// landuse dropdown
-				AddOption(opts.landuseEl, v.Landuse, Landuse(v.Landuse));
+	//			// landuse dropdown
+	//			AddOption(opts.landuseEl, v.Landuse, Landuse(v.Landuse));
 
-				var marker = L.marker([v.Latitude, v.Longitude]).addTo(map);
-				marker.bindPopup(`<div id="${v.Name}mappopup">
-				<p>
-				<b>Name:</b>  ${v.Name}<br>
-				<b>Altitude:</b> ${v.Altitude} m
-				</p>
-				</div>`);
-				mapBound.push(new L.latLng(v.Latitude, v.Longitude));
-			});
-			
-			map.fitBounds(mapBound);
-		},
-		error: errorHandler(error)
-	});
+	//			var marker = L.marker([v.Latitude, v.Longitude]).addTo(map);
+	//			marker.bindPopup(`<div id="${v.Name}mappopup">
+	//			<p>
+	//			<b>Name:</b>  ${v.Name}<br>
+	//			<b>Altitude:</b> ${v.Altitude} m
+	//			</p>
+	//			</div>`);
+	//			mapBound.push(new L.latLng(v.Latitude, v.Longitude));
+	//		});
+	//		
+	//		map.fitBounds(mapBound);
+	//	},
+	//	error: errorHandler(error)
+	//});
 
 	// initialize fields
-	$.ajax("/api/v1/fields/", {
-		method: "POST",
-		dataType: "json",
-		success: function(data) {
+	//$.ajax("/api/v1/fields/", {
+	//	method: "POST",
+	//	dataType: "json",
+	//	success: function(data) {
 			
-			data.forEach(function(item) {
-				// field dropdown
-				AddOption(opts.fieldEl, item, item);
-			});
-		},
-		error: errorHandler(error)
-	});
+	//		data.forEach(function(item) {
+	//			// field dropdown
+	//			AddOption(opts.fieldEl, item, item);
+	//		});
+	///	},
+	//	error: errorHandler(error)
+	//});
 
 	// Handle field update event: update stations and landuse.
 	$(opts.fieldEl).on('changed.bs.select', function(){
+		console.log("field changed.")
 		$.ajax("/api/v1/stations/", {
 			method: "POST",
 			data: JSON.stringify({

@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -30,7 +29,7 @@ func File(name string) (string, error) {
 		return b, nil
 
 	}
-	b, err := ioutil.ReadFile(filepath.Join("static", name))
+	b, err := ioutil.ReadFile(name)
 	if err != nil {
 		return "", err
 	}
@@ -40,9 +39,9 @@ func File(name string) (string, error) {
 func Handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := r.URL.Path[1:]
-		if p == "" {
-			p = "index.html"
-		}
+		//if p == "" {
+		//	p = "index.html"
+		//}
 
 		b, err := File(p)
 		if err != nil {

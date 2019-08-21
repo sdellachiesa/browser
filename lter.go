@@ -62,3 +62,40 @@ GROUP BY station LIMIT 1`
 
 	return b.String(), nil
 }
+
+func (q *QueryOptions) QueryNew() (string, error) {
+	tmpl := `SHOW TAG VALUES
+FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }}
+{{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}
+GROUP BY station LIMIT 1`
+
+	funcMap := template.FuncMap{
+		"join": strings.Join,
+	}
+
+	where := []string{}
+	for _, s := range q.Stations {
+		where = append(where, fmt.Sprintf("station='%s'", s))
+	}
+	for _, l := range q.Landuse {
+		where = append(where, fmt.Sprintf("landuse='%s'", l))
+	}
+
+	t, err := template.New("query").Funcs(funcMap).Parse(tmpl)
+	if err != nil {
+		return "", fmt.Errorf("could not parse InfluxQL query template: %v ", err)
+	}
+
+	var b bytes.Buffer
+	if err := t.Execute(&b, struct {
+		Fields []string
+		Where  []string
+	}{
+		q.Fields,
+		where,
+	}); err != nil {
+		return "", fmt.Errorf("could not apply InfluxQL query data: %v ", err)
+	}
+
+	return b.String(), nil
+}

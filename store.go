@@ -17,6 +17,7 @@ type Backend interface {
 	Stations(*QueryOptions) (map[string]*Station, error)
 	Fields(*QueryOptions) ([]string, error)
 	Series(*QueryOptions) ([][]string, error)
+	Get(*QueryOptions) (map[string]*Station, error)
 }
 
 type Datastore struct {
@@ -26,6 +27,14 @@ type Datastore struct {
 
 func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 	return Datastore{sc, ic}
+}
+
+func (d Datastore) Get(opts *QueryOptions) (map[string]*Station, error) {
+	q := "SHOW TAG VALUES FROM"
+	if len(opts.Fields) > 0 {
+		q = fmt.Sprintf("%s ", q)
+	}
+	return nil, nil
 }
 
 func (d Datastore) Fields(opts *QueryOptions) ([]string, error) {
