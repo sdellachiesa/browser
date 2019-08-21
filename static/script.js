@@ -1,3 +1,4 @@
+// Copyright 2019 Eurac Research. All rights reserved.
 
 // errorHandler returns an XHR error callback that invokes the given
 // browser error callback with the human-readable error string.
@@ -119,7 +120,7 @@ function browser(opts) {
 		dataType: "json",
 		success: function(data) {
 			var mapBound = [];
-			
+			console.log(data)
 			Object.keys(data).map(function(objectKey, index) {
 				var v = data[objectKey];
 			

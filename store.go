@@ -31,11 +31,7 @@ func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 func (d Datastore) Fields(opts *QueryOptions) ([]string, error) {
 	q := "show measurements"
 
-	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-	// TODO: find a better way to filter for measurements. This has the problem that it will
-	// match also measurements which with the same name. e.g. air_t will match also something_air_t.
-	if len(opts.Fields) == 0 {
-		opts.Fields = []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"}
+	if len(opts.Fields) > 0 {
 		q = fmt.Sprintf("%s with measurement =~ /%s/", q, strings.Join(opts.Fields, "|"))
 	}
 
@@ -45,8 +41,10 @@ func (d Datastore) Fields(opts *QueryOptions) ([]string, error) {
 			w = append(w, fmt.Sprintf("station='%s'", s))
 		}
 		q = fmt.Sprintf("%s WHERE %s", q, strings.Join(w, " AND "))
-		log.Println(q)
 	}
+
+	log.Println(q)
+
 	result, err := d.influx.Result(q)
 	if err != nil {
 		return nil, err

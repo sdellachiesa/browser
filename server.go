@@ -56,8 +56,6 @@ func (s *Server) handleStations(w http.ResponseWriter, r *http.Request) {
 		opts.Fields = []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"}
 	}
 
-	log.Println(opts)
-
 	resp, err := s.db.Stations(opts)
 	if err != nil {
 		log.Printf("handleStations: %v\n", err)
@@ -91,6 +89,12 @@ func (s *Server) handleFields(w http.ResponseWriter, r *http.Request) {
 		log.Printf("handleFields: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
+	if len(opts.Fields) == 0 {
+		log.Println("yess")
+		opts.Fields = []string{"^t_air$", "^air_t$", "^tair$", "^rh$", "^air_rh$", "^wind_dir$", "^mean_wind_direction$", "^wind_speed_avg$", "^mean_wind_speed$", "^wind_speed_max$"}
 	}
 
 	resp, err := s.db.Fields(opts)
