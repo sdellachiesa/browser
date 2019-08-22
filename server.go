@@ -39,9 +39,9 @@ func NewServer(b Backend) *Server {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	// TODO Session ACL
+	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
 	opts := &QueryOptions{
-		Fields: []string{"rh"},
+		Fields: []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"},
 	}
 	resp, err := s.db.Get(opts)
 	if err != nil {
