@@ -1,5 +1,6 @@
 variables:
   CONTAINER_IMAGE: "gitlab.inf.unibz.it:4567/lter/browser"
+  DOCKER_TLS_CERTDIR: "" # See https://gitlab.com/gitlab-org/gitlab-runner/issues/4501
 
 stages:
   - build
@@ -22,17 +23,16 @@ stages:
 
 build:
   stage: build
-  image: docker:18.09.6
+  image: docker:19.03.1
   services:
     - docker:dind
   before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN https://gitlab.inf.unibz.it:4567
   script:
-    - echo ${CONTAINER_IMAGE}
-    - docker build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_SHA} .
+    - docker  build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_SHA} .
     - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
   only:
-   - tags
+   - tag
 
 #deploy_production:
 #  stage: deploy
