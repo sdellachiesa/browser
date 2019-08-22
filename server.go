@@ -27,6 +27,10 @@ func NewServer(b Backend) *Server {
 
 	s.mux.HandleFunc("/", s.handleIndex)
 	s.mux.Handle("/static/", static.Handler())
+	// TODO
+	s.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte{})
+	})
 
 	s.mux.HandleFunc("/api/v1/update", s.handleUpdate)
 	s.mux.HandleFunc("/api/v1/series/", s.handleSeries)
@@ -35,9 +39,26 @@ func NewServer(b Backend) *Server {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	resp, err := s.db.Get(&QueryOptions{})
+	// TODO Session ACL
+	opts := &QueryOptions{
+		Fields: []string{"rh"},
+	}
+	resp, err := s.db.Get(opts)
 	if err != nil {
-		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	d, err := s.db.Stations(resp.snipeitRef)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	mapdata, err := json.Marshal(d)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	tmpl, err := static.File("static/base.tmpl")
@@ -56,7 +77,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = t.Execute(w, resp)
+	err = t.Execute(w, struct {
+		MapData string
+		*Response
+	}{fmt.Sprintf("%s", mapdata), resp})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

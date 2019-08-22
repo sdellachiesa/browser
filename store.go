@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 
 // The Backend interface retrieves data and return a []byte.
 type Backend interface {
+	Stations(ids []int64) ([]*Station, error)
 	Get(*QueryOptions) (*Response, error)
 	Series(*QueryOptions) ([][]string, error)
 }
@@ -29,23 +32,22 @@ func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 	return Datastore{sc, ic}
 }
 
-type Response struct {
-	Fields   []string
-	Stations []string
-	Landuse  []string
-}
-
 func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
 	q, err := opts.Query()
 	if err != nil {
 		return nil, err
 	}
 
+	log.Println(q)
+
 	result, err := d.influx.Result(q)
 	if err != nil {
 		return nil, err
 	}
 
+	resp := &Response{
+		snipeitRef: []int64{},
+	}
 	fields := make(map[string]struct{})
 	stations := make(map[string]struct{})
 	landuse := make(map[string]struct{})
@@ -58,11 +60,12 @@ func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
 				stations[value] = struct{}{}
 			case "landuse":
 				landuse[value] = struct{}{}
+			case "snipeit_location_ref":
+				id, _ := strconv.ParseInt(value, 10, 64)
+				resp.snipeitRef = append(resp.snipeitRef, id)
 			}
 		}
 	}
-
-	resp := &Response{}
 
 	resp.Stations, err = Keys(stations)
 	if err != nil {
@@ -78,23 +81,6 @@ func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
 	}
 
 	return resp, nil
-}
-
-func Keys(v interface{}) ([]string, error) {
-	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Map {
-		return nil, errors.New("error not a map")
-	}
-	t := rv.Type()
-	if t.Key().Kind() != reflect.String {
-		return nil, errors.New("not string key")
-	}
-	var result []string
-	for _, kv := range rv.MapKeys() {
-		result = append(result, kv.String())
-	}
-	sort.Strings(result)
-	return result, nil
 }
 
 func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
@@ -169,4 +155,65 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 	}
 
 	return rows, nil
+}
+
+func (d Datastore) Stations(ids []int64) ([]*Station, error) {
+	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := d.snipeit.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Total int64
+		Rows  []*Station
+	}
+	_, err = d.snipeit.Do(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	stations := []*Station{}
+	for _, s := range response.Rows {
+		if inArray(s.ID, ids) {
+			stations = append(stations, s)
+		}
+	}
+
+	return stations, nil
+}
+
+func inArray(i int64, a []int64) bool {
+	if a == nil {
+		return false
+	}
+
+	for _, v := range a {
+		if v == i {
+			return true
+		}
+	}
+
+	return false
+}
+
+func Keys(v interface{}) ([]string, error) {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Map {
+		return nil, errors.New("error not a map")
+	}
+	t := rv.Type()
+	if t.Key().Kind() != reflect.String {
+		return nil, errors.New("not string key")
+	}
+	var result []string
+	for _, kv := range rv.MapKeys() {
+		result = append(result, kv.String())
+	}
+	sort.Strings(result)
+	return result, nil
 }

@@ -185,4 +185,33 @@ function browser(opts) {
 		max: 2500,
 		grid: true
 	 });
+
+	// Initalize map.
+	var map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
+	L.control.scale({position: "bottomright"}).addTo(map);
+	L.control.zoom({position: "bottomright"}).addTo(map);
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+	}).addTo(map);
+	
+	var mapBound = [];
+	opts.mapData.forEach(function(item) {
+		var marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
+		marker.bindPopup(`<div id="${item.Name}mappopup">
+		<p>
+		<b>Name:</b>  ${item.Name}<br>
+		<b>Altitude:</b> ${item.Altitude} m
+		</p>
+		</div>`);
+		mapBound.push(new L.latLng(item.Latitude, item.Longitude));
+	});	
+	map.fitBounds(mapBound);
+	//$.ajax("/api/v1/stations", {
+	//	method: "GET",
+	//	dataType: "json",
+	//	success: function(data) {
+	//		
+	//	},
+	//	error: errorHandler(error)
+	//});
 }

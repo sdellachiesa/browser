@@ -3,19 +3,47 @@ package browser
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"text/template"
+
+	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
 
 // Station defines metadata about a physical station.
 type Station struct {
-	Name         string
-	Landuse      string
-	Altitude     int64
-	Latitude     float64
-	Longitude    float64
-	Measurements []string
+	ID        int64
+	Name      string
+	Landuse   string
+	Altitude  int64
+	Latitude  float64
+	Longitude float64
+}
+
+func (s *Station) UnmarshalJSON(b []byte) error {
+	var l snipeit.Location
+	if err := json.Unmarshal(b, &l); err != nil {
+		return err
+	}
+
+	s.ID = l.ID
+	s.Name = l.Name
+	s.Landuse = l.Currency
+	s.Altitude, _ = strconv.ParseInt(l.Zip, 10, 64)
+	s.Latitude, _ = strconv.ParseFloat(l.Address, 64)
+	s.Longitude, _ = strconv.ParseFloat(l.Address2, 64)
+
+	return nil
+}
+
+type Response struct {
+	Fields   []string
+	Stations []string
+	Landuse  []string
+
+	snipeitRef []int64
 }
 
 type QueryOptions struct {
@@ -27,7 +55,7 @@ type QueryOptions struct {
 }
 
 func (q *QueryOptions) Query() (string, error) {
-	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("station", "landuse"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
+	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("station", "landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
 
 	funcMap := template.FuncMap{
 		"join": strings.Join,
