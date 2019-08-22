@@ -21,7 +21,9 @@ var files map[string]string
 // from an in-memory map or, if no map was generated, the contents of the file
 // from disk.
 func File(name string) (string, error) {
+
 	if files != nil {
+		name = strings.TrimPrefix(name, "static/")
 		b, ok := files[name]
 		if !ok {
 			return "", fmt.Errorf("file not found '%v'", name)
@@ -29,6 +31,7 @@ func File(name string) (string, error) {
 		return b, nil
 
 	}
+
 	b, err := ioutil.ReadFile(name)
 	if err != nil {
 		return "", err
