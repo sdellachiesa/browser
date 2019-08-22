@@ -71,6 +71,22 @@ function Download(stationEl, fieldEl, submitEl) {
 	$(submitEl).removeAttr("disabled");
 }
 
+// Option checks adds an option html item to the given element.
+function Option(el, data) {
+	$(el).children('option').map(function(){
+		if (data.includes(this.value)) {
+			//console.log("included: " + this.value)
+			$(this).prop('disabled', false);
+		} else {
+			//console.log("not included: " + this.value)
+			$(this).prop('disabled', true);
+			$(this).prop('selected', false);
+		}
+	});
+	
+	$(el).multiselect('refresh');
+}
+
 // browser sets up the client for filtering and
 // downloading data.
 // opts is an object with these keys
@@ -85,7 +101,71 @@ function Download(stationEl, fieldEl, submitEl) {
 //	submitEl - submit button element
 //	mapEl - map element
 function browser(opts) {
-	$.fn.selectpicker.Constructor.DEFAULTS.styleBase = "btn-sm";
+	$(opts.fieldEl).multiselect({
+		maxHeight: 400,
+		buttonWidth: "100%",
+		enableFiltering: true,
+		onChange: function() {
+			$.ajax("/api/v1/filter", {
+				method: "POST",
+				data: JSON.stringify({
+					stations: $(opts.stationEl).val(),
+					landuse: $(opts.landuseEl).val(),
+					fields: $(opts.fieldEl).val(),
+				}),	
+				dataType: "json",
+				success: function(data) {
+					Option(opts.stationEl, data.Stations);
+					Option(opts.landuseEl, data.Landuse);
+					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+				}
+			});
+		}
+	});
+
+	$(opts.stationEl).multiselect({
+		maxHeight: 400,
+	 	buttonWidth: "100%",
+		enableFiltering: true,
+		onChange: function() {
+			$.ajax("/api/v1/filter", {
+				method: "POST",
+				data: JSON.stringify({
+					stations: $(opts.stationEl).val(),
+					landuse: $(opts.landuseEl).val(),
+					fields: $(opts.fieldEl).val(),
+				}),	
+				dataType: "json",
+				success: function(data) {
+					Option(opts.fieldEl, data.Fields);
+					Option(opts.landuseEl, data.Landuse);
+					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+				}
+			});
+		}
+	});
+
+	$(opts.landuseEl).multiselect({
+		maxHeight: 400,
+		buttonWidth: "100%",
+		enableFiltering: true,
+		onChange: function() {
+			$.ajax("/api/v1/filter", {
+				method: "POST",
+				data: JSON.stringify({
+					stations: $(opts.stationEl).val(),
+					landuse: $(opts.landuseEl).val(),
+					fields: $(opts.fieldEl).val(),
+				}),	
+				dataType: "json",
+				success: function(data) {
+					Option(opts.fieldEl, data.Fields);
+					Option(opts.stationEl, data.Stations);
+					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+				}
+			});
+		}
+	});
 
 	$(opts.dateEl).datepicker({
 		todayHighlight: true,
@@ -105,175 +185,4 @@ function browser(opts) {
 		max: 2500,
 		grid: true
 	 });
-
-	 // Initalize map.
-	var map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
-	L.control.scale({position: "bottomright"}).addTo(map);
-	L.control.zoom({position: "bottomright"}).addTo(map);
-	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-	}).addTo(map);
-	
-	// initialize station,landuse and map points.
-	//$.ajax("/api/v1/stations/", {
-	//	method: "POST",
-	//	dataType: "json",
-	//	success: function(data) {
-	//		var mapBound = [];
-	//		console.log(data)
-	//		Object.keys(data).map(function(objectKey, index) {
-	//			var v = data[objectKey];
-	//		
-	//			// station dropdown
-	//			AddOption(opts.stationEl, v.Name, v.Name);
-
-	//			// landuse dropdown
-	//			AddOption(opts.landuseEl, v.Landuse, Landuse(v.Landuse));
-
-	//			var marker = L.marker([v.Latitude, v.Longitude]).addTo(map);
-	//			marker.bindPopup(`<div id="${v.Name}mappopup">
-	//			<p>
-	//			<b>Name:</b>  ${v.Name}<br>
-	//			<b>Altitude:</b> ${v.Altitude} m
-	//			</p>
-	//			</div>`);
-	//			mapBound.push(new L.latLng(v.Latitude, v.Longitude));
-	//		});
-	//		
-	//		map.fitBounds(mapBound);
-	//	},
-	//	error: errorHandler(error)
-	//});
-
-	// initialize fields
-	//$.ajax("/api/v1/fields/", {
-	//	method: "POST",
-	//	dataType: "json",
-	//	success: function(data) {
-			
-	//		data.forEach(function(item) {
-	//			// field dropdown
-	//			AddOption(opts.fieldEl, item, item);
-	//		});
-	///	},
-	//	error: errorHandler(error)
-	//});
-
-	// Handle field update event: update stations and landuse.
-	$(opts.fieldEl).on('changed.bs.select', function(){
-		console.log("field changed.")
-		$.ajax("/api/v1/stations/", {
-			method: "POST",
-			data: JSON.stringify({
-				fields: $(opts.fieldEl).val(),
-			}),
-			dataType: "json",
-			success: function(data) {
-				var selStations = $(opts.stationEl).val();
-				var selLanduse = $(opts.landuseEl).val();
-
-				$(opts.stationEl).find('option').remove();
-				$(opts.landuseEl).find('option').remove();
-				
-				Object.keys(data).map(function(objectKey, index) {
-					var v = data[objectKey];
-					
-					AddOption(opts.stationEl, v.Name, v.Name, selStations);
-					AddOption(opts.landuse, v.Landuse, Landuse(v.Landuse), selLanduse);
-				});
-			},
-			error: errorHandler(error)
-		});
-		Download(opts.stationEl, opts.fieldEl, opts.submitEl);
-	});
-
-	// Handle station update event: update fields and landuse.
-	$(opts.stationEl).on('changed.bs.select', function(){
-		// update fields
-		$.ajax("/api/v1/fields/", {
-			method: "POST",
-			data: JSON.stringify({
-				stations: $(opts.stationEl).val(),
-			}),
-			dataType: "json",
-			success: function(data) {
-				var selFields = $(opts.fieldEl).val();
-				$(opts.fieldEl).find('option').remove();
-				data.forEach(function(item){
-					AddOption(opts.fieldEl, item, item, selFields);
-				});
-				
-			},
-			error: errorHandler(error)
-		});
-
-		// update landuse
-		$.ajax("/api/v1/stations/", {
-			method: "POST",
-			data: JSON.stringify({
-				stations: $(opts.stationEl).val(),
-			}),
-			dataType: "json",
-			success: function(data) {
-				var selLanduse = $(opts.landuseEl).val();
-				$(opts.landuseEl).find('option').remove();
-				Object.keys(data).map(function(objectKey, index) {
-					var v = data[objectKey];
-					AddOption(opts.landuseEl, v.Landuse, Landuse(v.Landuse), selLanduse);
-				});
-			},
-			error: errorHandler(error)
-		});
-		Download(opts.stationEl, opts.fieldEl, opts.submitEl);
-	});
-
-	// Handle landuse update event: update fields and stations.
-	$(opts.landuseEl).on('changed.bs.select', function(){
-		$.ajax("/api/v1/stations/", {
-			method: "POST",
-			data: JSON.stringify({
-				landuse: $(opts.landuseEl).val(),
-			}),
-			dataType: "json",
-			success: function(data) {
-				var selStations = $(opts.stationEl).val();
-				var selFields = $(opts.fieldEl).val();
-				
-				$(opts.fieldEl).find('option').remove();
-				$(opts.stationEl).find('option').remove();
-
-				Object.keys(data).map(function(objectKey, index) {
-					var v = data[objectKey];
-
-					v.Measurements.forEach(function(item) {
-						AddOption(opts.fieldEl, item, item, selFields);
-					});
-
-					AddOption(opts.stationEl, v.Name, v.Name, selStations);
-				});
-			},
-			error: errorHandler(error)
-		});
-		Download(opts.stationEl, opts.fieldEl, opts.submitEl);
-	});
-
-}
-
-// AddOption adds an option html item to the given element.
-function AddOption(el, value, text, currentSelected) {
-	// If option already exists do not add it.
-	if ($(el +" option[value='"+value+"']").length > 0) {
-		return
-	}
-
-	var selected = "";
-	if (currentSelected != null && currentSelected.includes(value)) {
-		$(el).append('<option value="'+value+'" selected>'+text+'</option>');
-		$(el).selectpicker('refresh');
-		return
-	}
-
-	$(el).append('<option value="'+value+'">'+text+'</option>');
-	$(el).selectpicker('refresh');
-	return
 }

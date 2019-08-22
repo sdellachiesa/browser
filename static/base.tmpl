@@ -9,7 +9,7 @@
 		<!-- Bootstrap -->
 		<link rel="stylesheet" href="/static/bootstrap.min.css">
 		<link rel="stylesheet" href="/static/bootstrap-datepicker3.min.css">
-		<link rel="stylesheet" href="/static/bootstrap-select.min.css">
+		<link rel="stylesheet" href="/static/bootstrap-multiselect.css">
 		<link rel="stylesheet" href="/static/ion.rangeSlider.min.css">
 		<link rel="stylesheet" href="/static/leaflet.css">
 
@@ -18,7 +18,7 @@
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="/static/bootstrap.min.js"></script>
 		<script src="/static/bootstrap-datepicker.min.js"></script>
-		<script src="/static/bootstrap-select.min.js"></script>
+		<script src="/static/bootstrap-multiselect.js"></script>
 		<script src="/static/ion.rangeSlider.min.js"></script>
 		<script src="/static/leaflet.js"></script>
 		<script src="/static/script.js"></script>
@@ -73,13 +73,6 @@
 			.navbar-text {
 					color: rgba(0,0,0,.54);
 			}	
-			.text {
-				font-size: 1.2em;
-				line-height: 1.2;
-			}
-			.dropdown-menu {
-				font-size: 11px;
-			}	
 			.row {
 				margin-bottom: 20px;
 			}
@@ -100,7 +93,6 @@
 				z-index: 1;
 			}
 		</style>
-
 	</head>
 	<body>
 	
@@ -134,30 +126,30 @@
 			<div class="col-md-2">
 				<div class="form-group">
 					<label for="fields">Select measurement:</label>
-					<select multiple class="selectpicker form-control" data-selected-text-format="count > 3" id="fields" name="fields" data-live-search="true">
-                        {{range .Fields}}
+					<select multiple class="form-control" id="fields" name="fields">
+                        {{- range .Fields}}
                         <option value="{{.}}">{{.}}</option>
-                        {{end}}
+                        {{- end -}}
                     </select>
 				</div>
 			</div>
 			<div class="col-md-2">
 				<div class="form-group">
 					<label for="stations">Select station:</label>
-					<select multiple class="selectpicker form-control" data-selected-text-format="count > 3" id="stations" name="stations" data-live-search="true">
-					{{range .Stations}}
-                        <option value="{{.Name}}">{{.Name}}</option>
-                    {{end}}
+					<select multiple class="form-control" id="stations" name="stations">
+					{{- range .Stations}}
+                        <option value="{{.}}">{{.}}</option>
+                    {{- end -}}
 					</select>
 				</div>
 			</div>
 			<div class="col-md-2">
 				<div class="form-group">
 					<label for="landuse">Select land use:</label>
-					<select multiple class="selectpicker form-control" data-selected-text-format="count > 3" id="landuse" name="landuse" data-live-search="true">
-					{{range .Stations}}
-                        <option value="{{.Landuse}}">{{.Landuse}}</option>
-                    {{end}}
+					<select multiple class="form-control" id="landuse" name="landuse">
+					{{- range .Landuse }}
+						<option value="{{.}}">{{ Landuse . }}</option>
+					{{- end -}}
 					</select>
 			</div>
 			</div>

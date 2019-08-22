@@ -36,16 +36,9 @@ func NewServer(b Backend) *Server {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	fields, err := s.db.Fields(&QueryOptions{})
+	resp, err := s.db.Get(&QueryOptions{})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	stations, err := s.db.Stations(&QueryOptions{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Println(err)
 	}
 
 	tmpl, err := static.File("static/base.tmpl")
@@ -54,16 +47,17 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := template.New("base").Parse(tmpl)
+	funcMap := template.FuncMap{
+		"Landuse": MapLanduse,
+	}
+
+	t, err := template.New("base").Funcs(funcMap).Parse(tmpl)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = t.Execute(w, struct {
-		Fields   []string
-		Stations map[string]*Station
-	}{fields, stations})
+	err = t.Execute(w, resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -178,4 +172,26 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
+}
+
+// TODO: This should be replace when we introduce i18n
+func MapLanduse(key string) string {
+	switch key {
+	case "pa":
+		return "Pasture"
+	case "me":
+		return "Meadow"
+	case "fo":
+		return "Climate station in the forest"
+	case "sf":
+		return "SapFlow"
+	case "de":
+		return "Dendrometer"
+	case "ro":
+		return "Rock"
+	case "bs":
+		return "Bare soil"
+	default:
+		return key
+	}
 }
