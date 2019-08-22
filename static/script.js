@@ -106,7 +106,7 @@ function browser(opts) {
 		buttonWidth: "100%",
 		enableFiltering: true,
 		onChange: function() {
-			$.ajax("/api/v1/filter", {
+			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
 					stations: $(opts.stationEl).val(),
@@ -128,7 +128,7 @@ function browser(opts) {
 	 	buttonWidth: "100%",
 		enableFiltering: true,
 		onChange: function() {
-			$.ajax("/api/v1/filter", {
+			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
 					stations: $(opts.stationEl).val(),
@@ -150,7 +150,7 @@ function browser(opts) {
 		buttonWidth: "100%",
 		enableFiltering: true,
 		onChange: function() {
-			$.ajax("/api/v1/filter", {
+			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
 					stations: $(opts.stationEl).val(),

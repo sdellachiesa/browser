@@ -2,9 +2,11 @@
 package browser
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -14,10 +16,8 @@ import (
 
 // The Backend interface retrieves data and return a []byte.
 type Backend interface {
-	Stations(*QueryOptions) (map[string]*Station, error)
-	Fields(*QueryOptions) ([]string, error)
+	Get(*QueryOptions) (*Response, error)
 	Series(*QueryOptions) ([][]string, error)
-	Get(*QueryOptions) (map[string]*Station, error)
 }
 
 type Datastore struct {
@@ -29,44 +29,72 @@ func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 	return Datastore{sc, ic}
 }
 
-func (d Datastore) Get(opts *QueryOptions) (map[string]*Station, error) {
-	q := "SHOW TAG VALUES FROM"
-	if len(opts.Fields) > 0 {
-		q = fmt.Sprintf("%s ", q)
-	}
-	return nil, nil
+type Response struct {
+	Fields   []string
+	Stations []string
+	Landuse  []string
 }
 
-func (d Datastore) Fields(opts *QueryOptions) ([]string, error) {
-	q := "show measurements"
-
-	if len(opts.Fields) > 0 {
-		q = fmt.Sprintf("%s with measurement =~ /%s/", q, strings.Join(opts.Fields, "|"))
+func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
+	q, err := opts.Query()
+	if err != nil {
+		return nil, err
 	}
-
-	if len(opts.Stations) >= 1 {
-		w := []string{}
-		for _, s := range opts.Stations {
-			w = append(w, fmt.Sprintf("station='%s'", s))
-		}
-		q = fmt.Sprintf("%s WHERE %s", q, strings.Join(w, " AND "))
-	}
-
-	log.Println(q)
 
 	result, err := d.influx.Result(q)
 	if err != nil {
 		return nil, err
 	}
 
-	fields := []string{}
-	for _, r := range result.Series {
-		for _, v := range r.Values {
-			fields = append(fields, v[0].(string))
+	fields := make(map[string]struct{})
+	stations := make(map[string]struct{})
+	landuse := make(map[string]struct{})
+	for _, s := range result.Series {
+		fields[s.Name] = struct{}{}
+		for _, v := range s.Values {
+			key, value := v[0].(string), v[1].(string)
+			switch key {
+			case "station":
+				stations[value] = struct{}{}
+			case "landuse":
+				landuse[value] = struct{}{}
+			}
 		}
 	}
 
-	return fields, nil
+	resp := &Response{}
+
+	resp.Stations, err = Keys(stations)
+	if err != nil {
+		return nil, err
+	}
+	resp.Landuse, err = Keys(landuse)
+	if err != nil {
+		return nil, err
+	}
+	resp.Fields, err = Keys(fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func Keys(v interface{}) ([]string, error) {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Map {
+		return nil, errors.New("error not a map")
+	}
+	t := rv.Type()
+	if t.Key().Kind() != reflect.String {
+		return nil, errors.New("not string key")
+	}
+	var result []string
+	for _, kv := range rv.MapKeys() {
+		result = append(result, kv.String())
+	}
+	sort.Strings(result)
+	return result, nil
 }
 
 func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
@@ -141,51 +169,4 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 	}
 
 	return rows, nil
-}
-
-func (d Datastore) Stations(opts *QueryOptions) (map[string]*Station, error) {
-	q, err := opts.Query()
-	if err != nil {
-		return nil, err
-	}
-	log.Println(q)
-	result, err := d.influx.Result(q)
-	if err != nil {
-		return nil, err
-	}
-
-	stations := make(map[string]*Station)
-	for _, serie := range result.Series {
-		s, ok := stations[serie.Tags["station"]]
-		if !ok {
-			s = &Station{
-				Name: serie.Tags["station"],
-			}
-		}
-		s.Measurements = append(s.Measurements, serie.Name)
-
-		for _, v := range serie.Values {
-			for i := range v {
-				switch i {
-				case 0: // skip timestamp
-					continue
-				case 1:
-					n, _ := v[i].(json.Number).Int64()
-					s.Altitude = n
-				case 2:
-					n, _ := v[i].(json.Number).Float64()
-					s.Latitude = n
-				case 3:
-					n, _ := v[i].(json.Number).Float64()
-					s.Longitude = n
-				case 4:
-					s.Landuse = v[i].(string)
-				}
-			}
-		}
-
-		stations[serie.Tags["station"]] = s
-	}
-
-	return stations, nil
 }

@@ -28,8 +28,7 @@ func NewServer(b Backend) *Server {
 	s.mux.HandleFunc("/", s.handleIndex)
 	s.mux.Handle("/static/", static.Handler())
 
-	s.mux.HandleFunc("/api/v1/fields/", s.handleFields)
-	s.mux.HandleFunc("/api/v1/stations/", s.handleStations)
+	s.mux.HandleFunc("/api/v1/update", s.handleUpdate)
 	s.mux.HandleFunc("/api/v1/series/", s.handleSeries)
 
 	return s
@@ -64,7 +63,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) handleStations(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
 		return
@@ -77,56 +76,19 @@ func (s *Server) handleStations(w http.ResponseWriter, r *http.Request) {
 		err = nil
 	}
 	if err != nil {
-		log.Printf("handleStations: %v\n", err)
+		log.Printf("handleUpdate: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	resp, err := s.db.Stations(opts)
+	d, err := s.db.Get(opts)
 	if err != nil {
-		log.Printf("handleStations: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Println(err)
 	}
 
-	b, err := json.Marshal(resp)
+	b, err := json.Marshal(d)
 	if err != nil {
-		log.Printf("handleStations: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(b)
-}
-
-func (s *Server) handleFields(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
-		return
-	}
-	defer r.Body.Close()
-
-	opts := &QueryOptions{}
-	err := json.NewDecoder(r.Body).Decode(opts)
-	if err == io.EOF {
-		err = nil
-	}
-	if err != nil {
-		log.Printf("handleFields: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	resp, err := s.db.Fields(opts)
-	if err != nil {
-		log.Printf("handleFields: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	b, err := json.Marshal(resp)
-	if err != nil {
-		log.Printf("handleFields: %v\n", err)
+		log.Printf("handleUpdate: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
