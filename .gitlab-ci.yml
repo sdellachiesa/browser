@@ -32,7 +32,7 @@ build:
     - docker  build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_SHA} .
     - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
   only:
-   - tag
+   - tags
 
 #deploy_production:
 #  stage: deploy
