@@ -105,6 +105,11 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
+	if len(opts.Fields) == 0 {
+		opts.Fields = []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"}
+	}
+
 	d, err := s.db.Get(opts)
 	if err != nil {
 		log.Println(err)
