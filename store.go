@@ -77,21 +77,20 @@ func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
 func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 	// TODO: QueryOptions should implement a "Queryer" interface which
 	// provides a method Query.
-	s := []string{}
+	qs := []string{}
 	for _, f := range opts.Stations {
-		s = append(s, fmt.Sprintf("snipeit_location_ref='%s'", f))
+		q := fmt.Sprintf("SELECT station,landuse,altitude,latitude,longitude,%s FROM %s WHERE %s AND time >= '%s' AND time <= '%s' GROUP BY station ORDER BY time ASC",
+			strings.Join(opts.Fields, ","),
+			strings.Join(opts.Fields, ","),
+			fmt.Sprintf("snipeit_location_ref='%s'", f),
+			opts.From,
+			opts.To,
+		)
+		log.Println(q)
+		qs = append(qs, q)
 	}
-	q := fmt.Sprintf("SELECT station,landuse,altitude,latitude,longitude,%s FROM %s WHERE %s AND time >= '%s' AND time <= '%s' GROUP BY station",
-		strings.Join(opts.Fields, ","),
-		strings.Join(opts.Fields, ","),
-		strings.Join(s, " OR "),
-		opts.From,
-		opts.To,
-	)
 
-	log.Println(q)
-
-	results, err := d.influx.Results(q)
+	results, err := d.influx.Results(strings.Join(qs, ";"))
 	if err != nil {
 		return nil, err
 	}
@@ -100,9 +99,9 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 		station   string
 		timestamp string
 	}
-
-	header := []string{}
 	values := make(map[key][]string)
+	keys := []key{}
+	header := []string{}
 	for _, result := range results {
 		for i, serie := range result.Series {
 			if i == 0 {
@@ -110,9 +109,11 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 			}
 
 			for _, value := range serie.Values {
-				k := key{serie.Tags["station"], fmt.Sprint(value[0])}
+				k := key{serie.Tags["station"], value[0].(string)}
+
 				column, ok := values[k]
 				if !ok {
+					keys = append(keys, k)
 					column = make([]string, len(value))
 				}
 
@@ -141,7 +142,8 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 
 	rows := [][]string{}
 	rows = append(rows, header)
-	for _, v := range values {
+	for i := 0; i < len(keys); i++ {
+		v := values[keys[i]]
 		rows = append(rows, v)
 	}
 
