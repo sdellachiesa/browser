@@ -1,6 +1,9 @@
 variables:
   CONTAINER_IMAGE: "gitlab.inf.unibz.it:4567/lter/browser"
+  DOCKER_TESTER_IMAGE: "golang:1.12.9"
+  DOCKER_BUILDER_IMAGE: "docker:19.03.1"
   DOCKER_TLS_CERTDIR: "" # See https://gitlab.com/gitlab-org/gitlab-runner/issues/4501
+  KUBECTL: "https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl"
 
 stages:
   - build
@@ -8,7 +11,7 @@ stages:
 
 #test:
 #  stage: test
-#  image: golang:1.12
+#  image: ${DOCKER_TESTER_IMAGE}
 #  before_script:
 #    - go get -d github.com/influxdata/telegraf
 #    - cd /go/src/github.com/influxdata/telegraf
@@ -23,7 +26,7 @@ stages:
 
 build:
   stage: build
-  image: docker:19.03.1
+  image: ${DOCKER_BUILDER_IMAGE}
   services:
     - docker:dind
   before_script:
@@ -34,13 +37,31 @@ build:
   only:
    - tags
 
-#deploy_production:
+#deploy_staging:
 #  stage: deploy
-#  image: docker:18.09.6
+#  image: ${DOCKER_BUILDER_IMAGE}
 #  services:
 #    - docker:dind
 #  before_script:
-#    - wget https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl
+#    - wget ${KUBECTL}
+#    - mv kubectl /usr/bin/
+#    - chmod +x /usr/bin/kubectl
+#    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
+#  script:
+#    - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+#    - kubectl --namespace eurac-alpenv-browser set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
+#  environment:
+#    name: staging
+#  only:
+#    - master
+
+#deploy_production:
+#  stage: deploy
+#  image: ${DOCKER_BUILDER_IMAGE}
+#  services:
+#    - docker:dind
+#  before_script:
+#    - wget ${KUBECTL}
 #    - mv kubectl /usr/bin/
 #    - chmod +x /usr/bin/kubectl
 #    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
@@ -51,6 +72,7 @@ build:
 #    - kubectl --namespace eurac-alpenv-browser set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
 #  environment:
 #    name: production
+#  when: manual
 #  only:
 #    - tags
 #  only:
