@@ -35,26 +35,6 @@ function SetDefaultDate(el, date) {
 	});
 }
 
-// Landuse maps the landuse key to its full description.
-function Landuse(key) {
-	switch(key) {
-		case "pa":
-			return "Pasture"
-		case "me":
-			return "Meadow"
-		case "fo":
-			return "Climate station in the forest"
-		case "sf":
-			return "SapFlow"
-		case "de":
-			return "Dendrometer"
-		case "ro":
-			return "Rock"
-		case "bs":
-			return "Bare soil"
-	}
-}
-
 // Download enables the download botton if at least one
 // station and one measurement was selected.
 function Download(stationEl, fieldEl, submitEl) {
@@ -75,10 +55,8 @@ function Download(stationEl, fieldEl, submitEl) {
 function Option(el, data) {
 	$(el).children('option').map(function(){
 		if (data.includes(this.value)) {
-			//console.log("included: " + this.value)
 			$(this).prop('disabled', false);
 		} else {
-			//console.log("not included: " + this.value)
 			$(this).prop('disabled', true);
 			$(this).prop('selected', false);
 		}
@@ -115,7 +93,7 @@ function browser(opts) {
 				}),	
 				dataType: "json",
 				success: function(data) {
-					Option(opts.stationEl, data.Stations);
+					Option(opts.stationEl, Object.keys(data.Stations));
 					Option(opts.landuseEl, data.Landuse);
 					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
 				}
@@ -131,7 +109,9 @@ function browser(opts) {
 			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
+					//landuse: $(opts.landuseEl).val(),
 					stations: $(opts.stationEl).val(),
+					//	fields: $(opts.fieldEl).val(),
 				}),	
 				dataType: "json",
 				success: function(data) {
@@ -158,7 +138,7 @@ function browser(opts) {
 				dataType: "json",
 				success: function(data) {
 					Option(opts.fieldEl, data.Fields);
-					Option(opts.stationEl, data.Stations);
+					Option(opts.stationEl, Object.keys(data.Stations));
 					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
 				}
 			});
@@ -193,7 +173,9 @@ function browser(opts) {
 	}).addTo(map);
 	
 	var mapBound = [];
-	opts.mapData.forEach(function(item) {
+	Object.keys(opts.mapData).map(function(k) {
+		var item = opts.mapData[k];
+		
 		var marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
 		marker.bindPopup(`<div id="${item.Name}mappopup">
 		<p>
@@ -204,12 +186,4 @@ function browser(opts) {
 		mapBound.push(new L.latLng(item.Latitude, item.Longitude));
 	});	
 	map.fitBounds(mapBound);
-	//$.ajax("/api/v1/stations", {
-	//	method: "GET",
-	//	dataType: "json",
-	//	success: function(data) {
-	//		
-	//	},
-	//	error: errorHandler(error)
-	//});
 }

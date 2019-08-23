@@ -39,11 +39,9 @@ func (s *Station) UnmarshalJSON(b []byte) error {
 }
 
 type Response struct {
+	Stations map[int64]*Station
 	Fields   []string
-	Stations []string
 	Landuse  []string
-
-	snipeitRef []int64
 }
 
 type QueryOptions struct {
@@ -55,7 +53,7 @@ type QueryOptions struct {
 }
 
 func (q *QueryOptions) Query() (string, error) {
-	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("station", "landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
+	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
 
 	funcMap := template.FuncMap{
 		"join": strings.Join,
@@ -63,7 +61,7 @@ func (q *QueryOptions) Query() (string, error) {
 
 	where := []string{}
 	for _, s := range q.Stations {
-		where = append(where, fmt.Sprintf("station='%s'", s))
+		where = append(where, fmt.Sprintf("snipeit_location_ref='%s'", s))
 	}
 	for _, l := range q.Landuse {
 		where = append(where, fmt.Sprintf("landuse='%s'", l))

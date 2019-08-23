@@ -43,19 +43,13 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	opts := &QueryOptions{
 		Fields: []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"},
 	}
-	resp, err := s.db.Get(opts)
+	response, err := s.db.Get(opts)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	d, err := s.db.Stations(resp.snipeitRef)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	mapdata, err := json.Marshal(d)
+	mapdata, err := json.Marshal(response.Stations)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -78,9 +72,12 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = t.Execute(w, struct {
-		MapData string
+		Map string
 		*Response
-	}{fmt.Sprintf("%s", mapdata), resp})
+	}{
+		string(mapdata),
+		response,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

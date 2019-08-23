@@ -2,12 +2,9 @@
 package browser
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -16,9 +13,8 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
 
-// The Backend interface retrieves data and return a []byte.
+// The Backend interface retrieves data.
 type Backend interface {
-	Stations(ids []int64) ([]*Station, error)
 	Get(*QueryOptions) (*Response, error)
 	Series(*QueryOptions) ([][]string, error)
 }
@@ -45,39 +41,34 @@ func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
 		return nil, err
 	}
 
-	resp := &Response{
-		snipeitRef: []int64{},
-	}
-	fields := make(map[string]struct{})
-	stations := make(map[string]struct{})
-	landuse := make(map[string]struct{})
+	resp := &Response{}
+	var snipeitRefs []int64
 	for _, s := range result.Series {
-		fields[s.Name] = struct{}{}
+		resp.Fields = append(resp.Fields, s.Name)
+
 		for _, v := range s.Values {
 			key, value := v[0].(string), v[1].(string)
-			switch key {
-			case "station":
-				stations[value] = struct{}{}
-			case "landuse":
-				landuse[value] = struct{}{}
-			case "snipeit_location_ref":
+			if key == "snipeit_location_ref" {
 				id, _ := strconv.ParseInt(value, 10, 64)
-				resp.snipeitRef = append(resp.snipeitRef, id)
+				snipeitRefs = append(snipeitRefs, id)
 			}
 		}
 	}
 
-	resp.Stations, err = Keys(stations)
+	stations, err := d.Stations(snipeitRefs)
 	if err != nil {
 		return nil, err
 	}
-	resp.Landuse, err = Keys(landuse)
-	if err != nil {
-		return nil, err
+
+	resp.Stations = make(map[int64]*Station)
+	landuse := make(map[string]struct{})
+	for _, s := range stations {
+		resp.Stations[s.ID] = s
+		landuse[s.Landuse] = struct{}{}
 	}
-	resp.Fields, err = Keys(fields)
-	if err != nil {
-		return nil, err
+
+	for k, _ := range landuse {
+		resp.Landuse = append(resp.Landuse, k)
 	}
 
 	return resp, nil
@@ -88,7 +79,7 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 	// provides a method Query.
 	s := []string{}
 	for _, f := range opts.Stations {
-		s = append(s, fmt.Sprintf("station='%s'", f))
+		s = append(s, fmt.Sprintf("snipeit_location_ref='%s'", f))
 	}
 	q := fmt.Sprintf("SELECT station,landuse,altitude,latitude,longitude,%s FROM %s WHERE %s AND time >= '%s' AND time <= '%s' GROUP BY station",
 		strings.Join(opts.Fields, ","),
@@ -157,6 +148,8 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 	return rows, nil
 }
 
+// Stations returns all metadata associated with a station stored
+// in SnipeIT. It will filter for stations with the given ids.
 func (d Datastore) Stations(ids []int64) ([]*Station, error) {
 	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
 	if err != nil {
@@ -199,21 +192,4 @@ func inArray(i int64, a []int64) bool {
 	}
 
 	return false
-}
-
-func Keys(v interface{}) ([]string, error) {
-	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Map {
-		return nil, errors.New("error not a map")
-	}
-	t := rv.Type()
-	if t.Key().Kind() != reflect.String {
-		return nil, errors.New("not string key")
-	}
-	var result []string
-	for _, kv := range rv.MapKeys() {
-		result = append(result, kv.String())
-	}
-	sort.Strings(result)
-	return result, nil
 }

@@ -34,7 +34,7 @@
 				'eDateEl': 		'#endDate',
 				'submitEl': 	'#submit',
 				'mapEl': 		'map',
-				'mapData':		JSON.parse('{{.MapData}}'),
+				'mapData':		JSON.parse('{{.Map}}'),
 			});
 		});
 		</script>
@@ -93,6 +93,9 @@
 			#map {
 				z-index: 1;
 			}
+			.disabled {
+				text-decoration: line-through;
+			}
 		</style>
 	</head>
 	<body>
@@ -139,7 +142,7 @@
 					<label for="stations">Select station:</label>
 					<select multiple class="form-control" id="stations" name="stations">
 					{{- range .Stations}}
-                        <option value="{{.}}">{{.}}</option>
+                        <option value="{{ .ID }}">{{ .Name }}</option>
                     {{- end -}}
 					</select>
 				</div>
