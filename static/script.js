@@ -174,14 +174,8 @@ function browser(opts) {
 	SetDefaultDate(opts.sDateEl, startDate)
 	SetDefaultDate(opts.eDateEl, endDate)
 
-	$(".js-range-slider").ionRangeSlider({
-		skin: "round",
-		type: "double",
-		min: 900,
-		max: 2500,
-		grid: true
-	 });
 
+	 
 	// Initalize map.
 	var map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
 	L.control.scale({position: "bottomright"}).addTo(map);
@@ -190,10 +184,11 @@ function browser(opts) {
 		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
 	}).addTo(map);
 	
+	var mapMarkers = {};
 	var mapBound = [];
 	Object.keys(opts.mapData).map(function(k) {
 		var item = opts.mapData[k];
-		
+	
 		var marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
 		marker.bindPopup(`<div id="${item.Name}mappopup">
 		<p>
@@ -201,7 +196,33 @@ function browser(opts) {
 		<b>Altitude:</b> ${item.Altitude} m
 		</p>
 		</div>`);
+	
+		mapMarkers[item.ID] = marker
 		mapBound.push(new L.latLng(item.Latitude, item.Longitude));
 	});	
 	map.fitBounds(mapBound);
+
+	$(".js-range-slider").ionRangeSlider({
+		skin: "round",
+		type: "double",
+		min: 900,
+		max: 2500,
+		grid: true,
+		onChange: function(data) {
+			var stations = [];
+			var landuse = [];
+			opts.mapData.forEach(function(item) {
+				var marker = mapMarkers[item.ID]
+				if (item.Altitude >= data.from && item.Altitude <= data.to) {
+					stations.push(item.ID);
+					landuse.push(item.Landuse);
+					marker.setOpacity(1.0);
+				} else {
+					marker.setOpacity(0.4);
+				}
+			});
+			ToggleOptionsForNumbers(opts.stationEl, stations);
+			ToggleOptions(opts.landuseEl, landuse);
+		}
+	 });
 }
