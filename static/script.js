@@ -35,9 +35,10 @@ function SetDefaultDate(el, date) {
 	});
 }
 
-// Download enables the download botton if at least one
-// station and one measurement was selected.
-function Download(stationEl, fieldEl, submitEl) {
+// ToggleDownload enables the download botton if at least one
+// station and one measurement was selected. Otherwise it will
+// be disable it.
+function ToggleDownload(stationEl, fieldEl, submitEl) {
 	if ($(stationEl).val() == null) {
 		$(submitEl).attr("disabled", "disabled");
 		return
@@ -51,10 +52,27 @@ function Download(stationEl, fieldEl, submitEl) {
 	$(submitEl).removeAttr("disabled");
 }
 
-// Option checks adds an option html item to the given element.
-function Option(el, data) {
+// ToggleOptions enables/disables an option depending on the presents
+// of its value in given string data array.
+function ToggleOptions(el, data) {
 	$(el).children('option').map(function(){
 		if (data.includes(this.value)) {
+			$(this).prop('disabled', false);
+		} else {
+			$(this).prop('disabled', true);
+			$(this).prop('selected', false);
+		}
+	});
+	
+	$(el).multiselect('refresh');
+}
+
+// ToggleOptionsForNumbers enables/disables an option depending
+// on the presents of its value in given int data array.
+function ToggleOptionsForNumbers(el, data) {
+	$(el).children('option').map(function(){
+		var v = Number(this.value)
+		if (data.includes(v)) {
 			$(this).prop('disabled', false);
 		} else {
 			$(this).prop('disabled', true);
@@ -93,9 +111,9 @@ function browser(opts) {
 				}),	
 				dataType: "json",
 				success: function(data) {
-					Option(opts.stationEl, Object.keys(data.Stations));
-					Option(opts.landuseEl, data.Landuse);
-					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
+					ToggleOptions(opts.landuseEl, data.Landuse);
+					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
 				}
 			});
 		}
@@ -115,9 +133,9 @@ function browser(opts) {
 				}),	
 				dataType: "json",
 				success: function(data) {
-					Option(opts.fieldEl, data.Fields);
-					Option(opts.landuseEl, data.Landuse);
-					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+					ToggleOptions(opts.fieldEl, data.Fields);
+					ToggleOptions(opts.landuseEl, data.Landuse);
+					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
 				}
 			});
 		}
@@ -137,9 +155,9 @@ function browser(opts) {
 				}),	
 				dataType: "json",
 				success: function(data) {
-					Option(opts.fieldEl, data.Fields);
-					Option(opts.stationEl, Object.keys(data.Stations));
-					Download(opts.stationEl, opts.fieldEl, opts.submitEl);
+					ToggleOptions(opts.fieldEl, data.Fields);
+					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
+					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
 				}
 			});
 		}

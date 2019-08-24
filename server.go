@@ -25,7 +25,7 @@ func NewServer(b Backend) *Server {
 		mux: http.NewServeMux(),
 	}
 
-	s.mux.HandleFunc("/", s.handleIndex)
+	s.mux.HandleFunc("/", s.handleIndex())
 	s.mux.Handle("/static/", static.Handler())
 	// TODO
 	s.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
@@ -38,49 +38,59 @@ func NewServer(b Backend) *Server {
 	return s
 }
 
-func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-	opts := &QueryOptions{
-		Fields: []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"},
-	}
-	response, err := s.db.Get(opts)
+func (s *Server) handleIndex() http.HandlerFunc {
+	tmplFile, err := static.File("static/base.tmpl")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	mapdata, err := json.Marshal(response.Stations)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	tmpl, err := static.File("static/base.tmpl")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Fatal(err)
 	}
 
 	funcMap := template.FuncMap{
 		"Landuse": MapLanduse,
 	}
 
-	t, err := template.New("base").Funcs(funcMap).Parse(tmpl)
+	tmpl, err := template.New("base").Funcs(funcMap).Parse(tmplFile)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Fatal(err)
 	}
 
-	err = t.Execute(w, struct {
-		Map string
-		*Response
-	}{
-		string(mapdata),
-		response,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
+		opts := &QueryOptions{
+			Fields: []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"},
+		}
+		response, err := s.db.Get(opts)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		stations, err := s.db.StationsMetadata(response.Stations)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		mapJSON, err := json.Marshal(stations)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = tmpl.Execute(w, struct {
+			Stations []*Station
+			Fields   []string
+			Landuse  []string
+			Map      string
+		}{
+			stations,
+			response.Fields,
+			response.Landuse,
+			string(mapJSON),
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 

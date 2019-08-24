@@ -17,6 +17,7 @@ import (
 type Backend interface {
 	Get(*QueryOptions) (*Response, error)
 	Series(*QueryOptions) ([][]string, error)
+	StationsMetadata(ids []int64) ([]*Station, error)
 }
 
 type Datastore struct {
@@ -42,36 +43,39 @@ func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
 	}
 
 	resp := &Response{}
-	var snipeitRefs []int64
 	for _, s := range result.Series {
 		resp.Fields = append(resp.Fields, s.Name)
 
 		for _, v := range s.Values {
 			key, value := v[0].(string), v[1].(string)
-			if key == "snipeit_location_ref" {
+			switch key {
+			case "snipeit_location_ref":
 				id, _ := strconv.ParseInt(value, 10, 64)
-				snipeitRefs = append(snipeitRefs, id)
+				resp.Stations = append(resp.Stations, id)
+			case "landuse":
+				resp.Landuse = append(resp.Landuse, value)
 			}
 		}
 	}
 
-	stations, err := d.Stations(snipeitRefs)
-	if err != nil {
-		return nil, err
-	}
-
-	resp.Stations = make(map[int64]*Station)
-	landuse := make(map[string]struct{})
-	for _, s := range stations {
-		resp.Stations[s.ID] = s
-		landuse[s.Landuse] = struct{}{}
-	}
-
-	for k, _ := range landuse {
-		resp.Landuse = append(resp.Landuse, k)
-	}
+	resp.Landuse = unique(resp.Landuse)
 
 	return resp, nil
+}
+
+func unique(s []string) []string {
+	seen := make(map[string]struct{}, len(s))
+	j := 0
+	for _, v := range s {
+		if _, ok := seen[v]; ok {
+			continue
+		}
+		seen[v] = struct{}{}
+		s[j] = v
+		j++
+	}
+
+	return s[:j]
 }
 
 func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
@@ -150,9 +154,9 @@ func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
 	return rows, nil
 }
 
-// Stations returns all metadata associated with a station stored
+// StationsMetadata returns all metadata associated with a station stored
 // in SnipeIT. It will filter for stations with the given ids.
-func (d Datastore) Stations(ids []int64) ([]*Station, error) {
+func (d Datastore) StationsMetadata(ids []int64) ([]*Station, error) {
 	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
 	if err != nil {
 		return nil, err
@@ -184,7 +188,7 @@ func (d Datastore) Stations(ids []int64) ([]*Station, error) {
 
 func inArray(i int64, a []int64) bool {
 	if a == nil {
-		return false
+		return true
 	}
 
 	for _, v := range a {

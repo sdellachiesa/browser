@@ -39,7 +39,7 @@ func (s *Station) UnmarshalJSON(b []byte) error {
 }
 
 type Response struct {
-	Stations map[int64]*Station
+	Stations []int64
 	Fields   []string
 	Landuse  []string
 }
