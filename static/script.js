@@ -115,8 +115,8 @@ function browser(opts) {
 			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
-					stations: $(opts.stationEl).val(),
-					landuse: $(opts.landuseEl).val(),
+					//stations: $(opts.stationEl).val(),
+					//landuse: $(opts.landuseEl).val(),
 					fields: $(opts.fieldEl).val(),
 				}),	
 				dataType: "json",
