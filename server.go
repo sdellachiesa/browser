@@ -39,7 +39,7 @@ func NewServer(b Backend) *Server {
 }
 
 func (s *Server) handleIndex() http.HandlerFunc {
-	tmplFile, err := static.File("static/base.tmpl")
+	tmplFile, err := static.File("static/index.html")
 	if err != nil {
 		log.Fatal(err)
 	}
