@@ -36,20 +36,29 @@ function SetDefaultDate(el, date) {
 }
 
 // ToggleDownload enables the download botton if at least one
-// station and one measurement was selected. Otherwise it will
-// be disable it.
-function ToggleDownload(stationEl, fieldEl, submitEl) {
-	if ($(stationEl).val() == null) {
-		$(submitEl).attr("disabled", "disabled");
+// station and one measurement was selected. Moreover it checks
+// if the time range selected is not ore than a year. Otherwise 
+// it will be disable it.
+function ToggleDownload(opts) {
+	var startDate = new Date($(opts.sDateEl).val())
+	var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
+	
+	if (startDate < maxDate) {
+		$(opts.submitEl).attr("disabled", "disabled");
+		return
+	}
+	
+	if ($(opts.stationEl).val() == null) {
+		$(opts.submitEl).attr("disabled", "disabled");
 		return
 	}
 
-	if ($(fieldEl).val() == null) {
-		$(submitEl).attr("disabled", "disabled");
+	if ($(opts.fieldEl).val() == null) {
+		$(opts.submitEl).attr("disabled", "disabled");
 		return
 	}
 
-	$(submitEl).removeAttr("disabled");
+	$(opts.submitEl).removeAttr("disabled");
 }
 
 // ToggleOptions enables/disables an option depending on the presents
@@ -114,7 +123,7 @@ function browser(opts) {
 				success: function(data) {
 					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
 					ToggleOptions(opts.landuseEl, data.Landuse);
-					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
+					ToggleDownload(opts);
 				},
 				error: errorHandler(error) 
 			});
@@ -137,7 +146,7 @@ function browser(opts) {
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
 					ToggleOptions(opts.landuseEl, data.Landuse);
-					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
+					ToggleDownload(opts);
 				},
 				error: errorHandler(error)
 			});
@@ -160,14 +169,13 @@ function browser(opts) {
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
 					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
-					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
+					ToggleDownload(opts);
 				},
 				error: errorHandler(error)
 			});
 		}
 	});
 
-	$(opts.tooltipWrapperEl).tooltip({position: "bottom"});
 
 	var endDate = new Date()
 	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6));
@@ -176,10 +184,21 @@ function browser(opts) {
 	$(opts.dateEl).datepicker({
 		todayHighlight: true,
 		format: 'yyyy-mm-dd',
-		startDate: maxDate,
 		endDate: endDate
 	}).on("changeDate", function(){
-		//console.log("bla")
+		var startDate = new Date($(opts.sDateEl).val())
+		var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
+
+		if (startDate < maxDate) {
+			$(opts.sDateEl).popover({
+				placement: 'top',
+				trigger: 'manual',
+			});
+			$(opts.sDateEl).popover('show');
+		} else {
+			$(opts.sDateEl).popover('hide');
+		}
+		ToggleDownload(opts);
 	});
 	SetDefaultDate(opts.sDateEl, startDate)
 	SetDefaultDate(opts.eDateEl, endDate)

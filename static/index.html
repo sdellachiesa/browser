@@ -176,10 +176,10 @@
 			</div>
 			</div>
 			<div class="col-md-3">
-				<div class="form-group">
+				<div class="form-group war">
 					<label for="dateRange">Pick a date range:</label>
 					<div class="input-daterange input-group" id="datepicker">
-						<input type="text" class="input-sm form-control" name="startDate" id="startDate" autocomplete="off">
+						<input type="text" data-html="true" data-content="<p class='text-warning'><b>Warning:</b> Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.</p>" class="input-sm form-control" name="startDate" id="startDate" autocomplete="off">
 						<span class="input-group-addon">to</span>
 						<input type="text" class="input-sm form-control" name="endDate"  id="endDate" autocomplete="off">
 					</div>
