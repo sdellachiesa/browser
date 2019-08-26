@@ -55,7 +55,7 @@ func (s *Server) handleIndex() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-		opts := &QueryOptions{
+		opts := &FilterOptions{
 			Fields: []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"},
 		}
 		response, err := s.db.Get(opts)
@@ -101,7 +101,7 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	opts := &QueryOptions{}
+	opts := &FilterOptions{}
 	err := json.NewDecoder(r.Body).Decode(opts)
 	if err == io.EOF {
 		err = nil
@@ -145,12 +145,11 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	opts := &QueryOptions{
-		Fields:   r.Form["fields"],
-		Stations: r.Form["stations"],
-		Landuse:  r.Form["landuse"],
-		From:     r.FormValue("startDate"),
-		To:       r.FormValue("endDate"),
+	opts, err := NewSeriesOptionsFromForm(r)
+	if err != nil {
+		log.Printf("handleSeries: %v\n", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	b, err := s.db.Series(opts)

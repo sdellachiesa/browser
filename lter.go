@@ -4,10 +4,14 @@ package browser
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
@@ -44,15 +48,13 @@ type Response struct {
 	Landuse  []string
 }
 
-type QueryOptions struct {
+type FilterOptions struct {
 	Fields   []string
 	Stations []string
 	Landuse  []string
-	From     string
-	To       string
 }
 
-func (q *QueryOptions) Query() (string, error) {
+func (f *FilterOptions) Query() (string, error) {
 	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
 
 	funcMap := template.FuncMap{
@@ -60,10 +62,10 @@ func (q *QueryOptions) Query() (string, error) {
 	}
 
 	where := []string{}
-	for _, s := range q.Stations {
+	for _, s := range f.Stations {
 		where = append(where, fmt.Sprintf("snipeit_location_ref='%s'", s))
 	}
-	for _, l := range q.Landuse {
+	for _, l := range f.Landuse {
 		where = append(where, fmt.Sprintf("landuse='%s'", l))
 	}
 
@@ -77,11 +79,80 @@ func (q *QueryOptions) Query() (string, error) {
 		Fields []string
 		Where  []string
 	}{
-		q.Fields,
+		f.Fields,
 		where,
 	}); err != nil {
 		return "", fmt.Errorf("could not apply InfluxQL query data: %v ", err)
 	}
 
 	return b.String(), nil
+}
+
+type TimeRange struct {
+	Start time.Time
+	End   time.Time
+}
+
+type SeriesOptions struct {
+	TimeRange
+	FilterOptions
+}
+
+// NewSeriesOptionsFromForm parses the given request for form values and
+// validates them.
+func NewSeriesOptionsFromForm(r *http.Request) (*SeriesOptions, error) {
+	start, err := time.Parse("2006-01-02", r.FormValue("startDate"))
+	if err != nil {
+		return nil, fmt.Errorf("could not parse start date %v", err)
+	}
+
+	end, err := time.Parse("2006-01-02", r.FormValue("endDate"))
+	if err != nil {
+		return nil, fmt.Errorf("error: could not parse end date %v", err)
+	}
+
+	now := time.Now()
+	if end.After(now) {
+		return nil, errors.New("error: end date is in the future")
+	}
+
+	// Limit download of data to one year
+	limit := time.Date(now.Year()-1, now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	if start.Before(limit) {
+		return nil, errors.New("error: start date is to far in the past")
+	}
+
+	if r.Form["fields"] == nil {
+		return nil, errors.New("error: at least one field must be given")
+	}
+
+	if r.Form["stations"] == nil {
+		return nil, errors.New("error: at least one station must be given")
+	}
+
+	opts := &SeriesOptions{}
+	opts.Fields = r.Form["fields"]
+	opts.Stations = r.Form["stations"]
+	opts.Landuse = r.Form["landuse"]
+	opts.Start = start
+	opts.End = end
+
+	return opts, nil
+}
+
+func (s *SeriesOptions) Query() (string, error) {
+	qs := []string{}
+	for _, f := range s.Stations {
+		q := fmt.Sprintf("SELECT station,landuse,altitude,latitude,longitude,%s FROM %s WHERE %s AND time >= '%s' AND time <= '%s' GROUP BY station ORDER BY time ASC",
+			strings.Join(s.Fields, ","),
+			strings.Join(s.Fields, ","),
+			fmt.Sprintf("snipeit_location_ref='%s'", f),
+			s.TimeRange.Start.Format("2006-01-02"),
+			s.TimeRange.End.Format("2006-01-02"),
+		)
+		log.Println(q)
+		qs = append(qs, q)
+	}
+
+	return strings.Join(qs, ";"), nil
 }

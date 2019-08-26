@@ -105,8 +105,8 @@ function browser(opts) {
 			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
-					//stations: $(opts.stationEl).val(),
-					//landuse: $(opts.landuseEl).val(),
+					stations: $(opts.stationEl).val(),
+					landuse: $(opts.landuseEl).val(),
 					fields: $(opts.fieldEl).val(),
 				}),	
 				dataType: "json",
@@ -163,14 +163,19 @@ function browser(opts) {
 		}
 	});
 
-	$(opts.dateEl).datepicker({
-		todayHighlight: true,
-		endDate: new Date(),
-		format: 'yyyy-mm-dd',
-	});
 
 	var endDate = new Date()
-	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6))
+	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6));
+	var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
+	console.log(maxDate);
+	$(opts.dateEl).datepicker({
+		todayHighlight: true,
+		format: 'yyyy-mm-dd',
+		startDate: maxDate,
+		endDate: endDate
+	}).on("changeDate", function(){
+		//console.log("bla")
+	});
 	SetDefaultDate(opts.sDateEl, startDate)
 	SetDefaultDate(opts.eDateEl, endDate)
 

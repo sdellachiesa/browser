@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
@@ -15,8 +14,8 @@ import (
 
 // The Backend interface retrieves data.
 type Backend interface {
-	Get(*QueryOptions) (*Response, error)
-	Series(*QueryOptions) ([][]string, error)
+	Get(*FilterOptions) (*Response, error)
+	Series(*SeriesOptions) ([][]string, error)
 	StationsMetadata(ids []int64) ([]*Station, error)
 }
 
@@ -29,7 +28,7 @@ func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 	return Datastore{sc, ic}
 }
 
-func (d Datastore) Get(opts *QueryOptions) (*Response, error) {
+func (d Datastore) Get(opts *FilterOptions) (*Response, error) {
 	q, err := opts.Query()
 	if err != nil {
 		return nil, err
@@ -78,23 +77,13 @@ func unique(s []string) []string {
 	return s[:j]
 }
 
-func (d Datastore) Series(opts *QueryOptions) ([][]string, error) {
-	// TODO: QueryOptions should implement a "Queryer" interface which
-	// provides a method Query.
-	qs := []string{}
-	for _, f := range opts.Stations {
-		q := fmt.Sprintf("SELECT station,landuse,altitude,latitude,longitude,%s FROM %s WHERE %s AND time >= '%s' AND time <= '%s' GROUP BY station ORDER BY time ASC",
-			strings.Join(opts.Fields, ","),
-			strings.Join(opts.Fields, ","),
-			fmt.Sprintf("snipeit_location_ref='%s'", f),
-			opts.From,
-			opts.To,
-		)
-		log.Println(q)
-		qs = append(qs, q)
+func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
+	q, err := opts.Query()
+	if err != nil {
+		return nil, err
 	}
 
-	results, err := d.influx.Results(strings.Join(qs, ";"))
+	results, err := d.influx.Results(q)
 	if err != nil {
 		return nil, err
 	}
