@@ -25,16 +25,17 @@
 		<script>
 		$(document).ready(function() {
 			browser({
-				'stationEl':	'#stations',
-				'fieldEl': 		'#fields',
-				'landuseEl': 	'#landuse',
-				'altitudeEl': 	'#altitude',
-				'dateEl': 		'#datepicker',
-				'sDateEl': 		'#startDate',
-				'eDateEl': 		'#endDate',
-				'submitEl': 	'#submit',
-				'mapEl': 		'map',
-				'mapData':		JSON.parse('{{.Map}}'),
+				'stationEl':		'#stations',
+				'fieldEl': 			'#fields',
+				'landuseEl': 		'#landuse',
+				'altitudeEl': 		'#altitude',
+				'dateEl': 			'#datepicker',
+				'sDateEl': 		'	#startDate',
+				'eDateEl': 			'#endDate',
+				'submitEl': 		'#submit',
+				'tooltipWrapperEl': '.tooltip-wrapper',
+				'mapEl': 			'map',
+				'mapData':			JSON.parse('{{.Map}}'),
 			});
 		});
 		</script>
@@ -103,6 +104,15 @@
 			#errorDialogContent {
 				font-size: 1.2em;
 				padding: 10px 10px 0 0;
+			}
+			.tooltip-wrapper {
+				display: inline-block;
+			}
+			.tooltip-wrapper .btn[disabled] {
+				pointer-events: none;
+			}
+			.tooltip-wrapper.disabled {
+  				cursor: not-allowed;
 			}
 		</style>
 	</head>
@@ -185,7 +195,10 @@
 		<div class="row">
 			<div class="col-md-12">
 				<p>
-					<button disabled placeholder="Please select at least one measurement and station..."  type="submit" class="btn btn-primary " id="submit">Download CSV</button> <br>	
+					<div class="tooltip-wrapper disabled" data-title="Please select at least one measurement and station.">
+						<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button>
+					</div>
+					<br>	
 				</p>
 				<p>
 					<br><b>Disclaimer:</b> Meteorologial data downloaded form this app comes with no warranty and has not been validated by the data provider nor by the authors of the app.

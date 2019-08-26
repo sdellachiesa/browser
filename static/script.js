@@ -93,8 +93,8 @@ function ToggleOptionsForNumbers(el, data) {
 //	dateEl - date picker element
 //	sDateEl - start date element
 //	eDateEl - end date element
-//	metaEL - metadata element
 //	submitEl - submit button element
+//  tooltipWrapperEl - tooltip wrapper element for submit button
 //	mapEl - map element
 /// mapData - JSON used for initialize the map and altitude range
 function browser(opts) {
@@ -166,6 +166,8 @@ function browser(opts) {
 			});
 		}
 	});
+
+	$(opts.tooltipWrapperEl).tooltip({position: "bottom"});
 
 	var endDate = new Date()
 	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6));
