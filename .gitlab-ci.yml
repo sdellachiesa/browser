@@ -32,8 +32,8 @@ build:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN https://gitlab.inf.unibz.it:4567
   script:
-    - docker  build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_SHA} .
-    - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+    - docker  build --rm --no-cache --tag=${CONTAINER_IMAGE}:${CI_COMMIT_TAG} .
+    - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
   only:
    - tags
 
