@@ -4,7 +4,6 @@
 // browser error callback with the human-readable error string.
 function errorHandler(callback) {
 	return function(jqXHR, textStatus, errorThrown) {
-		console.log(textStatus, errorThrown);
 		if (errorThrown) {
 			callback(errorThrown);
 			return;
@@ -13,9 +12,10 @@ function errorHandler(callback) {
 	}
 }
 
-// TODO(pam): display errors in a more friendly way.
+// error displays an modal dialog with the given error.
 function error(err) {
-	alert(err)
+	$("#errorDialogContent").html("<p>" + err + "<p>");
+	$("#errorDialog").modal('toggle');
 }
 
 // FormatDate formats the given date to yyyy-mm-dd.
@@ -96,6 +96,7 @@ function ToggleOptionsForNumbers(el, data) {
 //	metaEL - metadata element
 //	submitEl - submit button element
 //	mapEl - map element
+/// mapData - JSON used for initialize the map and altitude range
 function browser(opts) {
 	$(opts.fieldEl).multiselect({
 		maxHeight: 400,
@@ -114,7 +115,8 @@ function browser(opts) {
 					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
 					ToggleOptions(opts.landuseEl, data.Landuse);
 					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
-				}
+				},
+				error: errorHandler(error) 
 			});
 		}
 	});
@@ -129,14 +131,15 @@ function browser(opts) {
 				data: JSON.stringify({
 					//landuse: $(opts.landuseEl).val(),
 					stations: $(opts.stationEl).val(),
-					//	fields: $(opts.fieldEl).val(),
+					//fields: $(opts.fieldEl).val(),
 				}),	
 				dataType: "json",
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
 					ToggleOptions(opts.landuseEl, data.Landuse);
 					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
-				}
+				},
+				error: errorHandler(error)
 			});
 		}
 	});
@@ -149,25 +152,25 @@ function browser(opts) {
 			$.ajax("/api/v1/update", {
 				method: "POST",
 				data: JSON.stringify({
-				//	stations: $(opts.stationEl).val(),
+					//stations: $(opts.stationEl).val(),
 					landuse: $(opts.landuseEl).val(),
-				//	fields: $(opts.fieldEl).val(),
+					//fields: $(opts.fieldEl).val(),
 				}),	
 				dataType: "json",
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
 					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
 					ToggleDownload(opts.stationEl, opts.fieldEl, opts.submitEl);
-				}
+				},
+				error: errorHandler(error)
 			});
 		}
 	});
 
-
 	var endDate = new Date()
 	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6));
 	var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
-	console.log(maxDate);
+	
 	$(opts.dateEl).datepicker({
 		todayHighlight: true,
 		format: 'yyyy-mm-dd',
@@ -179,8 +182,6 @@ function browser(opts) {
 	SetDefaultDate(opts.sDateEl, startDate)
 	SetDefaultDate(opts.eDateEl, endDate)
 
-
-	 
 	// Initalize map.
 	var map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
 	L.control.scale({position: "bottomright"}).addTo(map);

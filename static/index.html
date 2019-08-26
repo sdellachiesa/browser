@@ -100,6 +100,10 @@
 			.disabled {
 				text-decoration: line-through;
 			}
+			#errorDialogContent {
+				font-size: 1.2em;
+				padding: 10px 10px 0 0;
+			}
 		</style>
 	</head>
 	<body>
@@ -125,9 +129,9 @@
 
 	<div class="container">
 		<div class="row">
-				<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>. 
-				Download data by <mark>selecting at least one station and one measurement</mark>.
-				</p>
+			<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>. 
+			Download data by <mark>selecting at least one station and one measurement</mark>.
+			</p>
 		</div>
 		<form method="POST" action="/api/v1/series/" target="_blank"  id="filters" name="filter">
 		<div class="row">
@@ -192,6 +196,20 @@
 	</div>
 
 	<div id="map" class="fill"></div>
+	</div>
+
+	<div id="errorDialog" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Oh snap! You got an error!</h4>
+					<p id="errorDialogContent"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
 	</div>
 
 	</body>
