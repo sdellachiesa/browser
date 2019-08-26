@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"gitlab.inf.unibz.it/lter/browser/internal/browser"
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
