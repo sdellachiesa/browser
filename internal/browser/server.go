@@ -179,7 +179,7 @@ func MapLanduse(key string) string {
 	case "me":
 		return "Meadow"
 	case "fo":
-		return "Climate station in the forest"
+		return "Forest"
 	case "sf":
 		return "SapFlow"
 	case "de":
