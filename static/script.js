@@ -103,7 +103,6 @@ function ToggleOptionsForNumbers(el, data) {
 //	sDateEl - start date element
 //	eDateEl - end date element
 //	submitEl - submit button element
-//  tooltipWrapperEl - tooltip wrapper element for submit button
 //	mapEl - map element
 /// mapData - JSON used for initialize the map and altitude range
 function browser(opts) {
@@ -213,6 +212,8 @@ function browser(opts) {
 	
 	var mapMarkers = {};
 	var mapBound = [];
+	var maxAltitude = 0;
+	var minAltitude = 100000;
 	Object.keys(opts.mapData).map(function(k) {
 		var item = opts.mapData[k];
 	
@@ -226,14 +227,23 @@ function browser(opts) {
 	
 		mapMarkers[item.ID] = marker
 		mapBound.push(new L.latLng(item.Latitude, item.Longitude));
+
+		if (item.Altitude >= maxAltitude) {
+			maxAltitude = item.Altitude
+		}
+
+		if (item.Altitude <= minAltitude) {
+			minAltitude = item.Altitude
+		}
+
 	});	
 	map.fitBounds(mapBound);
 
 	$(".js-range-slider").ionRangeSlider({
 		skin: "round",
 		type: "double",
-		min: 900,
-		max: 2500,
+		min: Math.floor(minAltitude/100)*100,
+		max: Math.round(maxAltitude/1000)*1000,
 		grid: true,
 		onChange: function(data) {
 			var stations = [];
