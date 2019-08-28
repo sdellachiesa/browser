@@ -111,15 +111,14 @@ func NewSeriesOptionsFromForm(r *http.Request) (*SeriesOptions, error) {
 		return nil, fmt.Errorf("error: could not parse end date %v", err)
 	}
 
-	now := time.Now()
-	if end.After(now) {
+	if end.After(time.Now()) {
 		return nil, errors.New("error: end date is in the future")
 	}
 
 	// Limit download of data to one year
-	limit := time.Date(now.Year()-1, now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	limit := time.Date(end.Year()-1, end.Month(), end.Day(), 0, 0, 0, 0, time.UTC)
 	if start.Before(limit) {
-		return nil, errors.New("error: start date is to far in the past")
+		return nil, errors.New("error: time range is greater then a year")
 	}
 
 	if r.Form["fields"] == nil {

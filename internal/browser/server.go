@@ -77,15 +77,19 @@ func (s *Server) handleIndex() http.HandlerFunc {
 		}
 
 		err = tmpl.Execute(w, struct {
-			Stations []*Station
-			Fields   []string
-			Landuse  []string
-			Map      string
+			Stations  []*Station
+			Fields    []string
+			Landuse   []string
+			Map       string
+			StartDate string
+			EndDate   string
 		}{
 			stations,
 			response.Fields,
 			response.Landuse,
 			string(mapJSON),
+			time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
+			time.Now().Format("2006-01-02"),
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

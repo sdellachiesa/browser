@@ -30,7 +30,7 @@
 				'landuseEl': 		'#landuse',
 				'altitudeEl': 		'#altitude',
 				'dateEl': 			'#datepicker',
-				'sDateEl': 		'	#startDate',
+				'sDateEl': 			'#startDate',
 				'eDateEl': 			'#endDate',
 				'submitEl': 		'#submit',
 				'mapEl': 			'map',
@@ -73,19 +73,19 @@
 			}
 			.navbar-text {
 					color: rgba(0,0,0,.54);
-			}	
+			}
 			.row {
 				margin-bottom: 20px;
 			}
 			a {
-				color: #000; 
+				color: #000;
 			}
 			.headline {
 				font-size: 1.6em;
 				line-height: 1.6;
 				padding: 5px;
 			}
-			.headline > a {	
+			.headline > a {
 				text-decoration: underline;
 			}
 			.fill {
@@ -116,7 +116,7 @@
 		</style>
 	</head>
 	<body>
-	
+
 	<div id="content">
 
 	<nav class="navbar">
@@ -139,7 +139,7 @@
 
 	<div class="container">
 		<div class="row">
-			<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>. 
+			<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>.
 			Download data by <mark>selecting at least one station and one measurement</mark>.
 			</p>
 		</div>
@@ -176,12 +176,12 @@
 			</div>
 			</div>
 			<div class="col-md-3">
-				<div class="form-group war">
+				<div class="form-group" id="timerange">
 					<label for="dateRange">Pick a date range:</label>
-					<div class="input-daterange input-group" id="datepicker">
-						<input type="text" data-html="true" data-content="<p class='text-warning'><b>Warning:</b> Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.</p>" class="input-sm form-control" name="startDate" id="startDate" autocomplete="off">
+					<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>Warning</b>: Empty dates are not allowed.</div>" data-trigger="manual" data-placement="top">
+						<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off" data-html="true" data-content="<p class='text-warning'><b>Warning:</b> Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.</p>" data-trigger="manual" data-placement="top">
 						<span class="input-group-addon">to</span>
-						<input type="text" class="input-sm form-control" name="endDate"  id="endDate" autocomplete="off">
+						<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
 					</div>
 				</div>
 			</div>
@@ -198,7 +198,7 @@
 					<div class="tooltip-wrapper disabled" data-title="Please select at least one measurement and station.">
 						<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button>
 					</div>
-					<br>	
+					<br>
 				</p>
 				<p>
 					<br><b>Disclaimer:</b> Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider.

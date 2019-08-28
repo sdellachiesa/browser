@@ -18,36 +18,21 @@ function error(err) {
 	$("#errorDialog").modal('toggle');
 }
 
-// FormatDate formats the given date to yyyy-mm-dd.
-function FormatDate(date) {
-	return date.toISOString().slice(0, 10)
-}
-
-// SetDefaultDate sets the give dat value on the given
-// element.
-function SetDefaultDate(el, date) {
-	$(el).val(FormatDate(date))
-	$(el).datepicker().on("hide", function() {
-		if ($(this).val() != "") {
-			return
-		}
-		$(this).val(FormatDate(date))
-	});
-}
-
 // ToggleDownload enables the download botton if at least one
 // station and one measurement was selected. Moreover it checks
-// if the time range selected is not ore than a year. Otherwise 
+// if the time range selected is not ore than a year. Otherwise
 // it will be disable it.
 function ToggleDownload(opts) {
-	var startDate = new Date($(opts.sDateEl).val())
-	var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
-	
-	if (startDate < maxDate) {
+	if ($(opts.sDateEl).val() == "" || $(opts.eDateEl).val() == "") {
 		$(opts.submitEl).attr("disabled", "disabled");
 		return
 	}
-	
+
+	if (! ValidDateRange(opts.sDateEl, opts.eDateEl)) {
+		$(opts.submitEl).attr("disabled", "disabled");
+		return
+	}
+
 	if ($(opts.stationEl).val() == null) {
 		$(opts.submitEl).attr("disabled", "disabled");
 		return
@@ -72,7 +57,7 @@ function ToggleOptions(el, data) {
 			$(this).prop('selected', false);
 		}
 	});
-	
+
 	$(el).multiselect('refresh');
 }
 
@@ -88,8 +73,25 @@ function ToggleOptionsForNumbers(el, data) {
 			$(this).prop('selected', false);
 		}
 	});
-	
+
 	$(el).multiselect('refresh');
+}
+
+// ValidDateRange checks if the selected date range is valid and
+// returns true for a valid range otherwise false.
+function ValidDateRange(sDateEl, eDateEl) {
+	var startDate = new Date($(sDateEl).val());
+	startDate.setHours(0,0,0,0);
+
+	var endDate = new Date($(eDateEl).val());
+	endDate.setFullYear(endDate.getFullYear() - 1);
+	endDate.setHours(0,0,0,0);
+
+	if (startDate < endDate) {
+		return false;
+	}
+
+	return true;
 }
 
 // browser sets up the client for filtering and
@@ -117,14 +119,14 @@ function browser(opts) {
 					//stations: $(opts.stationEl).val(),
 					//landuse: $(opts.landuseEl).val(),
 					fields: $(opts.fieldEl).val(),
-				}),	
+				}),
 				dataType: "json",
 				success: function(data) {
 					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
 					ToggleOptions(opts.landuseEl, data.Landuse);
 					ToggleDownload(opts);
 				},
-				error: errorHandler(error) 
+				error: errorHandler(error)
 			});
 		}
 	});
@@ -133,6 +135,7 @@ function browser(opts) {
 		maxHeight: 400,
 	 	buttonWidth: "100%",
 		enableFiltering: true,
+		includeSelectAllOption: true,
 		onChange: function() {
 			$.ajax("/api/v1/update", {
 				method: "POST",
@@ -140,7 +143,7 @@ function browser(opts) {
 					//landuse: $(opts.landuseEl).val(),
 					stations: $(opts.stationEl).val(),
 					//fields: $(opts.fieldEl).val(),
-				}),	
+				}),
 				dataType: "json",
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
@@ -163,7 +166,7 @@ function browser(opts) {
 					//stations: $(opts.stationEl).val(),
 					landuse: $(opts.landuseEl).val(),
 					//fields: $(opts.fieldEl).val(),
-				}),	
+				}),
 				dataType: "json",
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
@@ -175,32 +178,33 @@ function browser(opts) {
 		}
 	});
 
-
-	var endDate = new Date()
-	var startDate = new Date(new Date().setMonth(new Date().getMonth()-6));
-	var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
-	
 	$(opts.dateEl).datepicker({
 		todayHighlight: true,
 		format: 'yyyy-mm-dd',
-		endDate: endDate
-	}).on("changeDate", function(){
-		var startDate = new Date($(opts.sDateEl).val())
-		var maxDate = new Date(new Date().setFullYear(new Date().getFullYear()-1));
-
-		if (startDate < maxDate) {
-			$(opts.sDateEl).popover({
-				placement: 'top',
-				trigger: 'manual',
-			});
-			$(opts.sDateEl).popover('show');
-		} else {
-			$(opts.sDateEl).popover('hide');
-		}
+		endDate: new Date()
+	}).on('changeDate', function() {
 		ToggleDownload(opts);
+		if (ValidDateRange(opts.sDateEl, opts.eDateEl)) {
+			$(opts.sDateEl).popover('hide');
+			return
+		}
+		$(opts.sDateEl).popover('show');
+	}).on('hide', function() {
+		if ($(opts.sDateEl).val() == "" || $(opts.eDateEl).val() == "") {
+			$(opts.dateEl).popover('show')
+		} else {
+			$(opts.dateEl).popover('hide')
+		}
+
+		ToggleDownload(opts);
+		if (ValidDateRange(opts.sDateEl, opts.eDateEl)) {
+			$(opts.sDateEl).popover('hide');
+			return
+		}
+		$(opts.sDateEl).popover('show');
+	}).on('show', function() {
+		$(opts.dateEl).popover('hide');
 	});
-	SetDefaultDate(opts.sDateEl, startDate)
-	SetDefaultDate(opts.eDateEl, endDate)
 
 	// Initalize map.
 	var map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
@@ -209,14 +213,14 @@ function browser(opts) {
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
 		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
 	}).addTo(map);
-	
+
 	var mapMarkers = {};
 	var mapBound = [];
 	var maxAltitude = 0;
 	var minAltitude = 100000;
 	Object.keys(opts.mapData).map(function(k) {
 		var item = opts.mapData[k];
-	
+
 		var marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
 		marker.bindPopup(`<div id="${item.Name}mappopup">
 		<p>
@@ -224,7 +228,7 @@ function browser(opts) {
 		<b>Altitude:</b> ${item.Altitude} m
 		</p>
 		</div>`);
-	
+
 		mapMarkers[item.ID] = marker
 		mapBound.push(new L.latLng(item.Latitude, item.Longitude));
 
@@ -235,8 +239,7 @@ function browser(opts) {
 		if (item.Altitude <= minAltitude) {
 			minAltitude = item.Altitude
 		}
-
-	});	
+	});
 	map.fitBounds(mapBound);
 
 	$(".js-range-slider").ionRangeSlider({
