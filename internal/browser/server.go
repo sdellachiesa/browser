@@ -56,7 +56,6 @@ func (s *Server) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
 		opts := &FilterOptions{
-			//Fields: []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"},
 			Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
 		}
 		response, err := s.db.Get(opts)
@@ -116,7 +115,6 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
 	if len(opts.Fields) == 0 {
 		opts.Fields = []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"}
-		//opts.Fields = []string{"t_air", "air_t", "tair", "rh", "air_rh", "wind_dir", "mean_wind_direction", "wind_speed_avg", "mean_wind_speed", "wind_speed_max"}
 	}
 
 	d, err := s.db.Get(opts)
