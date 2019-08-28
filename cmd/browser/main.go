@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"gitlab.inf.unibz.it/lter/browser/internal/browser"
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
+	"gitlab.inf.unibz.it/lter/browser/internal/browser"
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
@@ -71,7 +71,7 @@ func main() {
 	}
 
 	ds := browser.NewDatastore(sc, ic)
-	s := auth.Handler(browser.NewServer(ds), oauthConfig)
+	s := browser.Headers(auth.Handler(browser.NewServer(ds), oauthConfig))
 
 	log.Printf("Starting server on %s\n", *httpAddr)
 	log.Fatal(http.ListenAndServe(*httpAddr, s))
