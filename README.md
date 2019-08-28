@@ -12,11 +12,11 @@ See [Design Document](https://gitlab.inf.unibz.it/lter/design/blob/master/browse
 	* [ ] Types
 * [x] ~~Query and download *LTER data* in CSV file format.~~
 * [x] ~~The timestamp in the output CSV file format should be in the format: `YYYY-MM-DD hh:mm:ss`~~
-* [ ] Filter data on:
+* [x] ~~Filter data on:~~
 	* [x] ~~stations name (e.g. M4, M2, ...)~~
 	* [x] ~~measurement name (e.g. Air relative humidity average, Wind speed average, ...)~~
 	* [x] ~~land use~~
-	* [ ] altitude
+	* [x] ~~altitude~~
 	* [x] ~~specific date range in the following format: `YYYY-MM-DD hh:mm:ss`~~
 * [x] ~~The predefined parameters UI elements (dropdown) which are connected (e.g. station name and land use) will automatically be updated on change.~~
 * [ ] Downsample data on a hourly, daily, monthly or yearly basis.
