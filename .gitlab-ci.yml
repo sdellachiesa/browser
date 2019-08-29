@@ -7,6 +7,7 @@ variables:
 
 stages:
   - build
+  - tag
 #  - deploy
 
 #test:
@@ -36,6 +37,20 @@ build:
     - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
   only:
    - master
+
+tag_image:
+  stage: tag
+  image: ${DOCKER_BUILDER_IMAGE}
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
+  script:
+    - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+    - docker tag ${CONTAINER_IMAGE}:${CI_COMMIT_SHA} ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
+    - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
+  only:
+    - tags
 
 #deploy_staging:
 #  stage: deploy
