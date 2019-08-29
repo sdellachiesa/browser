@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -30,7 +31,7 @@ func main() {
 		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
 		influxUser     = fs.String("influx-username", "", "Influx username")
 		influxPass     = fs.String("influx-password", "", "Influx password")
-		influxDatabase = fs.String("influx-database", "lter_dqc", "Influx database name")
+		influxDatabase = fs.String("influx-database", "", "Influx database name")
 		snipeitAddr    = fs.String("snipeit-addr", "", "SnipeIT API URL")
 		snipeitToken   = fs.String("snipeit-token", "", "SnipeIT API Token")
 		oauthClientID  = fs.String("oauth-clientid", "", "")
@@ -44,6 +45,11 @@ func main() {
 		ff.WithConfigFileParser(ff.PlainParser),
 		ff.WithEnvVarPrefix("BROWSER"),
 	)
+
+	required("influx-addr", *influxAddr)
+	required("influx-database", *influxDatabase)
+	required("snipeit-addr", *snipeitAddr)
+	required("snipeit-token", *snipeitToken)
 
 	// InfluxDB client
 	ic, err := influx.New(client.HTTPConfig{
@@ -75,4 +81,11 @@ func main() {
 
 	log.Printf("Starting server on %s\n", *httpAddr)
 	log.Fatal(http.ListenAndServe(*httpAddr, s))
+}
+
+func required(name, value string) {
+	if value == "" {
+		fmt.Fprintf(os.Stderr, "flag needs an argument: -%s\n\n", name)
+		os.Exit(2)
+	}
 }
