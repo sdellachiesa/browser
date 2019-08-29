@@ -45,7 +45,8 @@ func (s *Server) handleIndex() http.HandlerFunc {
 	}
 
 	funcMap := template.FuncMap{
-		"Landuse": MapLanduse,
+		"Landuse":     MapLanduse,
+		"Measurement": MapMeasurements,
 	}
 
 	tmpl, err := template.New("base").Funcs(funcMap).Parse(tmplFile)
@@ -196,6 +197,24 @@ func MapLanduse(key string) string {
 		return "Rock"
 	case "bs":
 		return "Bare soil"
+	default:
+		return key
+	}
+}
+
+// TODO: This should be replace when we introduce i18n
+func MapMeasurements(key string) string {
+	switch key {
+	case "air_rh_avg":
+		return "Relative Humidity"
+	case "air_t_avg":
+		return "Air Temperature"
+	case "wind_dir":
+		return "Wind Direction"
+	case "wind_speed_avg":
+		return "Wind Speed"
+	case "wind_speed_max":
+		return "Wind Gust"
 	default:
 		return key
 	}
