@@ -112,6 +112,7 @@ function browser(opts) {
 		maxHeight: 400,
 		buttonWidth: "100%",
 		enableFiltering: true,
+		includeSelectAllOption: true,
 		onChange: function() {
 			$.ajax("/api/v1/update", {
 				method: "POST",
@@ -159,6 +160,7 @@ function browser(opts) {
 		maxHeight: 400,
 		buttonWidth: "100%",
 		enableFiltering: true,
+		includeSelectAllOption: true,
 		onChange: function() {
 			$.ajax("/api/v1/update", {
 				method: "POST",
