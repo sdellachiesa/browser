@@ -133,8 +133,8 @@ func NewSeriesOptionsFromForm(r *http.Request) (*SeriesOptions, error) {
 	opts.Fields = r.Form["fields"]
 	opts.Stations = r.Form["stations"]
 	opts.Landuse = r.Form["landuse"]
-	opts.Start = start
-	opts.End = end
+	opts.Start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC)
+	opts.End = time.Date(end.Year(), end.Month(), end.Day(), 23, 59, 59, 0, time.UTC)
 
 	return opts, nil
 }
@@ -146,8 +146,8 @@ func (s *SeriesOptions) Query() (string, error) {
 			strings.Join(s.Fields, ","),
 			strings.Join(s.Fields, ","),
 			fmt.Sprintf("snipeit_location_ref='%s'", f),
-			s.TimeRange.Start.Format("2006-01-02"),
-			s.TimeRange.End.Format("2006-01-02"),
+			s.TimeRange.Start.Format("2006-01-02T15:04:00Z"),
+			s.TimeRange.End.Format("2006-01-02T15:04:00Z"),
 		)
 		log.Println(q)
 		qs = append(qs, q)
