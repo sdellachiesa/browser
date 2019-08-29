@@ -163,7 +163,7 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f := fmt.Sprintf("LTER_%d.csv", time.Now().Unix())
+	f := fmt.Sprintf("LTSER_IT25_Matsch_Mazia_%d.csv", time.Now().Unix())
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+f)
