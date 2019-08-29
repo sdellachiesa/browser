@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
@@ -112,17 +111,8 @@ func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
 
 				for i := range value {
 					v := value[i]
-					if v == nil {
+					if v == "" {
 						continue
-					}
-
-					if i == 0 {
-						var err error
-						v, err = time.Parse(time.RFC3339, value[0].(string))
-						if err != nil {
-							log.Printf("cannot convert timestamp: %v. skipping.", err)
-							continue
-						}
 					}
 
 					column[i] = fmt.Sprint(v)
