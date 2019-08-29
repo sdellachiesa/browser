@@ -41,7 +41,7 @@ func NewServer(b Backend) *Server {
 func (s *Server) handleIndex() http.HandlerFunc {
 	tmplFile, err := static.File("static/index.html")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("handleIndex: error in reading template: %v", err)
 	}
 
 	funcMap := template.FuncMap{
@@ -50,7 +50,7 @@ func (s *Server) handleIndex() http.HandlerFunc {
 
 	tmpl, err := template.New("base").Funcs(funcMap).Parse(tmplFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("handleIndex: error in parsing template: %v", err)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -60,18 +60,21 @@ func (s *Server) handleIndex() http.HandlerFunc {
 		}
 		response, err := s.db.Get(opts)
 		if err != nil {
+			log.Printf("handleIndex: error in getting data from backend: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		stations, err := s.db.StationsMetadata(response.Stations)
 		if err != nil {
+			log.Printf("handleIndex: error in getting metadata from backend: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		mapJSON, err := json.Marshal(stations)
 		if err != nil {
+			log.Printf("handleIndex: error in marshaling json: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -92,6 +95,7 @@ func (s *Server) handleIndex() http.HandlerFunc {
 			time.Now().Format("2006-01-02"),
 		})
 		if err != nil {
+			log.Printf("handleIndex: error in executing template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
