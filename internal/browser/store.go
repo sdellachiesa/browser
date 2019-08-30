@@ -111,7 +111,7 @@ func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
 
 				for i := range value {
 					v := value[i]
-					if v == "" {
+					if v == nil {
 						continue
 					}
 
