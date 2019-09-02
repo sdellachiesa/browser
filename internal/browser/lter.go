@@ -133,8 +133,11 @@ func NewSeriesOptionsFromForm(r *http.Request) (*SeriesOptions, error) {
 	opts.Fields = r.Form["fields"]
 	opts.Stations = r.Form["stations"]
 	opts.Landuse = r.Form["landuse"]
-	opts.Start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC)
-	opts.End = time.Date(end.Year(), end.Month(), end.Day(), 23, 59, 59, 0, time.UTC)
+
+	// We need to shift the timerange of one hour since in influx we use UTC and in output we want
+	// UTC+1.
+	opts.Start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC).Add(-1 * time.Hour)
+	opts.End = time.Date(end.Year(), end.Month(), end.Day(), 23, 59, 59, 0, time.UTC).Add(-1 * time.Hour)
 
 	return opts, nil
 }
