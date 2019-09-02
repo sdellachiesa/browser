@@ -13,11 +13,13 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
-	client "github.com/influxdata/influxdb1-client/v2"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
 
 	"github.com/peterbourgon/ff"
+
+	client "github.com/influxdata/influxdb1-client/v2"
 )
 
 const defaultAddr = "localhost:8888" // default webserver address
@@ -28,6 +30,9 @@ func main() {
 	fs := flag.NewFlagSet("browser", flag.ExitOnError)
 	var (
 		httpAddr       = fs.String("http", defaultAddr, "HTTP service address")
+		local          = fs.Bool("local", false, "Run Browser application in local mode. (useful for development)")
+		acmeCacheDir   = fs.String("acme-cache", "letsencrypt", "Direcotry for storing letsencrypt certificates.")
+		acmeHostname   = fs.String("acme-hostname", "", "Hostname used for getting a letsencrypt certificate.")
 		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
 		influxUser     = fs.String("influx-username", "", "Influx username")
 		influxPass     = fs.String("influx-password", "", "Influx password")
@@ -80,7 +85,23 @@ func main() {
 	s := browser.Headers(auth.Handler(browser.NewServer(ds), oauthConfig))
 
 	log.Printf("Starting server on %s\n", *httpAddr)
-	log.Fatal(http.ListenAndServe(*httpAddr, s))
+	if *local {
+		required("acme-hostname", *acmeHostname)
+
+		m := &autocert.Manager{
+			Cache:      autocert.DirCache(*acmeCacheDir),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(*acmeHostname),
+		}
+		srv := &http.Server{
+			Addr:      ":https",
+			TLSConfig: m.TLSConfig(),
+			Handler:   s,
+		}
+		log.Fatal(srv.ListenAndServeTLS("", ""))
+	} else {
+		log.Fatal(http.ListenAndServe(*httpAddr, s))
+	}
 }
 
 func required(name, value string) {
