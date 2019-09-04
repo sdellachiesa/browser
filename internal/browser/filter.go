@@ -17,7 +17,7 @@ type Filter struct {
 	Landuse  []string
 }
 
-// TODO: Thats ugly but for the RC for IBK it does the job.
+// TODO: Thats ugly but for know and for the RC for IBK it does the job.
 func (f *Filter) Validate(d []string) error {
 	if len(f.Fields) == 0 {
 		f.Fields = d

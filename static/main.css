@@ -14,6 +14,9 @@ body {
 	font: Arial, sans-serif;
 	font-size: small;
 }
+.map-popup {
+	font-size: 1.2em;
+}
 .headline {
 	padding: 15px;
 	margin-bottom: 20px;
