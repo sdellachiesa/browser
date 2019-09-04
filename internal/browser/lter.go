@@ -2,7 +2,6 @@
 package browser
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
@@ -46,46 +44,6 @@ type Response struct {
 	Stations []int64
 	Fields   []string
 	Landuse  []string
-}
-
-type FilterOptions struct {
-	Fields   []string
-	Stations []string
-	Landuse  []string
-}
-
-func (f *FilterOptions) Query() (string, error) {
-	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
-
-	funcMap := template.FuncMap{
-		"join": strings.Join,
-	}
-
-	where := []string{}
-	for _, s := range f.Stations {
-		where = append(where, fmt.Sprintf("snipeit_location_ref='%s'", s))
-	}
-	for _, l := range f.Landuse {
-		where = append(where, fmt.Sprintf("landuse='%s'", l))
-	}
-
-	t, err := template.New("query").Funcs(funcMap).Parse(tmpl)
-	if err != nil {
-		return "", fmt.Errorf("could not parse InfluxQL query template: %v ", err)
-	}
-
-	var b bytes.Buffer
-	if err := t.Execute(&b, struct {
-		Fields []string
-		Where  []string
-	}{
-		f.Fields,
-		where,
-	}); err != nil {
-		return "", fmt.Errorf("could not apply InfluxQL query data: %v ", err)
-	}
-
-	return b.String(), nil
 }
 
 type TimeRange struct {
