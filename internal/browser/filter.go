@@ -11,14 +11,14 @@ import (
 	"text/template"
 )
 
-type FilterOptions struct {
+type Filter struct {
 	Fields   []string
 	Stations []string
 	Landuse  []string
 }
 
-// TODO: Thats ugly but for know and for the RC for IBK it does the job.
-func (f *FilterOptions) Validate(d []string) error {
+// TODO: Thats ugly but for the RC for IBK it does the job.
+func (f *Filter) Validate(d []string) error {
 	if len(f.Fields) == 0 {
 		f.Fields = d
 		return nil
@@ -49,27 +49,8 @@ func (f *FilterOptions) Validate(d []string) error {
 	return nil
 }
 
-func IsAllowed(s string) bool {
-	ok, err := regexp.MatchString(`^\w+$`, s)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	return ok
-}
-
-func In(v string, s []string) bool {
-	for _, e := range s {
-		if e == v {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (f *FilterOptions) Query() (string, error) {
-	tmpl := `SHOW TAG VALUES FROM {{ if .Fields }}{{  join .Fields "," }} {{ else }} /.*/ {{ end }} WITH KEY IN ("landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }} {{ end }}`
+func (f *Filter) Query() (string, error) {
+	tmpl := `SHOW TAG VALUES FROM{{ if .Fields }} {{  join .Fields "," }} {{ else }} /.*/ {{ end }}WITH KEY IN ("landuse", "snipeit_location_ref"){{ if .Where }} WHERE {{ join .Where " OR " }}{{ end }}`
 
 	funcMap := template.FuncMap{
 		"join": strings.Join,
@@ -100,4 +81,23 @@ func (f *FilterOptions) Query() (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+func IsAllowed(s string) bool {
+	ok, err := regexp.MatchString(`^\w+$`, s)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	return ok
+}
+
+func In(v string, s []string) bool {
+	for _, e := range s {
+		if e == v {
+			return true
+		}
+	}
+
+	return false
 }

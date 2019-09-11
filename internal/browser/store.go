@@ -14,7 +14,7 @@ import (
 
 // The Backend interface retrieves data.
 type Backend interface {
-	Get(*FilterOptions) (*Response, error)
+	Get(*Filter) (*Response, error)
 	Series(*SeriesOptions) ([][]string, error)
 	StationsMetadata(ids []int64) ([]*Station, error)
 }
@@ -28,7 +28,7 @@ func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 	return Datastore{sc, ic}
 }
 
-func (d Datastore) Get(opts *FilterOptions) (*Response, error) {
+func (d Datastore) Get(opts *Filter) (*Response, error) {
 	q, err := opts.Query()
 	if err != nil {
 		return nil, err

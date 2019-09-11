@@ -53,7 +53,7 @@ type TimeRange struct {
 
 type SeriesOptions struct {
 	TimeRange
-	FilterOptions
+	Filter
 }
 
 // NewSeriesOptionsFromForm parses the given request for form values and
