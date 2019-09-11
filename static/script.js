@@ -242,7 +242,7 @@ function browser(opts) {
 			minAltitude = item.Altitude
 		}
 	});
-	map.fitBounds(mapBound);
+	map.fitBounds(mapBound, {padding: [50, 50]});
 
 	$(".js-range-slider").ionRangeSlider({
 		skin: "round",

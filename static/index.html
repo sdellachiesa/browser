@@ -5,17 +5,13 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>LTER Data Browser</title>
-
-		<!-- Bootstrap -->
 		<link rel="stylesheet" href="/static/bootstrap.min.css">
 		<link rel="stylesheet" href="/static/bootstrap-datepicker3.min.css">
 		<link rel="stylesheet" href="/static/bootstrap-multiselect.css">
 		<link rel="stylesheet" href="/static/ion.rangeSlider.min.css">
 		<link rel="stylesheet" href="/static/leaflet.css">
-
-		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+		<link rel="stylesheet" href="/static/main.css">
 		<script src="/static/jquery-1.12.4.min.js"></script>
-		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="/static/bootstrap.min.js"></script>
 		<script src="/static/bootstrap-datepicker.min.js"></script>
 		<script src="/static/bootstrap-multiselect.js"></script>
@@ -42,177 +38,117 @@
 			});
 		});
 		</script>
-		<style>
-			html, body {
-				width: 100%;
-				height: 100%;
-				margin: 0;
-			}
-			body {
-				margin: 0;
-				padding: 0;
-				color: #000000;
-				font: Arial, sans-serif;
-				font-size: small;
-			}
-			#content {
-				min-height: 100%;
-  				display: flex;
-  				flex-direction: column;
-			}
-			.brd {
-				border: 1px solid #cccccc;
-			}
-			.brd-top {
-				border-top: 1px solid #cccccc;
-			}
-			.brd-right {
-				border-right: 1px solid #cccccc;
-			}
-			.brd-bottom {
-				border-bottom: 1px solid #cccccc;
-			}
-			.brd-left {
-				border-left: 1px solid #cccccc;
-			}
-			.navbar-text {
-					color: rgba(0,0,0,.54);
-			}
-			.row {
-				margin-bottom: 20px;
-			}
-			a {
-				color: #000;
-			}
-			.headline {
-				font-size: 1.6em;
-				line-height: 1.6;
-				padding: 5px;
-			}
-			.headline > a {
-				text-decoration: underline;
-			}
-			.fill {
-				min-height: 300px;
-				flex: 1;
-				display: flex;
-  				flex-direction: column;
-			}
-			#map {
-				z-index: 1;
-			}
-			.disabled {
-				text-decoration: line-through;
-			}
-			#errorDialogContent {
-				font-size: 1.2em;
-				padding: 10px 10px 0 0;
-			}
-			.tooltip-wrapper {
-				display: inline-block;
-			}
-			.tooltip-wrapper .btn[disabled] {
-				pointer-events: none;
-			}
-			.tooltip-wrapper.disabled {
-  				cursor: not-allowed;
-			}
-		</style>
 	</head>
 	<body>
 
-	<div id="content">
-
-	<nav class="navbar">
-		<div class="container-fluid" style="border-bottom: 1px solid #cccccc;">
-				<div class="navbar-header">
-					<h4 class="navbar-text">Data Browser</h4>
-				</div>
-				<!--
-				<ul class="nav navbar-nav navbar-right">
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login with <span class="caret"></span></a>
-						<ul class="dropdown-menu">
-							<li><a href="/login/sns">ScientificNET</a></li>
-						</ul>
-					</li>
-				</ul>
-				-->
-		</div>
-	</nav>
-
-	<div class="container">
+	<div class="container-fluid layout">
 		<div class="row">
-			<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>.
-			Download data by <mark>selecting at least one station and one measurement</mark>.
-			</p>
-		</div>
-		<form method="POST" action="/api/v1/series/" target="_blank"  id="filters" name="filter">
-		<div class="row">
-			<div class="col-md-2">
-				<div class="form-group">
-					<label for="fields">Select measurement:</label>
-					<select multiple class="form-control" id="fields" name="fields">
-                        {{- range .Fields}}
-                        <option value="{{.}}">{{ Measurement . }}</option>
-                        {{- end -}}
-                    </select>
-				</div>
-			</div>
-			<div class="col-md-2">
-				<div class="form-group">
-					<label for="stations">Select station:</label>
-					<select multiple class="form-control" id="stations" name="stations">
-					{{- range .Stations}}
-                        <option value="{{ .ID }}">{{ .Name }}</option>
-                    {{- end -}}
-					</select>
-				</div>
-			</div>
-			<div class="col-md-2">
-				<div class="form-group">
-					<label for="landuse">Select land use:</label>
-					<select multiple class="form-control" id="landuse" name="landuse">
-					{{- range .Landuse }}
-						<option value="{{.}}">{{ Landuse . }}</option>
-					{{- end -}}
-					</select>
-			</div>
-			</div>
-			<div class="col-md-3">
-				<div class="form-group" id="timerange">
-					<label for="dateRange">Pick a date range:</label>
-					<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>Warning</b>: Empty dates are not allowed.</div>" data-trigger="manual" data-placement="top">
-						<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off" data-html="true" data-content="<p class='text-warning'><b>Warning:</b> Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.</p>" data-trigger="manual" data-placement="top">
-						<span class="input-group-addon">to</span>
-						<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
+			<div class="col-md-5 shadow">
+				<nav class="navbar navbar-default">
+					<div class="container-fluid">
+						<!-- Brand and toggle get grouped for better mobile display -->
+						<div class="navbar-header">
+							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+							<a class="navbar-brand" href="#"><img src="/static/images/logo.gif" height="45" alt="LTER Data Browser"></a>
+						</div>
+
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-nav">
+								<!-- <li class="active"><a href="/">Home</a></li> -->
+								<!-- <li><a href="#">Glossary</a></li> -->
+								<!-- <li><a href="#">About</a></li> -->
+							</ul>
+							<ul class="nav navbar-nav navbar-right"> 
+							<!-- 	<li class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Language <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">Italiano</a></li>
+										<li><a href="#">Deutsch</a></li>
+									</ul>
+								</li>-->
+								<li><a href="/login/sns/">Login</a></li>
+							</ul>
+						</div>
 					</div>
-				</div>
-			</div>
-			<div class="col-md-3">
-				<div class="form-group">
-					<label for="altitude">Select altitude range[m]:</label>
-					<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-md-12">
-				<p>
-					<div class="tooltip-wrapper disabled" data-title="Please select at least one measurement and station.">
-						<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button>
-					</div>
-					<br>
-				</p>
-				<p>
-					<br><b>Disclaimer:</b> Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider.
-				</p>
-			</div>
-		</div>
-	</form>
-	</div>
+				</nav>
 
-	<div id="map" class="fill"></div>
+				<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>. Download data by <mark>selecting at least one station and one measurement</mark>.
+				</p>
+				<form method="POST" action="/api/v1/series/" target="_blank"  id="filters" name="filter">
+					<div class="container-fluid filter">
+						<div class="row">
+							<div class="col-md-4">
+								<div class="form-group">
+									<label for="fields">Select measurement:</label>
+									<select multiple class="form-control" id="fields" name="fields">
+										{{- range .Fields}}
+										<option value="{{.}}">{{ Measurement . }}</option>
+										{{- end -}}
+								 	</select>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="form-group">
+									<label for="stations">Select station:</label>
+									<select multiple class="form-control" id="stations" name="stations">
+										{{- range .Stations}}
+										<option value="{{ .ID }}">{{ .Name }}</option>
+				 						{{- end -}}
+									</select>
+								</div>	
+							</div>
+							<div class="col-md-4">
+								<div class="form-group">
+									<label for="landuse">Select land use:</label>
+										<select multiple class="form-control" id="landuse" name="landuse">
+											{{- range .Landuse }}
+											<option value="{{.}}">{{ Landuse . }}</option>
+											{{- end -}}
+										</select>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group" id="timerange">
+									<label for="dateRange">Pick a date range:</label>
+									<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>Warning</b>: Empty dates are not allowed.</div>" data-trigger="manual" data-placement="top">
+										<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off" data-html="true" data-content="<p class='text-warning'><b>Warning:</b> Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.</p>" data-trigger="manual" data-placement="top">
+										<span class="input-group-addon">to</span>
+										<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="altitude">Select altitude range[m]:</label>
+									<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<br>
+								<div class="tooltip-wrapper disabled" data-title="Please select at least one measurement and station.">
+									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button>
+								</div>
+								<br>	
+								<p>
+									<br><b>Disclaimer:</b> Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider.
+								</p>
+							</div>
+						</div>
+					</div>
+				</form>
+				<div class="bottom"><a href="http://www.eurac.edu" target="_blank"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a></div>
+			</div>
+			<div class="col-md-7" id="map"></div>
+		</div>
 	</div>
 
 	<div id="errorDialog" class="modal fade" tabindex="-1" role="dialog">
@@ -222,12 +158,13 @@
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h4 class="modal-title">Oh snap! You got an error!</h4>
 					<p id="errorDialogContent"></p>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
 			</div>
 		</div>
 	</div>
-
+	
 	</body>
 </html>
