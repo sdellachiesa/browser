@@ -61,22 +61,6 @@ function ToggleOptions(el, data) {
 	$(el).multiselect('refresh');
 }
 
-// ToggleOptionsForNumbers enables/disables an option depending
-// on the presents of its value in given int data array.
-function ToggleOptionsForNumbers(el, data) {
-	$(el).children('option').map(function(){
-		var v = Number(this.value)
-		if (data.includes(v)) {
-			$(this).prop('disabled', false);
-		} else {
-			$(this).prop('disabled', true);
-			$(this).prop('selected', false);
-		}
-	});
-
-	$(el).multiselect('refresh');
-}
-
 // ValidDateRange checks if the selected date range is valid and
 // returns true for a valid range otherwise false.
 function ValidDateRange(sDateEl, eDateEl) {
@@ -123,7 +107,7 @@ function browser(opts) {
 				}),
 				dataType: "json",
 				success: function(data) {
-					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
+					ToggleOptions(opts.stationEl, data.Stations);
 					ToggleOptions(opts.landuseEl, data.Landuse);
 					ToggleDownload(opts);
 				},
@@ -172,7 +156,7 @@ function browser(opts) {
 				dataType: "json",
 				success: function(data) {
 					ToggleOptions(opts.fieldEl, data.Fields);
-					ToggleOptionsForNumbers(opts.stationEl, data.Stations);
+					ToggleOptions(opts.stationEl, data.Stations);
 					ToggleDownload(opts);
 				},
 				error: errorHandler(error)
@@ -267,7 +251,7 @@ function browser(opts) {
 					marker.setOpacity(0.4);
 				}
 			});
-			ToggleOptionsForNumbers(opts.stationEl, stations);
+			ToggleOptions(opts.stationEl, stations);
 			ToggleOptions(opts.landuseEl, landuse);
 		}
 	 });

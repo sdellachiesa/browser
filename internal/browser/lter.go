@@ -10,12 +10,6 @@ import (
 	"time"
 )
 
-type Response struct {
-	Stations []int64
-	Fields   []string
-	Landuse  []string
-}
-
 type TimeRange struct {
 	Start time.Time
 	End   time.Time

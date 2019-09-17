@@ -59,14 +59,14 @@ func (s *Server) handleIndex() http.HandlerFunc {
 		opts := &Filter{
 			Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
 		}
-		response, err := s.db.Get(opts)
+		f, err := s.db.Get(opts)
 		if err != nil {
 			log.Printf("handleIndex: error in getting data from backend: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		stations, err := s.db.StationsMetadata(response.Stations)
+		stations, err := s.db.Stations(f.Stations)
 		if err != nil {
 			log.Printf("handleIndex: error in getting metadata from backend: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,8 +89,8 @@ func (s *Server) handleIndex() http.HandlerFunc {
 			EndDate   string
 		}{
 			stations,
-			response.Fields,
-			response.Landuse,
+			f.Fields,
+			f.Landuse,
 			string(mapJSON),
 			time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 			time.Now().Format("2006-01-02"),
@@ -129,14 +129,14 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d, err := s.db.Get(opts)
+	f, err := s.db.Get(opts)
 	if err != nil {
 		log.Printf("handleUpdate: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	b, err := json.Marshal(d)
+	b, err := json.Marshal(f)
 	if err != nil {
 		log.Printf("handleUpdate: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

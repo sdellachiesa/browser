@@ -5,18 +5,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
 
+type Query interface {
+	Query() (string, error)
+}
+
 // The Backend interface retrieves data.
 type Backend interface {
-	Get(*Filter) (*Response, error)
+	Get(*Filter) (*Filter, error)
 	Series(*SeriesOptions) ([][]string, error)
-	StationsMetadata(ids []int64) ([]*Station, error)
+	Stations(ids []string) ([]*Station, error)
 }
 
 type Datastore struct {
@@ -28,7 +31,7 @@ func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
 	return Datastore{sc, ic}
 }
 
-func (d Datastore) Get(opts *Filter) (*Response, error) {
+func (d Datastore) Get(opts *Filter) (*Filter, error) {
 	q, err := opts.Query()
 	if err != nil {
 		return nil, err
@@ -41,25 +44,24 @@ func (d Datastore) Get(opts *Filter) (*Response, error) {
 		return nil, err
 	}
 
-	resp := &Response{}
+	f := &Filter{}
 	for _, s := range result.Series {
-		resp.Fields = append(resp.Fields, s.Name)
+		f.Fields = append(f.Fields, s.Name)
 
 		for _, v := range s.Values {
 			key, value := v[0].(string), v[1].(string)
 			switch key {
 			case "snipeit_location_ref":
-				id, _ := strconv.ParseInt(value, 10, 64)
-				resp.Stations = append(resp.Stations, id)
+				f.Stations = append(f.Stations, value)
 			case "landuse":
-				resp.Landuse = append(resp.Landuse, value)
+				f.Landuse = append(f.Landuse, value)
 			}
 		}
 	}
 
-	resp.Landuse = unique(resp.Landuse)
+	f.Landuse = unique(f.Landuse)
 
-	return resp, nil
+	return f, nil
 }
 
 func unique(s []string) []string {
@@ -149,7 +151,7 @@ func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
 
 // StationsMetadata returns all metadata associated with a station stored
 // in SnipeIT. It will filter for stations with the given ids.
-func (d Datastore) StationsMetadata(ids []int64) ([]*Station, error) {
+func (d Datastore) Stations(ids []string) ([]*Station, error) {
 	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
 	if err != nil {
 		return nil, err
@@ -179,13 +181,13 @@ func (d Datastore) StationsMetadata(ids []int64) ([]*Station, error) {
 	return stations, nil
 }
 
-func inArray(i int64, a []int64) bool {
+func inArray(s string, a []string) bool {
 	if a == nil {
 		return true
 	}
 
 	for _, v := range a {
-		if v == i {
+		if v == s {
 			return true
 		}
 	}

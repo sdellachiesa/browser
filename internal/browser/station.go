@@ -13,7 +13,7 @@ import (
 // fields do custom onse since they aren't supported or have an other
 // name inside SnipeIT.
 type Station struct {
-	ID        int64
+	ID        string
 	Name      string
 	Landuse   string
 	Image     string
@@ -30,7 +30,7 @@ func (s *Station) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	s.ID = l.ID
+	s.ID = strconv.FormatInt(l.ID, 10)
 	s.Name = l.Name
 	s.Landuse = l.Currency
 	s.Image = l.Image
