@@ -2,45 +2,13 @@
 package browser
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
-
-	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
-
-// Station defines metadata about a physical station.
-type Station struct {
-	ID        int64
-	Name      string
-	Landuse   string
-	Image     string
-	Altitude  int64
-	Latitude  float64
-	Longitude float64
-}
-
-func (s *Station) UnmarshalJSON(b []byte) error {
-	var l snipeit.Location
-	if err := json.Unmarshal(b, &l); err != nil {
-		return err
-	}
-
-	s.ID = l.ID
-	s.Name = l.Name
-	s.Landuse = l.Currency
-	s.Image = l.Image
-	s.Altitude, _ = strconv.ParseInt(l.Zip, 10, 64)
-	s.Latitude, _ = strconv.ParseFloat(l.Address, 64)
-	s.Longitude, _ = strconv.ParseFloat(l.Address2, 64)
-
-	return nil
-}
 
 type Response struct {
 	Stations []int64
