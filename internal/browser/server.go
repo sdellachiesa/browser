@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"path"
@@ -14,6 +13,7 @@ import (
 	"text/template"
 	"time"
 
+	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
 
@@ -21,9 +21,11 @@ import (
 // application.
 type Server struct {
 	basePath string
-	db       Backend
 	mux      *http.ServeMux
 	tmpl     *template.Template
+
+	db      Backend
+	decoder Decoder
 }
 
 // NewServer initializes and returns a new HTTP server serving the LTER
@@ -44,7 +46,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.db == nil {
-		return nil, fmt.Errorf("must provide and option func that specifies a datastore")
+		return nil, fmt.Errorf("must provide and option func that specifies a Backend")
+	}
+
+	if s.decoder == nil {
+		return nil, fmt.Errorf("must provide and option func that specifies a Decoder")
 	}
 
 	s.mux.HandleFunc("/", s.handleIndex)
@@ -63,6 +69,14 @@ type Option func(*Server)
 func WithBackend(b Backend) Option {
 	return func(s *Server) {
 		s.db = b
+	}
+}
+
+// WithDecoder returns an options function for setting
+// the server's request decoder.
+func WithDecoder(d Decoder) Option {
+	return func(s *Server) {
+		s.decoder = d
 	}
 }
 
@@ -94,18 +108,21 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-	opts := &Filter{
-		Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
+	f, err := s.decoder.DecodeAndValidate(r)
+	if err != nil {
+		log.Printf("handleFilter: error in decoding or validating data: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	f, err := s.db.Filter(opts)
+
+	data, err := s.db.Filter(f)
 	if err != nil {
 		log.Printf("handleIndex: error in getting data from backend: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	stations, err := s.db.Stations(f.Stations)
+	stations, err := s.db.Stations(data.Stations)
 	if err != nil {
 		log.Printf("handleIndex: error in getting metadata from backend: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -119,20 +136,27 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(string)
+	if !ok {
+		role = "Public"
+	}
+
 	err = s.tmpl.Execute(w, struct {
 		Stations  []*Station
 		Fields    []string
 		Landuse   []string
 		Map       string
-		StartDate string
-		EndDate   string
+		StartDate string // TODO: Should also be set by the ACL/RBAC
+		EndDate   string // TODO: Should also be set by the ACL/RBAC
+		Role      string
 	}{
 		stations,
-		f.Fields,
-		f.Landuse,
+		data.Fields,
+		data.Landuse,
 		string(mapJSON),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
+		role,
 	})
 	if err != nil {
 		log.Printf("handleIndex: error in executing template: %v", err)
@@ -146,41 +170,29 @@ func (s *Server) handleFilter(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
 		return
 	}
-	defer r.Body.Close()
 
-	opts := &Filter{}
-	err := json.NewDecoder(r.Body).Decode(opts)
-	if err == io.EOF {
-		err = nil
-	}
+	f, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
-		log.Printf("handleUpdate: %v\n", err)
+		log.Printf("handleFilter: error in decoding or validating data: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-	acl := []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"}
-	if err := opts.Validate(acl); err != nil {
-		log.Printf("handleUpdate: %v\n", err)
-		http.Error(w, err.Error(), http.StatusNotAcceptable)
-		return
-	}
-
-	f, err := s.db.Filter(opts)
+	data, err := s.db.Filter(f)
 	if err != nil {
-		log.Printf("handleUpdate: %v\n", err)
+		log.Printf("handleFilter: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	b, err := json.Marshal(f)
+	b, err := json.Marshal(data)
 	if err != nil {
-		log.Printf("handleUpdate: %v\n", err)
+		log.Printf("handleFilter: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)
 }
 
@@ -189,32 +201,25 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
 		return
 	}
-	defer r.Body.Close()
 
-	if err := r.ParseForm(); err != nil {
-		log.Printf("handleSeries: %v\n", err)
+	f, err := s.decoder.DecodeAndValidate(r)
+	if err != nil {
+		log.Printf("handleSeries: error in decoding or validating data: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	opts, err := NewSeriesOptionsFromForm(r)
-	if err != nil {
-		log.Printf("handleSeries: %v\n", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	b, err := s.db.Series(opts)
+	b, err := s.db.Series(f)
 	if err != nil {
 		log.Printf("handleSeries: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	f := fmt.Sprintf("LTSER_IT25_Matsch_Mazia_%d.csv", time.Now().Unix())
+	filename := fmt.Sprintf("LTSER_IT25_Matsch_Mazia_%d.csv", time.Now().Unix())
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Description", "File Transfer")
-	w.Header().Set("Content-Disposition", "attachment; filename="+f)
+	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
 	csv.NewWriter(w).WriteAll(b)
 }

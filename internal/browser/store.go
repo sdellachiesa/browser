@@ -7,19 +7,16 @@ import (
 	"net/http"
 	"time"
 
+	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
 	client "github.com/influxdata/influxdb1-client/v2"
 )
 
-type Query interface {
-	Query() (string, error)
-}
-
 // The Backend interface retrieves data.
 type Backend interface {
-	Filter(Query) (*Filter, error)
-	Series(Query) ([][]string, error)
+	Filter(ql.Querier) (*Filter, error)
+	Series(ql.Querier) ([][]string, error)
 	Stations(ids []string) ([]*Station, error)
 }
 
@@ -37,11 +34,8 @@ func NewDatastore(sc *snipeit.Client, ic client.Client, database string) Backend
 	}
 }
 
-func (d Datastore) Filter(q Query) (*Filter, error) {
-	query, err := q.Query()
-	if err != nil {
-		return nil, err
-	}
+func (d Datastore) Filter(q ql.Querier) (*Filter, error) {
+	query, _ := q.Query()
 
 	log.Println(query)
 
@@ -81,11 +75,8 @@ func appendIfMissing(slice []string, s string) []string {
 	return append(slice, s)
 }
 
-func (d Datastore) Series(q Query) ([][]string, error) {
-	query, err := q.Query()
-	if err != nil {
-		return nil, err
-	}
+func (d Datastore) Series(q ql.Querier) ([][]string, error) {
+	query, _ := q.Query()
 
 	log.Println(query)
 

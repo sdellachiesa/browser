@@ -147,9 +147,12 @@ func (st *ShowTagValuesBuilder) Query() (string, []interface{}) {
 	}
 
 	if st.where != nil {
-		st.b.Append(" WHERE ")
 		w, _ := st.where.Query()
-		st.b.Append(w)
+		if len(w) > 0 {
+			st.b.Append(" WHERE ")
+			st.b.Append(w)
+		}
+
 	}
 
 	return st.b.String(), nil

@@ -72,7 +72,11 @@
 										<li><a href="#">Deutsch</a></li>
 									</ul>
 								</li>-->
-								<li><a href="/login/sns/">Login</a></li>
+								{{if eq .Role "Public"}}
+								<li><a href="/auth/azure">Login</a></li>
+								{{else}}
+								<li><a href="/auth/azure/logout">Logout</a></li>
+								{{end}}
 							</ul>
 						</div>
 					</div>

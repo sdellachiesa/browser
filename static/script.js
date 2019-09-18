@@ -100,9 +100,8 @@ function browser(opts) {
 		onChange: function() {
 			$.ajax("/api/v1/filter", {
 				method: "POST",
+				contentType: "application/json",
 				data: JSON.stringify({
-					//stations: $(opts.stationEl).val(),
-					//landuse: $(opts.landuseEl).val(),
 					fields: $(opts.fieldEl).val(),
 				}),
 				dataType: "json",
@@ -124,10 +123,9 @@ function browser(opts) {
 		onChange: function() {
 			$.ajax("/api/v1/filter", {
 				method: "POST",
+				contentType: "application/json",
 				data: JSON.stringify({
-					//landuse: $(opts.landuseEl).val(),
 					stations: $(opts.stationEl).val(),
-					//fields: $(opts.fieldEl).val(),
 				}),
 				dataType: "json",
 				success: function(data) {
@@ -148,10 +146,9 @@ function browser(opts) {
 		onChange: function() {
 			$.ajax("/api/v1/filter", {
 				method: "POST",
+				contentType: "application/json",
 				data: JSON.stringify({
-					//stations: $(opts.stationEl).val(),
 					landuse: $(opts.landuseEl).val(),
-					//fields: $(opts.fieldEl).val(),
 				}),
 				dataType: "json",
 				success: function(data) {

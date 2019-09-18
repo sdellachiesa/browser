@@ -43,6 +43,8 @@ func main() {
 		oauthClientID  = fs.String("oauth-clientid", "", "")
 		oauthSecret    = fs.String("oauth-secret", "", "")
 		oauthRedirect  = fs.String("oauth-redirect", "", "")
+		jwtKey         = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
+		rules          = fs.String("rules", "roles.json", "Rules JSON file.")
 		_              = fs.String("config", "", "Config file (optional)")
 	)
 
@@ -83,19 +85,23 @@ func main() {
 	oauthConfig := &oauth2.Config{
 		ClientID:     *oauthClientID,
 		ClientSecret: *oauthSecret,
-		Scopes:       []string{"https://graph.microsoft.com/.default"},
+		Scopes:       []string{"openid", "email", "profile"},
 		Endpoint:     microsoft.AzureADEndpoint("scientificnet.onmicrosoft.com"),
 		RedirectURL:  *oauthRedirect,
 	}
 
 	ds := browser.NewDatastore(sc, ic, *influxDatabase)
+	dec := browser.NewRequestDecoder(*rules)
 
-	b, err := browser.NewServer(browser.WithBackend(ds))
+	b, err := browser.NewServer(
+		browser.WithBackend(ds),
+		browser.WithDecoder(dec),
+	)
 	if err != nil {
 		log.Fatalf("Error creating server: %v\n", err)
 	}
 
-	handler := auth.Handler(b, oauthConfig)
+	handler := auth.Azure(b, oauthConfig, []byte(*jwtKey))
 
 	log.Printf("Starting server on %s\n", *httpAddr)
 	if !*serveTLS {
