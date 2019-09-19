@@ -82,7 +82,14 @@ func main() {
 	}
 
 	ds := browser.NewDatastore(sc, ic)
-	s := browser.Headers(auth.Handler(browser.NewServer(ds), oauthConfig))
+
+	b, err := browser.NewServer(browser.WithBackend(ds))
+	if err != nil {
+		log.Fatalf("Error creating server: %v\n", err)
+	}
+
+	// handler
+	h := auth.Handler(b, oauthConfig)
 
 	log.Printf("Starting server on %s\n", *httpAddr)
 	if *local {
@@ -96,11 +103,11 @@ func main() {
 		srv := &http.Server{
 			Addr:      ":https",
 			TLSConfig: m.TLSConfig(),
-			Handler:   s,
+			Handler:   h,
 		}
 		log.Fatal(srv.ListenAndServeTLS("", ""))
 	} else {
-		log.Fatal(http.ListenAndServe(*httpAddr, s))
+		log.Fatal(http.ListenAndServe(*httpAddr, h))
 	}
 }
 

@@ -8,40 +8,68 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"path"
+	"path/filepath"
+	"strings"
 	"text/template"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
 
+// Server represents an HTTP server for serving the LTER Browser
+// application.
 type Server struct {
-	db  Backend
-	mux *http.ServeMux
+	basePath string
+	db       Backend
+	mux      *http.ServeMux
+	tmpl     *template.Template
 }
 
-func NewServer(b Backend) *Server {
+// NewServer initializes and returns a new HTTP server serving the LTER
+// Browser application. It takes one or more option funciton and applies
+// them in order to Server.
+func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
-		db:  b,
-		mux: http.NewServeMux(),
+		basePath: "static",
+		mux:      http.NewServeMux(),
 	}
 
-	s.mux.HandleFunc("/", s.handleIndex())
-	s.mux.Handle("/static/", static.Handler())
-	// TODO
-	s.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte{})
-	})
+	for _, option := range options {
+		option(s)
+	}
 
+	if err := s.parseTemplate(); err != nil {
+		return nil, fmt.Errorf("parsing templates: %v", err)
+	}
+
+	if s.db == nil {
+		return nil, fmt.Errorf("must provide and option func that specifies a datastore")
+	}
+
+	s.mux.HandleFunc("/", s.handleIndex)
+	s.mux.HandleFunc("/static/", s.handleStatic)
 	s.mux.HandleFunc("/api/v1/update", s.handleUpdate)
 	s.mux.HandleFunc("/api/v1/series/", s.handleSeries)
 
-	return s
+	return s, nil
 }
 
-func (s *Server) handleIndex() http.HandlerFunc {
-	tmplFile, err := static.File("static/index.html")
+// Option contorls some aspects of the server.
+type Option func(*Server)
+
+// WithBackend returns an option function for setting
+// the server's backend.
+func WithBackend(b Backend) Option {
+	return func(s *Server) {
+		s.db = b
+	}
+}
+
+func (s *Server) parseTemplate() error {
+	f, err := static.File(filepath.Join(s.basePath, "index.html"))
 	if err != nil {
-		log.Fatalf("handleIndex: error in reading template: %v", err)
+		return err
 	}
 
 	funcMap := template.FuncMap{
@@ -49,57 +77,67 @@ func (s *Server) handleIndex() http.HandlerFunc {
 		"Measurement": MapMeasurements,
 	}
 
-	tmpl, err := template.New("base").Funcs(funcMap).Parse(tmplFile)
+	s.tmpl, err = template.New("base").Funcs(funcMap).Parse(f)
+	return err
+}
+
+func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
+	p := r.URL.Path[1:]
+
+	b, err := static.File(p)
 	if err != nil {
-		log.Fatalf("handleIndex: error in parsing template: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
-		opts := &Filter{
-			Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
-		}
-		f, err := s.db.Get(opts)
-		if err != nil {
-			log.Printf("handleIndex: error in getting data from backend: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	http.ServeContent(w, r, path.Base(p), time.Now(), strings.NewReader(b))
+}
 
-		stations, err := s.db.Stations(f.Stations)
-		if err != nil {
-			log.Printf("handleIndex: error in getting metadata from backend: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	// TODO: Hardcode for presentation in IBK will be replaced by the ACL middleware.
+	opts := &Filter{
+		Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
+	}
+	f, err := s.db.Get(opts)
+	if err != nil {
+		log.Printf("handleIndex: error in getting data from backend: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		mapJSON, err := json.Marshal(stations)
-		if err != nil {
-			log.Printf("handleIndex: error in marshaling json: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	stations, err := s.db.Stations(f.Stations)
+	if err != nil {
+		log.Printf("handleIndex: error in getting metadata from backend: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		err = tmpl.Execute(w, struct {
-			Stations  []*Station
-			Fields    []string
-			Landuse   []string
-			Map       string
-			StartDate string
-			EndDate   string
-		}{
-			stations,
-			f.Fields,
-			f.Landuse,
-			string(mapJSON),
-			time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
-			time.Now().Format("2006-01-02"),
-		})
-		if err != nil {
-			log.Printf("handleIndex: error in executing template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	mapJSON, err := json.Marshal(stations)
+	if err != nil {
+		log.Printf("handleIndex: error in marshaling json: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = s.tmpl.Execute(w, struct {
+		Stations  []*Station
+		Fields    []string
+		Landuse   []string
+		Map       string
+		StartDate string
+		EndDate   string
+	}{
+		stations,
+		f.Fields,
+		f.Landuse,
+		string(mapJSON),
+		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
+		time.Now().Format("2006-01-02"),
+	})
+	if err != nil {
+		log.Printf("handleIndex: error in executing template: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -182,5 +220,9 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Set default security headers.
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	w.Header().Set("X-Frame-Options", "deny")
+
 	s.mux.ServeHTTP(w, r)
 }
