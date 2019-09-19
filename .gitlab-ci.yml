@@ -64,7 +64,7 @@ deploy_staging:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
   script:
     - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
-    - kubectl --namespace eurac-alpenv-browser set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+    - kubectl --namespace eurac-alpenv-browser-stage set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
   environment:
     name: staging
   only:
