@@ -8,7 +8,7 @@ variables:
 stages:
   - build
   - tag
-#  - deploy
+  - deploy
 
 #test:
 #  stage: test
@@ -52,23 +52,23 @@ tag_image:
   only:
     - tags
 
-#deploy_staging:
-#  stage: deploy
-#  image: ${DOCKER_BUILDER_IMAGE}
-#  services:
-#    - docker:dind
-#  before_script:
-#    - wget ${KUBECTL}
-#    - mv kubectl /usr/bin/
-#    - chmod +x /usr/bin/kubectl
-#    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
-#  script:
-#    - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
-#    - kubectl --namespace eurac-alpenv-browser set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
-#  environment:
-#    name: staging
-#  only:
-#    - master
+deploy_staging:
+  stage: deploy
+  image: ${DOCKER_BUILDER_IMAGE}
+  services:
+    - docker:dind
+  before_script:
+    - wget ${KUBECTL}
+    - mv kubectl /usr/bin/
+    - chmod +x /usr/bin/kubectl
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN gitlab.inf.unibz.it:4567
+  script:
+    - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+    - kubectl --namespace eurac-alpenv-browser set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
+  environment:
+    name: staging
+  only:
+    - master
 
 #deploy_production:
 #  stage: deploy
