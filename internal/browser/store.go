@@ -52,31 +52,23 @@ func (d Datastore) Get(opts *Filter) (*Filter, error) {
 			key, value := v[0].(string), v[1].(string)
 			switch key {
 			case "snipeit_location_ref":
-				f.Stations = append(f.Stations, value)
+				f.Stations = appendIfMissing(f.Stations, value)
 			case "landuse":
-				f.Landuse = append(f.Landuse, value)
+				f.Landuse = appendIfMissing(f.Landuse, value)
 			}
 		}
 	}
 
-	f.Landuse = unique(f.Landuse)
-
 	return f, nil
 }
 
-func unique(s []string) []string {
-	seen := make(map[string]struct{}, len(s))
-	j := 0
-	for _, v := range s {
-		if _, ok := seen[v]; ok {
-			continue
+func appendIfMissing(slice []string, s string) []string {
+	for _, el := range slice {
+		if el == s {
+			return slice
 		}
-		seen[v] = struct{}{}
-		s[j] = v
-		j++
 	}
-
-	return s[:j]
+	return append(slice, s)
 }
 
 func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
