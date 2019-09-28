@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 
@@ -29,8 +30,8 @@ func main() {
 
 	fs := flag.NewFlagSet("browser", flag.ExitOnError)
 	var (
-		httpAddr       = fs.String("http", defaultAddr, "HTTP service address")
-		local          = fs.Bool("local", false, "Run Browser application in local mode. (useful for development)")
+		httpAddr       = fs.String("http", defaultAddr, "HTTP service address.")
+		serveTLS       = fs.Bool("tls", false, "Run Browser application as HTTPS.")
 		acmeCacheDir   = fs.String("acme-cache", "letsencrypt", "Direcotry for storing letsencrypt certificates.")
 		acmeHostname   = fs.String("acme-hostname", "", "Hostname used for getting a letsencrypt certificate.")
 		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
@@ -88,27 +89,24 @@ func main() {
 		log.Fatalf("Error creating server: %v\n", err)
 	}
 
-	// handler
-	h := auth.Handler(b, oauthConfig)
+	handler := auth.Handler(b, oauthConfig)
 
 	log.Printf("Starting server on %s\n", *httpAddr)
-	if *local {
-		required("acme-hostname", *acmeHostname)
-
-		m := &autocert.Manager{
-			Cache:      autocert.DirCache(*acmeCacheDir),
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(*acmeHostname),
-		}
-		srv := &http.Server{
-			Addr:      ":https",
-			TLSConfig: m.TLSConfig(),
-			Handler:   h,
-		}
-		log.Fatal(srv.ListenAndServeTLS("", ""))
-	} else {
-		log.Fatal(http.ListenAndServe(*httpAddr, h))
+	if !*serveTLS {
+		log.Fatal(http.ListenAndServe(*httpAddr, handler))
 	}
+
+	required("acme-hostname", *acmeHostname)
+	log.Fatal(http.Serve(newHTTPSListener(*acmeHostname, *acmeCacheDir), nil))
+}
+
+func newHTTPSListener(domain, cacheDir string) net.Listener {
+	m := &autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(domain),
+		Cache:      autocert.DirCache(cacheDir),
+	}
+	return m.Listener()
 }
 
 func required(name, value string) {
