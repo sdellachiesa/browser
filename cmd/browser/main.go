@@ -97,7 +97,7 @@ func main() {
 	}
 
 	required("acme-hostname", *acmeHostname)
-	log.Fatal(http.Serve(newHTTPSListener(*acmeHostname, *acmeCacheDir), nil))
+	log.Fatal(http.Serve(newHTTPSListener(*acmeHostname, *acmeCacheDir), handler))
 }
 
 func newHTTPSListener(domain, cacheDir string) net.Listener {
