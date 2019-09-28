@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
+
+	client "github.com/influxdata/influxdb1-client/v2"
 )
 
 type Query interface {
@@ -23,12 +24,17 @@ type Backend interface {
 }
 
 type Datastore struct {
-	snipeit *snipeit.Client
-	influx  *influx.Client
+	snipeit  *snipeit.Client
+	influx   client.Client
+	database string
 }
 
-func NewDatastore(sc *snipeit.Client, ic *influx.Client) Backend {
-	return Datastore{sc, ic}
+func NewDatastore(sc *snipeit.Client, ic client.Client, database string) Backend {
+	return Datastore{
+		snipeit:  sc,
+		influx:   ic,
+		database: database,
+	}
 }
 
 func (d Datastore) Get(opts *Filter) (*Filter, error) {
@@ -39,26 +45,30 @@ func (d Datastore) Get(opts *Filter) (*Filter, error) {
 
 	log.Println(q)
 
-	result, err := d.influx.Result(q)
+	resp, err := d.influx.Query(client.NewQuery(q, d.database, ""))
 	if err != nil {
 		return nil, err
 	}
+	if resp.Error() != nil {
+		return nil, fmt.Errorf("%v", resp.Error())
+	}
 
 	f := &Filter{}
-	for _, s := range result.Series {
-		f.Fields = append(f.Fields, s.Name)
+	for _, result := range resp.Results {
+		for _, s := range result.Series {
+			f.Fields = append(f.Fields, s.Name)
 
-		for _, v := range s.Values {
-			key, value := v[0].(string), v[1].(string)
-			switch key {
-			case "snipeit_location_ref":
-				f.Stations = appendIfMissing(f.Stations, value)
-			case "landuse":
-				f.Landuse = appendIfMissing(f.Landuse, value)
+			for _, v := range s.Values {
+				key, value := v[0].(string), v[1].(string)
+				switch key {
+				case "snipeit_location_ref":
+					f.Stations = appendIfMissing(f.Stations, value)
+				case "landuse":
+					f.Landuse = appendIfMissing(f.Landuse, value)
+				}
 			}
 		}
 	}
-
 	return f, nil
 }
 
@@ -77,9 +87,12 @@ func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
 		return nil, err
 	}
 
-	results, err := d.influx.Results(q)
+	resp, err := d.influx.Query(client.NewQuery(q, d.database, ""))
 	if err != nil {
 		return nil, err
+	}
+	if resp.Error() != nil {
+		return nil, fmt.Errorf("%v", resp.Error())
 	}
 
 	type key struct {
@@ -90,7 +103,7 @@ func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
 	values := make(map[key][]string)
 	keys := []key{}
 	header := []string{}
-	for _, result := range results {
+	for _, result := range resp.Results {
 		for i, serie := range result.Series {
 			if i == 0 {
 				header = serie.Columns

@@ -8,10 +8,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/internal/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/influx"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
 	"golang.org/x/crypto/acme/autocert"
@@ -58,13 +58,19 @@ func main() {
 	required("snipeit-token", *snipeitToken)
 
 	// InfluxDB client
-	ic, err := influx.New(client.HTTPConfig{
+	ic, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     *influxAddr,
 		Username: *influxUser,
 		Password: *influxPass,
-	}, *influxDatabase)
+	})
 	if err != nil {
 		log.Fatalf("influx: could not create client: %v\n", err)
+	}
+	defer ic.Close()
+
+	_, _, err = ic.Ping(10 * time.Second)
+	if err != nil {
+		log.Fatalf("influx: could not contact Influx DB: %v\n", err)
 	}
 
 	// SnipeIT API client
@@ -82,7 +88,7 @@ func main() {
 		RedirectURL:  *oauthRedirect,
 	}
 
-	ds := browser.NewDatastore(sc, ic)
+	ds := browser.NewDatastore(sc, ic, *influxDatabase)
 
 	b, err := browser.NewServer(browser.WithBackend(ds))
 	if err != nil {
