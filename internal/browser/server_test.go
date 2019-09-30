@@ -13,11 +13,11 @@ import (
 // a real backend.
 type testBackend struct{}
 
-func (tb testBackend) Get(opts *Filter) (*Filter, error) {
+func (tb testBackend) Filter(q Query) (*Filter, error) {
 	return nil, errors.New("not yet implemented")
 }
 
-func (tb testBackend) Series(opts *SeriesOptions) ([][]string, error) {
+func (tb testBackend) Series(q Query) ([][]string, error) {
 	return nil, errors.New("not yet implemented")
 }
 

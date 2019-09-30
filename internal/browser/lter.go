@@ -4,7 +4,6 @@ package browser
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -74,7 +73,6 @@ func (s *SeriesOptions) Query() (string, error) {
 			s.TimeRange.Start.Format("2006-01-02T15:04:00Z"),
 			s.TimeRange.End.Format("2006-01-02T15:04:00Z"),
 		)
-		log.Println(q)
 		qs = append(qs, q)
 	}
 

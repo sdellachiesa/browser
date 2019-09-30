@@ -18,8 +18,8 @@ type Query interface {
 
 // The Backend interface retrieves data.
 type Backend interface {
-	Get(*Filter) (*Filter, error)
-	Series(*SeriesOptions) ([][]string, error)
+	Filter(Query) (*Filter, error)
+	Series(Query) ([][]string, error)
 	Stations(ids []string) ([]*Station, error)
 }
 
@@ -37,15 +37,15 @@ func NewDatastore(sc *snipeit.Client, ic client.Client, database string) Backend
 	}
 }
 
-func (d Datastore) Get(opts *Filter) (*Filter, error) {
-	q, err := opts.Query()
+func (d Datastore) Filter(q Query) (*Filter, error) {
+	query, err := q.Query()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println(q)
+	log.Println(query)
 
-	resp, err := d.influx.Query(client.NewQuery(q, d.database, ""))
+	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
 	if err != nil {
 		return nil, err
 	}
@@ -81,13 +81,15 @@ func appendIfMissing(slice []string, s string) []string {
 	return append(slice, s)
 }
 
-func (d Datastore) Series(opts *SeriesOptions) ([][]string, error) {
-	q, err := opts.Query()
+func (d Datastore) Series(q Query) ([][]string, error) {
+	query, err := q.Query()
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := d.influx.Query(client.NewQuery(q, d.database, ""))
+	log.Println(query)
+
+	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
 	if err != nil {
 		return nil, err
 	}

@@ -98,7 +98,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	opts := &Filter{
 		Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
 	}
-	f, err := s.db.Get(opts)
+	f, err := s.db.Filter(opts)
 	if err != nil {
 		log.Printf("handleIndex: error in getting data from backend: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -167,7 +167,7 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := s.db.Get(opts)
+	f, err := s.db.Filter(opts)
 	if err != nil {
 		log.Printf("handleUpdate: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
