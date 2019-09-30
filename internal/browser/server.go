@@ -49,8 +49,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.mux.HandleFunc("/", s.handleIndex)
 	s.mux.HandleFunc("/static/", s.handleStatic)
-	s.mux.HandleFunc("/api/v1/update", s.handleUpdate)
-	s.mux.HandleFunc("/api/v1/series/", s.handleSeries)
+	s.mux.HandleFunc("/api/v1/filter", s.handleFilter)
+	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
 
 	return s, nil
 }
@@ -141,7 +141,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleFilter(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
 		return

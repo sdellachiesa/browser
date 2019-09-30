@@ -65,7 +65,7 @@ func TestHandleUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		r := httptest.NewRequest(tc.method, "/api/v1/update", strings.NewReader(tc.body))
+		r := httptest.NewRequest(tc.method, "/api/v1/filter", strings.NewReader(tc.body))
 		w := httptest.NewRecorder()
 		s.ServeHTTP(w, r)
 

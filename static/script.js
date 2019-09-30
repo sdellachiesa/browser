@@ -98,7 +98,7 @@ function browser(opts) {
 		enableFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			$.ajax("/api/v1/update", {
+			$.ajax("/api/v1/filter", {
 				method: "POST",
 				data: JSON.stringify({
 					//stations: $(opts.stationEl).val(),
@@ -122,7 +122,7 @@ function browser(opts) {
 		enableFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			$.ajax("/api/v1/update", {
+			$.ajax("/api/v1/filter", {
 				method: "POST",
 				data: JSON.stringify({
 					//landuse: $(opts.landuseEl).val(),
@@ -146,7 +146,7 @@ function browser(opts) {
 		enableFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			$.ajax("/api/v1/update", {
+			$.ajax("/api/v1/filter", {
 				method: "POST",
 				data: JSON.stringify({
 					//stations: $(opts.stationEl).val(),
