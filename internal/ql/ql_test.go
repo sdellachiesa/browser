@@ -37,6 +37,7 @@ func TestShowTagValuesBuilder(t *testing.T) {
 		{ShowTagValues().From("a"), "SHOW TAG VALUES FROM a"},
 		{ShowTagValues().From("a", "b"), "SHOW TAG VALUES FROM a, b"},
 		{ShowTagValues().From("a").WithKeyIn("b"), "SHOW TAG VALUES FROM a WITH KEY IN (\"b\")"},
+		{ShowTagValues().From("a").WithKeyIn("b").Where(), "SHOW TAG VALUES FROM a WITH KEY IN (\"b\")"},
 		{ShowTagValues().From("a").WithKeyIn("b").Where(Eq(And(), "x", "b")), "SHOW TAG VALUES FROM a WITH KEY IN (\"b\") WHERE x='b'"},
 	}
 	for _, tc := range testCases {

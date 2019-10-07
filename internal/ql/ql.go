@@ -126,7 +126,9 @@ func (st *ShowTagValuesBuilder) WithKeyIn(tagKeys ...string) *ShowTagValuesBuild
 }
 
 func (st *ShowTagValuesBuilder) Where(q ...Querier) *ShowTagValuesBuilder {
-	st.where = Where(q...)
+	if len(q) > 0 {
+		st.where = Where(q...)
+	}
 	return st
 }
 
@@ -182,7 +184,9 @@ func (sb *SelectBuilder) From(f ...string) *SelectBuilder {
 }
 
 func (sb *SelectBuilder) Where(q ...Querier) *SelectBuilder {
-	sb.where = Where(q...)
+	if len(q) > 0 {
+		sb.where = Where(q...)
+	}
 	return sb
 }
 
