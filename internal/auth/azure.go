@@ -13,8 +13,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Azure handles the authentication with the Azure AD by requesting an ID Token
-// and verifing it.
+// Azure returns a new http.Handler for handling authentication
+// with the Azure AD.
+// On default it will read the role claim from an stored JWT token
+// and pass it to the next handler as context value.
+// On the Oauth2 flow it will request an ID Token from Azure AD,
+// verify it and read the role claim. Store it in a newly created JWT
+// token and redirect to /.
 func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
 	state := randomString(32)
 	appNonce := randomString(32)
@@ -39,9 +44,12 @@ func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
 				return
 			}
 			http.Redirect(w, r, "/", http.StatusMovedPermanently)
+			return
+
 		case "/auth/azure":
 			http.Redirect(w, r, cfg.AuthCodeURL(state, oidc.Nonce(appNonce)), http.StatusMovedPermanently)
 			return
+
 		case "/auth/azure/callback":
 			if r.URL.Query().Get("state") != state {
 				msg := fmt.Sprintf("invalid state token, got %q, want %q.", r.FormValue("state"), state)
@@ -92,19 +100,21 @@ func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
 			}
 
 			http.Redirect(w, r, "/", http.StatusMovedPermanently)
-		}
-
-		// Get the JWT if not found a new one is created.
-		claims, err := GetJWTClaims(jwtKey, w, r)
-		if err != nil {
-			http.Error(w, "auth: error with JWT token: "+err.Error(), http.StatusInternalServerError)
 			return
+
+		default:
+			// Get the JWT if not found a new one is created.
+			claims, err := GetJWTClaims(jwtKey, w, r)
+			if err != nil {
+				http.Error(w, "auth: error with JWT token: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), JWTClaimsContextKey, claims.Group)
+			r = r.WithContext(ctx)
+
+			next.ServeHTTP(w, r)
 		}
-
-		ctx := context.WithValue(r.Context(), JWTClaimsContextKey, claims.Group)
-		r = r.WithContext(ctx)
-
-		next.ServeHTTP(w, r)
 	})
 }
 

@@ -28,9 +28,9 @@ type Server struct {
 	decoder Decoder
 }
 
-// NewServer initializes and returns a new HTTP server serving the LTER
-// Browser application. It takes one or more option funciton and applies
-// them in order to Server.
+// NewServer initializes and returns a new HTTP server. It takes
+// one or more option funciton and applies them in order to the
+// server.
 func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
 		basePath: "static",
@@ -61,7 +61,7 @@ func NewServer(options ...Option) (*Server, error) {
 	return s, nil
 }
 
-// Option contorls some aspects of the server.
+// Option controls some aspects of the server.
 type Option func(*Server)
 
 // WithBackend returns an option function for setting

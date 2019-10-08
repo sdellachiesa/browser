@@ -1,3 +1,4 @@
+// Copyright 2019 Eurac Research. All rights reserved.
 package browser
 
 import (
@@ -16,16 +17,44 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 )
 
+// Decoder is an interface for decoding the given HTTP request
+// into a ql.Querier.
 type Decoder interface {
+	// DocodeAndValidate decodes data from the given HTTP request and
+	// should validate the data before constructing a ql.Querier type.
 	DecodeAndValidate(r *http.Request) (ql.Querier, error)
 }
 
+// RequestDecoder is a decoder which validates and restricts access
+// to data depeding on the role the given request/user makes part of.
 type RequestDecoder struct {
 	mu    sync.RWMutex // guards the fields below
 	last  time.Time
 	rules []*Rule
 }
 
+// Rule denotes a simple rule which applies to a specific role.
+type Rule struct {
+	Role   string
+	Policy *Filter
+}
+
+// NewRequestDecoder returns a new RequestDecoder which will
+// parse rules from the given file. On a fixed interval of
+// 10 minutes it will check if the rule file has changed and
+// if so it will update the rules.
+// The file should be a JSON file with the following layout:
+//
+// [
+//      {
+//		"role": "FullAccess",
+//		"policy": {
+//			"fields": [],
+//			"stations": [],
+//			"landuse": []
+//		}
+// ]
+//
 func NewRequestDecoder(file string) *RequestDecoder {
 	rd := &RequestDecoder{}
 	if err := rd.loadRules(file); err != nil {
@@ -36,6 +65,7 @@ func NewRequestDecoder(file string) *RequestDecoder {
 	return rd
 }
 
+// DecodeAndValidate takes the given HTTP request decodes and validates it.
 // TODO: Validation of identifiers
 func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error) {
 	rule, err := rd.Rule(r.Context())
@@ -71,6 +101,7 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error)
 	return f, nil
 }
 
+// deocde data from a form post.
 func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
@@ -116,6 +147,10 @@ func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 	}, nil
 }
 
+// Allowed checks if the in slices values are containt in
+// the given acl slice. If not the value will be filtered
+// out and a new slice containing only allowed values will
+// be returned.
 func Allowed(in []string, acl []string) []string {
 	if len(in) < 1 {
 		return acl
@@ -139,11 +174,8 @@ func Allowed(in []string, acl []string) []string {
 	return c
 }
 
-type Rule struct {
-	Role   string
-	Policy *Filter
-}
-
+// Rule returns a rule from the given context. If no rule is found
+// it will try to find and return the default rule.
 func (rd *RequestDecoder) Rule(ctx context.Context) (*Rule, error) {
 	role, ok := ctx.Value(auth.JWTClaimsContextKey).(string)
 	if !ok {
@@ -171,6 +203,7 @@ func (rd *RequestDecoder) find(name string) (*Rule, error) {
 	return nil, fmt.Errorf("No rule with name %q policy found.", name)
 }
 
+// loadRules loads rules from the given file.
 func (rd *RequestDecoder) loadRules(file string) error {
 	fi, err := os.Stat(file)
 	if err != nil {
@@ -199,11 +232,13 @@ func (rd *RequestDecoder) loadRules(file string) error {
 	return nil
 }
 
+// refreshRules refreshes the rules from the given file every
+// 10 minutes.
 func (rd *RequestDecoder) refreshRules(file string) {
 	for {
 		if err := rd.loadRules(file); err != nil {
 			log.Println(err)
 		}
-		time.Sleep(time.Minute * 1)
+		time.Sleep(time.Minute * 10)
 	}
 }

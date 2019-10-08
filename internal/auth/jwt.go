@@ -23,12 +23,14 @@ var (
 	ErrTokenInvalid = errors.New("JWT Token was invalid")
 )
 
+// JWTClaims denotes a custom JWT claim.
 type JWTClaims struct {
 	Group string `json:"grp"`
 	jwt.StandardClaims
 }
 
-// NewJWT create a new JWT token specifing
+// NewJWT creates and returns a new JWT token from the give key and stores
+// it in an cookie.
 func NewJWT(key []byte, group string, w http.ResponseWriter) (string, error) {
 	// Create the Claims
 	claims := JWTClaims{
@@ -75,7 +77,6 @@ func readJWTCookie(key []byte, w http.ResponseWriter, r *http.Request) (string, 
 
 // GetJWTClaims read an JWT token from a cookie, decrypt it with
 // the given key and return it's claims.
-// ParseJWTClaims
 func GetJWTClaims(key []byte, w http.ResponseWriter, r *http.Request) (*JWTClaims, error) {
 	tokenString, err := readJWTCookie(key, w, r)
 	if err != nil {

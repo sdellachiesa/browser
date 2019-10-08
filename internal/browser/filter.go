@@ -8,15 +8,18 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 )
 
+// QueryType denotes specific type of query.
 type QueryType int
 
 const (
+	// UpdateQuery denotes a 'SHOW TAG QUERY' for filtering.
 	UpdateQuery QueryType = iota
+	// SeriesQuery denotes a 'SELECT' query.
 	SeriesQuery
 )
 
-// Filter holds lists of specific properties like Fields, Stations
-// or Landuse for filtering data on the backend side.
+// Filter holds lists of specific properties for filtering data
+// and downloading data from InfluxDB.
 type Filter struct {
 	Fields   []string
 	Stations []string
@@ -28,6 +31,7 @@ type Filter struct {
 	qType QueryType
 }
 
+// Query implements the ql.Querier interface.
 func (f *Filter) Query() (string, []interface{}) {
 	switch f.qType {
 	case UpdateQuery:
@@ -39,6 +43,7 @@ func (f *Filter) Query() (string, []interface{}) {
 	}
 }
 
+// updateQuery returns a 'SHOW TAG VALUES' query for filtering.
 func (f *Filter) updateQuery() (string, []interface{}) {
 	b := ql.ShowTagValues().From(f.Fields...).WithKeyIn("landuse", "snipeit_location_ref")
 	if len(f.Stations) > 0 {
@@ -50,6 +55,8 @@ func (f *Filter) updateQuery() (string, []interface{}) {
 	return b.Query()
 }
 
+// seriesQuery returns one or multiple 'SELECT' queries for downloading
+// time series data.
 func (f *Filter) seriesQuery() (string, []interface{}) {
 	var (
 		buf  bytes.Buffer

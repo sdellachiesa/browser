@@ -1,3 +1,4 @@
+// Copyright 2019 Eurac Research. All rights reserved.
 package browser
 
 import (
@@ -7,11 +8,9 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 )
 
-// Station defines metadata about a physical LTER station.
-// We use a custom type and not the SnipeIT locations type since,
-// first we do not need all SnipeIT fields and moreover we map some
-// fields do custom onse since they aren't supported or have an other
-// name inside SnipeIT.
+// Station describes metadata about a physical LTER station.
+// It is a custom type inorder to map custom SnipeIT location
+// fields to their correct names.
 type Station struct {
 	ID        string
 	Name      string
@@ -23,7 +22,7 @@ type Station struct {
 }
 
 // UnmarshalJSON is a custom JSON unmarshaler which maps SnipeIT
-// location fields to the right station field with the right name.
+// location fields to the custom station field.
 func (s *Station) UnmarshalJSON(b []byte) error {
 	var l snipeit.Location
 	if err := json.Unmarshal(b, &l); err != nil {

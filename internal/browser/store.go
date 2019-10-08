@@ -13,19 +13,22 @@ import (
 	client "github.com/influxdata/influxdb1-client/v2"
 )
 
-// The Backend interface retrieves data.
+// The Backend interface for retrieving data.
 type Backend interface {
 	Filter(ql.Querier) (*Filter, error)
 	Series(ql.Querier) ([][]string, error)
 	Stations(ids []string) ([]*Station, error)
 }
 
+// Datastore denotes a backend which is composed of SnipeIT
+// and InfluxDB.
 type Datastore struct {
 	snipeit  *snipeit.Client
 	influx   client.Client
 	database string
 }
 
+// NewDatastore returns a new datastore.
 func NewDatastore(sc *snipeit.Client, ic client.Client, database string) Backend {
 	return Datastore{
 		snipeit:  sc,
