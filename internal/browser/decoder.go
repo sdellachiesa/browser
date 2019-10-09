@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"sync"
 	"time"
 
@@ -65,14 +66,13 @@ func NewRequestDecoder(file string) *RequestDecoder {
 }
 
 // DecodeAndValidate takes the given HTTP request decodes and validates it.
-// TODO: Validation of identifiers
 func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error) {
 	rule, err := rd.Rule(r.Context())
 	if err != nil {
 		return nil, err
 	}
 
-	var f *Filter
+	f := &Filter{}
 	switch r.Header.Get("content-type") {
 	case "application/x-www-form-urlencoded": // FORM Submit
 		f, err = rd.decodeForm(r)
@@ -82,10 +82,11 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error)
 
 		f.qType = SeriesQuery
 	default: // JSON
-		if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
-			if err == io.EOF {
-				return rule.Policy, nil
-			}
+		err := json.NewDecoder(r.Body).Decode(&f)
+		if err == io.EOF {
+			err = nil
+		}
+		if err != nil {
 			return nil, err
 		}
 		defer r.Body.Close()
@@ -93,11 +94,47 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error)
 		f.qType = UpdateQuery
 	}
 
-	f.Fields = Allowed(f.Fields, rule.Policy.Fields)
-	f.Stations = Allowed(f.Stations, rule.Policy.Stations)
-	f.Landuse = Allowed(f.Landuse, rule.Policy.Landuse)
+	f.Fields = rd.inputFilter(f.Fields, rule.Policy.Fields)
+	f.Stations = rd.inputFilter(f.Stations, rule.Policy.Stations)
+	f.Landuse = rd.inputFilter(f.Landuse, rule.Policy.Landuse)
 
 	return f, nil
+}
+
+// inputFilter will check the given input values if they are valid
+// identifiers and permitted by the given allowed values. Not permitted
+// values will be filtered out and a new slice containing the valid values
+// will be returned.
+func (rd *RequestDecoder) inputFilter(input, allowed []string) []string {
+	if len(input) == 0 {
+		return allowed
+	}
+
+	m := make(map[string]struct{}, len(allowed))
+	for _, v := range allowed {
+		m[v] = struct{}{}
+	}
+
+	var c []string
+	for _, v := range input {
+		ok, err := regexp.MatchString(`^\w+$`, v)
+		if err != nil || !ok {
+			continue
+		}
+
+		_, ok = m[v]
+		if !ok && len(m) > 0 {
+			continue
+		}
+
+		c = append(c, v)
+	}
+
+	if len(c) == 0 {
+		return allowed
+	}
+
+	return c
 }
 
 // deocde data from a form post.
@@ -144,33 +181,6 @@ func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 		start: time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC).Add(-1 * time.Hour),
 		end:   time.Date(end.Year(), end.Month(), end.Day(), 23, 59, 59, 0, time.UTC).Add(-1 * time.Hour),
 	}, nil
-}
-
-// Allowed checks if the in slices values are containt in
-// the given acl slice. If not the value will be filtered
-// out and a new slice containing only allowed values will
-// be returned.
-func Allowed(in []string, acl []string) []string {
-	if len(in) < 1 {
-		return acl
-	}
-	if len(acl) < 1 {
-		return in
-	}
-
-	m := make(map[string]struct{}, len(in))
-	for _, v := range in {
-		m[v] = struct{}{}
-	}
-
-	var c []string
-	for _, v := range acl {
-		if _, found := m[v]; found {
-			c = append(c, v)
-		}
-	}
-
-	return c
 }
 
 // Rule returns a rule from the given context. If no rule is found
