@@ -18,8 +18,8 @@ const (
 	SeriesQuery
 )
 
-// Filter holds lists of specific properties for filtering data
-// and downloading data from InfluxDB.
+// Filter holds a list of specific properties for filtering and
+// downloading data from InfluxDB.
 type Filter struct {
 	Fields   []string
 	Stations []string
