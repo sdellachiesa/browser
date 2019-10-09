@@ -5,12 +5,12 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
