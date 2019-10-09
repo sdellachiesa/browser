@@ -50,10 +50,9 @@ func NewJWT(key []byte, group string, w http.ResponseWriter) (string, error) {
 
 	// TODO: set expiry date?
 	cookie := &http.Cookie{
-		Name:     jwtCookieName,
-		Value:    tokenString,
-		HttpOnly: true,
-		Path:     "/",
+		Name:  jwtCookieName,
+		Value: tokenString,
+		Path:  "/",
 	}
 
 	http.SetCookie(w, cookie)
