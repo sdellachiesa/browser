@@ -29,8 +29,8 @@ type Datastore struct {
 }
 
 // NewDatastore returns a new datastore.
-func NewDatastore(sc *snipeit.Client, ic client.Client, database string) Backend {
-	return Datastore{
+func NewDatastore(sc *snipeit.Client, ic client.Client, database string) *Datastore {
+	return &Datastore{
 		snipeit:  sc,
 		influx:   ic,
 		database: database,
