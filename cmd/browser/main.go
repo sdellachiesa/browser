@@ -58,6 +58,7 @@ func main() {
 	required("influx-database", *influxDatabase)
 	required("snipeit-addr", *snipeitAddr)
 	required("snipeit-token", *snipeitToken)
+	required("jwtKey", *jwtKey)
 
 	// InfluxDB client
 	ic, err := client.NewHTTPClient(client.HTTPConfig{

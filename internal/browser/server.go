@@ -151,9 +151,9 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(string)
+	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
-		role = "Public"
+		role = auth.Public
 	}
 
 	err = s.tmpl.Execute(w, struct {
@@ -163,7 +163,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Map       string
 		StartDate string // TODO: Should also be set by the ACL/RBAC
 		EndDate   string // TODO: Should also be set by the ACL/RBAC
-		Role      string
+		Role      auth.Role
 	}{
 		stations,
 		data.Fields,

@@ -3,13 +3,13 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/coreos/go-oidc"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/oauth2"
 )
 
@@ -35,14 +35,14 @@ func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
 	})
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		role := "Public"
-
 		switch r.URL.Path {
 		case "/auth/azure/logout":
-			if _, err := NewJWT(jwtKey, role, w); err != nil {
-				http.Error(w, "auth: error in creating JWT token: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
+			http.SetCookie(w, &http.Cookie{
+				Name:    jwtCookieName,
+				Value:   "",
+				Path:    "/",
+				Expires: time.Now().Add(-time.Hour * 24),
+			})
 			http.Redirect(w, r, "/", http.StatusMovedPermanently)
 			return
 
@@ -89,8 +89,9 @@ func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
 				return
 			}
 
+			role := Public
 			if len(claims.Roles) >= 1 {
-				role = claims.Roles[0]
+				role = ParseRole(claims.Roles[0])
 			}
 
 			// Generate JWT and set cookie.
@@ -103,26 +104,27 @@ func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
 			return
 
 		default:
-			// Get the JWT if not found a new one is created.
-			claims, err := GetJWTClaims(jwtKey, w, r)
+			// Get the role fromt the JWT
+			role, err := RoleFromJWT(jwtKey, r)
+			if err == http.ErrNoCookie { // TODO: In Go 1.13 use errors.Is()
+				err = nil
+			}
+			if ve, ok := err.(*jwt.ValidationError); ok {
+				log.Printf("auth: JWT validation error: %v", ve)
+				http.Redirect(w, r, "/auth/azure/logout", http.StatusMovedPermanently)
+				return
+			}
 			if err != nil {
-				http.Error(w, "auth: error with JWT token: "+err.Error(), http.StatusInternalServerError)
+				log.Printf("auth: error with JWT token: %v", err)
+				http.Error(w, "auth: "+http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), JWTClaimsContextKey, claims.Group)
+			ctx := context.WithValue(r.Context(), JWTClaimsContextKey, role)
 			r = r.WithContext(ctx)
 
 			next.ServeHTTP(w, r)
+			return
 		}
 	})
-}
-
-func randomString(length int) string {
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-
-	return base64.URLEncoding.EncodeToString(b)
 }

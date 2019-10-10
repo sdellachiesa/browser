@@ -28,8 +28,8 @@ type RequestDecoder struct {
 
 // Rule denotes a simple rule which applies to a specific role.
 type Rule struct {
-	Role   string
-	Policy *Filter
+	RoleName auth.Role
+	Policy   *Filter
 }
 
 // NewRequestDecoder returns a new RequestDecoder which will
@@ -40,10 +40,10 @@ type Rule struct {
 //
 // [
 //      {
-//		"role": "FullAccess",
+//		"roleName": "FullAccess",
 //		"policy": {
-//			"fields": [],
-//			"stations": [],
+//			"fields": ["a"],
+//			"stations": ["c"],
 //			"landuse": []
 //		}
 // ]
@@ -179,30 +179,26 @@ func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 // Rule returns a rule from the given context. If no rule is found
 // it will try to find and return the default rule.
 func (rd *RequestDecoder) Rule(ctx context.Context) (*Rule, error) {
-	role, ok := ctx.Value(auth.JWTClaimsContextKey).(string)
+	role, ok := ctx.Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
-		return rd.findDefault()
+		return rd.find(auth.Public)
 	}
 
 	return rd.find(role)
 }
 
-func (rd *RequestDecoder) findDefault() (*Rule, error) {
-	return rd.find("Public")
-}
-
-func (rd *RequestDecoder) find(name string) (*Rule, error) {
+func (rd *RequestDecoder) find(name auth.Role) (*Rule, error) {
 	rd.mu.RLock()
 	rules := rd.rules
 	rd.mu.RUnlock()
 
 	for _, r := range rules {
-		if r.Role == name {
+		if r.RoleName == name {
 			return r, nil
 		}
 	}
 
-	return nil, fmt.Errorf("No rule with name %q policy found.", name)
+	return nil, fmt.Errorf("No rule with name %q found.", name)
 }
 
 // loadRules loads rules from the given file.
