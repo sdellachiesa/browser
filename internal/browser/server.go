@@ -115,7 +115,7 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 
 	b, err := static.File(p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		reportError(w, r, err)
 		return
 	}
 
@@ -125,29 +125,29 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	f, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
-		log.Printf("handleFilter: error in decoding or validating data: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleIndex: error in decoding or validating data: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
 	data, err := s.db.Filter(f)
 	if err != nil {
-		log.Printf("handleIndex: error in getting data from backend: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleIndex: error in getting data from backend: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
 	stations, err := s.db.Stations(data.Stations)
 	if err != nil {
-		log.Printf("handleIndex: error in getting metadata from backend: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleIndex: error in getting metadata from backend: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
 	mapJSON, err := json.Marshal(stations)
 	if err != nil {
-		log.Printf("handleIndex: error in marshaling json: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleIndex: error in marshaling json: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
@@ -174,8 +174,8 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		role,
 	})
 	if err != nil {
-		log.Printf("handleIndex: error in executing template: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleIndex: error in executing template: %v", err)
+		reportError(w, r, err)
 		return
 	}
 }
@@ -188,22 +188,22 @@ func (s *Server) handleFilter(w http.ResponseWriter, r *http.Request) {
 
 	f, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
-		log.Printf("handleFilter: error in decoding or validating data: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleFilter: error in decoding or validating data: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
 	data, err := s.db.Filter(f)
 	if err != nil {
-		log.Printf("handleFilter: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleFilter: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
 	b, err := json.Marshal(data)
 	if err != nil {
-		log.Printf("handleFilter: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleFilter: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
@@ -219,15 +219,15 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 
 	f, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
-		log.Printf("handleSeries: error in decoding or validating data: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
 	b, err := s.db.Series(f)
 	if err != nil {
-		log.Printf("handleSeries: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		err = fmt.Errorf("handleSeries: %v", err)
+		reportError(w, r, err)
 		return
 	}
 
@@ -245,4 +245,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Frame-Options", "deny")
 
 	s.mux.ServeHTTP(w, r)
+}
+
+func reportError(w http.ResponseWriter, r *http.Request, err error) {
+	log.Printf("%v\n", err)
+	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
