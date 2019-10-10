@@ -18,13 +18,6 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 )
 
-// Decoder is an interface for decoding data.
-type Decoder interface {
-	// DecodeAndValidate decodes data from the given HTTP request and
-	// validates it and returns an ql.Querier.
-	DecodeAndValidate(r *http.Request) (ql.Querier, error)
-}
-
 // RequestDecoder is a decoder which validates and restricts access
 // to data depending on the role a request/user makes part of.
 type RequestDecoder struct {

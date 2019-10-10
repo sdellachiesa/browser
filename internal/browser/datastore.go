@@ -13,13 +13,6 @@ import (
 	client "github.com/influxdata/influxdb1-client/v2"
 )
 
-// The Backend interface for retrieving data.
-type Backend interface {
-	Filter(ql.Querier) (*Filter, error)
-	Series(ql.Querier) ([][]string, error)
-	Stations(ids []string) ([]*Station, error)
-}
-
 // Datastore denotes a backend which is composed of SnipeIT
 // and InfluxDB.
 type Datastore struct {

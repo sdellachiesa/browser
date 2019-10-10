@@ -14,8 +14,23 @@ import (
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
+	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
+
+// Decoder is an interface for decoding data.
+type Decoder interface {
+	// DecodeAndValidate decodes data from the given HTTP request and
+	// validates it and returns an ql.Querier.
+	DecodeAndValidate(r *http.Request) (ql.Querier, error)
+}
+
+// The Backend interface for retrieving data.
+type Backend interface {
+	Filter(ql.Querier) (*Filter, error)
+	Series(ql.Querier) ([][]string, error)
+	Stations(ids []string) ([]*Station, error)
+}
 
 // Server represents an HTTP server for serving the LTER Browser
 // application.
