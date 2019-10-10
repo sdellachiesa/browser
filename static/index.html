@@ -19,10 +19,10 @@
 		<script src="/static/ion.rangeSlider.min.js"></script>
 		<script src="/static/leaflet.js"></script>
 		<script src="/static/script.js"></script>
-		
+
 		<script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101208400);</script>
 		<script async src="//static.getclicky.com/js"></script>
-		
+
 		<script>
 		$(document).ready(function() {
 			browser({
@@ -64,7 +64,7 @@
 								<!-- <li><a href="#">Glossary</a></li> -->
 								<!-- <li><a href="#">About</a></li> -->
 							</ul>
-							<ul class="nav navbar-nav navbar-right"> 
+							<ul class="nav navbar-nav navbar-right">
 							<!-- 	<li class="dropdown">
 									<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Language <span class="caret"></span></a>
 									<ul class="dropdown-menu">
@@ -105,7 +105,7 @@
 										<option value="{{ .ID }}">{{ .Name }}</option>
 				 						{{- end -}}
 									</select>
-								</div>	
+								</div>
 							</div>
 							<div class="col-md-4">
 								<div class="form-group">
@@ -142,7 +142,37 @@
 								<div class="tooltip-wrapper disabled" data-title="Please select at least one measurement and station.">
 									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button>
 								</div>
-								<br>	
+                                {{if eq .Role "FullAccess"}}
+                                <script>                                                      
+                                    $(document).ready(function() {     
+                                        function DownloadCodeTemplate(language) {
+                                            var action = $('#filters').attr('action');
+                                            $('#language').val(language)
+                                            $('#filters').attr('action', '/api/v1/template'); 
+                                            $('#submit').click();
+                                            $('#filters').attr('action', action); 
+                                        }
+                                        $("#downloadPY").click(function() {
+                                            DownloadCodeTemplate("python");
+                                        }); 
+                                        $("#downloadR").click(function() {
+                                            DownloadCodeTemplate("r");
+                                        });
+                                    });
+                                </script>
+                                    <input type="hidden" name="language" value="" id="language">
+                                    <div class="btn-group">
+                                        <button typemustmatchpe="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Code Templates <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" id="downloadPY">Python</a></li>
+                                            <li><a href="#" id="downloadR">R</a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                {{end}}
+								<br>
 								<p>
 									<br><b>Disclaimer:</b> Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider.
 								</p>
@@ -170,6 +200,6 @@
 			</div>
 		</div>
 	</div>
-	
+
 	</body>
 </html>

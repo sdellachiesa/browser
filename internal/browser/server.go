@@ -4,6 +4,7 @@ package browser
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -35,8 +36,14 @@ type Backend interface {
 type Server struct {
 	basePath string
 	mux      *http.ServeMux
-	tmpl     *template.Template
+	tmpl     struct {
+		index, python, rlang *template.Template
+	}
 
+	// Credentials used inside the code templates.
+	credentials struct {
+		Username, Password, Database string
+	}
 	db      Backend
 	decoder Decoder
 }
@@ -70,6 +77,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
 	s.mux.HandleFunc("/api/v1/filter", s.handleFilter)
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
+	s.mux.HandleFunc("/api/v1/template", s.grantAccessTo(s.handleTemplate, auth.FullAccess))
 
 	return s, nil
 }
@@ -93,8 +101,18 @@ func WithDecoder(d Decoder) Option {
 	}
 }
 
+// WithCredentials returns an options function for setting
+// the server's credentials used insde the code templates.
+func WithCredentials(user, pass, db string) Option {
+	return func(s *Server) {
+		s.credentials.Username = user
+		s.credentials.Password = pass
+		s.credentials.Database = db
+	}
+}
+
 func (s *Server) parseTemplate() error {
-	f, err := static.File(filepath.Join(s.basePath, "index.html"))
+	index, err := static.File(filepath.Join(s.basePath, "index.html"))
 	if err != nil {
 		return err
 	}
@@ -103,8 +121,23 @@ func (s *Server) parseTemplate() error {
 		"Landuse":     MapLanduse,
 		"Measurement": MapMeasurements,
 	}
+	s.tmpl.index, err = template.New("base").Funcs(funcMap).Parse(index)
+	if err != nil {
+		return err
+	}
 
-	s.tmpl, err = template.New("base").Funcs(funcMap).Parse(f)
+	python, err := static.File(filepath.Join(s.basePath, "templates", "python.tmpl"))
+	if err != nil {
+		return err
+	}
+	s.tmpl.python, err = template.New("python").Parse(python)
+
+	rlang, err := static.File(filepath.Join(s.basePath, "templates", "r.tmpl"))
+	if err != nil {
+		return err
+	}
+	s.tmpl.rlang, err = template.New("r").Parse(rlang)
+
 	return err
 }
 
@@ -142,7 +175,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		role = auth.Public
 	}
 
-	err = s.tmpl.Execute(w, struct {
+	err = s.tmpl.index.Execute(w, struct {
 		Stations  []*Station
 		Fields    []string
 		Landuse   []string
@@ -225,12 +258,89 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 	csv.NewWriter(w).WriteAll(b)
 }
 
+func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
+		return
+	}
+
+	f, err := s.decoder.DecodeAndValidate(r)
+	if err != nil {
+		err = fmt.Errorf("handleTemplate: error in decoding or validating data: %v", err)
+		reportError(w, r, err)
+		return
+	}
+
+	var (
+		tmpl *template.Template
+		ext  string
+	)
+	switch r.FormValue("language") {
+	case "python":
+		tmpl = s.tmpl.python
+		ext = "py"
+	case "r":
+		tmpl = s.tmpl.rlang
+		ext = "r"
+	default:
+		reportError(w, r, errors.New("language not supported"))
+		return
+	}
+
+	filename := fmt.Sprintf("LTSER_IT25_Matsch_Mazia_%d.%s", time.Now().Unix(), ext)
+	w.Header().Set("Content-Type", "text/text")
+	w.Header().Set("Content-Description", "File Transfer")
+	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+
+	q, _ := f.seriesQuery().Query()
+	err = tmpl.Execute(w, struct {
+		Query                        template.HTML
+		Username, Password, Database string
+	}{
+		Query:    template.HTML(q),
+		Username: s.credentials.Username,
+		Password: s.credentials.Password,
+		Database: s.credentials.Database,
+	})
+	if err != nil {
+		err = fmt.Errorf("handleTemplate: error in executing template: %v", err)
+		reportError(w, r, err)
+		return
+	}
+}
+
+func (s *Server) grantAccessTo(h http.HandlerFunc, roles ...auth.Role) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !isAllowed(r, roles...) {
+			http.NotFound(w, r)
+			return
+		}
+
+		h(w, r)
+	}
+}
+
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Set default security headers.
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	w.Header().Set("X-Frame-Options", "deny")
 
 	s.mux.ServeHTTP(w, r)
+}
+
+func isAllowed(r *http.Request, roles ...auth.Role) bool {
+	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
+	if !ok {
+		return false
+	}
+
+	for _, v := range roles {
+		if role == v {
+			return true
+		}
+	}
+
+	return false
 }
 
 func reportError(w http.ResponseWriter, r *http.Request, err error) {

@@ -69,6 +69,8 @@ func (a *Access) DecodeAndValidate(r *http.Request) (*Filter, error) {
 
 	f := &Filter{}
 	switch r.Header.Get("content-type") {
+	case "application/x-www-form-urlencoded; charset=UTF-8":
+		fallthrough
 	case "application/x-www-form-urlencoded": // FORM Submit
 		f, err = a.decodeForm(r)
 		if err != nil {

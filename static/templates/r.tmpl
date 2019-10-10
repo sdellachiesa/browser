@@ -1,0 +1,35 @@
+# https://cran.r-project.org/web/packages/influxdbr/index.html
+library(influxdbr)
+
+# Create a connection to InfluxDB.
+#
+# WARNING: Please do not share username and password with outside of your
+#                   institute. It has full read access to the LTER data.
+#
+con <- influx_connection(scheme = c("https"),
+    host = "ts.eurac.net",
+    port = 443,
+    user = "{{.Username}}",
+    pass = "{{.Password}}")
+
+# Test if the connection works.
+# influx_ping(con)
+
+# Show all measurements
+#
+# m <- show_measurements(con = con, db = "lter")
+# landuse_me <- show_measurements(con = con, db = "lter", where = "landuse='me'")
+# station_m3 <- show_measurements(con = con, db = "lter", where = "station='m3'")
+
+# Get timeseries results as tibbles.
+#
+# INFO: All data inside InfluxDB is in UTC, but the data of the LTSER IT25 Matsch Mazia
+#       side is recorded in UTC+1. By adding the 'tc' clause at the end we can specifiy
+#       a timezone. For LTER use 'Etc/GMT-1' to avoid problems daylight saving time
+#       problems.
+result <- influx_query(con,
+    db = '{{.Database}}',
+    query = "{{.Query}}",
+    return_xts = FALSE)
+
+head(result)

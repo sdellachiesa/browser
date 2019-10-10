@@ -45,6 +45,8 @@ func main() {
 		oauthRedirect  = fs.String("oauth-redirect", "", "")
 		jwtKey         = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
 		accessFile     = fs.String("access-file", "access.json", "Access file.")
+		tmplUser       = fs.String("tmpl-username", "", "Influx username used in code templates.")
+		tmplPass       = fs.String("tmpl-password", "", "Influx password used in code templates.")
 		_              = fs.String("config", "", "Config file (optional)")
 	)
 
@@ -97,6 +99,7 @@ func main() {
 	b, err := browser.NewServer(
 		browser.WithBackend(ds),
 		browser.WithDecoder(a),
+		browser.WithCredentials(*tmplUser, *tmplPass, *influxDatabase),
 	)
 	if err != nil {
 		log.Fatalf("Error creating server: %v\n", err)

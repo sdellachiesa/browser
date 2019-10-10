@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+# Documentation:
+# https://influxdb-python.readthedocs.io/en/latest/index.html
+from influxdb import DataFrameClient
+
+# Create a connection to the InfluxDB server.
+# To read data into a pandas DataFrame, use a DataFrameClient.
+#
+# WARNING: Please do not share username and password with outside of your
+#                   institute. It has full read access to the LTER data.
+#
+client = DataFrameClient(host='ts.eurac.net',
+    port=443,
+    username='{{.Username}}',
+    password='{{.Password}}',
+    database='{{.Database}}',
+    ssl=True,
+    verify_ssl=True)
+
+
+# Get timeseries data.
+#
+# INFO: All data inside InfluxDB is in UTC, but the data of the LTSER IT25 Matsch Mazia
+#       side is recorded in UTC+1. By adding the 'tc' clause at the end we can specifiy
+#       a timezone. For LTER use 'Etc/GMT-1' to avoid problems daylight saving time
+#       problems.
+result = client.query("{{.Query}}")
+
+list(result)
