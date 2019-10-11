@@ -8,9 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
@@ -69,7 +67,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.mux.HandleFunc("/", s.handleIndex)
-	s.mux.HandleFunc("/static/", s.handleStatic)
+	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
 	s.mux.HandleFunc("/api/v1/filter", s.handleFilter)
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
 
@@ -108,18 +106,6 @@ func (s *Server) parseTemplate() error {
 
 	s.tmpl, err = template.New("base").Funcs(funcMap).Parse(f)
 	return err
-}
-
-func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
-	p := r.URL.Path[1:]
-
-	b, err := static.File(p)
-	if err != nil {
-		reportError(w, r, err)
-		return
-	}
-
-	http.ServeContent(w, r, path.Base(p), time.Now(), strings.NewReader(b))
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {

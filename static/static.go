@@ -7,7 +7,11 @@ package static
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"path"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 //go:generate go run makestatic.go
@@ -33,4 +37,28 @@ func File(name string) (string, error) {
 		return "", err
 	}
 	return string(b), nil
+}
+
+// ServeContent returns a HandlerFunc for serving static content from the
+// request path. Paths ending with one of the given extentions will not be
+// served and a http.NotFound will be returned.
+func ServeContent(extensions ...string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Path[1:]
+
+		for _, ext := range extensions {
+			if ext == filepath.Ext(p) {
+				http.NotFound(w, r)
+				return
+			}
+		}
+
+		b, err := File(p)
+		if err != nil {
+			http.Error(w, "static: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.ServeContent(w, r, path.Base(p), time.Now(), strings.NewReader(b))
+	}
 }
