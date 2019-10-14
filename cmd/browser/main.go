@@ -110,16 +110,29 @@ func main() {
 	}
 
 	required("acme-hostname", *acmeHostname)
-	log.Fatal(http.Serve(newHTTPSListener(*acmeHostname, *acmeCacheDir), handler))
-}
-
-func newHTTPSListener(domain, cacheDir string) net.Listener {
 	m := &autocert.Manager{
+		Cache:      autocert.DirCache(*acmeCacheDir),
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(domain),
-		Cache:      autocert.DirCache(cacheDir),
+		HostPolicy: autocert.HostWhitelist(*acmeHostname),
 	}
-	return m.Listener()
+	srv := &http.Server{
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		TLSConfig:    m.TLSConfig(),
+		Handler:      handler,
+	}
+	// Redirect HTTP traffic to HTTPS
+	go func() {
+		host, _, err := net.SplitHostPort(*httpAddr)
+		if err != nil || host == "" {
+			host = "0.0.0.0"
+		}
+		log.Println("Redirecting traffic from HTTP to HTTPS.")
+		log.Fatal(http.ListenAndServe(host+":80", redirectHandler()))
+	}()
+
+	log.Fatal(srv.ListenAndServeTLS("", ""))
 }
 
 func required(name, value string) {
@@ -127,4 +140,13 @@ func required(name, value string) {
 		fmt.Fprintf(os.Stderr, "flag needs an argument: -%s\n\n", name)
 		os.Exit(2)
 	}
+}
+
+func redirectHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Connection", "close")
+		url := "https://" + r.Host + r.URL.String()
+		http.Redirect(w, r, url, http.StatusMovedPermanently)
+		return
+	})
 }
