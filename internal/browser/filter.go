@@ -63,7 +63,7 @@ func (f *Filter) seriesQuery() (string, []interface{}) {
 		args []interface{}
 	)
 	for _, station := range f.Stations {
-		columns := []string{"station", "landuse", "altitude", "latitude"}
+		columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
 		columns = append(columns, f.Fields...)
 
 		sb := ql.Select(columns...)
