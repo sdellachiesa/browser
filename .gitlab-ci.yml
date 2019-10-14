@@ -6,24 +6,19 @@ variables:
   KUBECTL: "https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl"
 
 stages:
+  - testing
   - build
   - tag
   - deploy
 
-#test:
-#  stage: test
-#  image: ${DOCKER_TESTER_IMAGE}
-#  before_script:
-#    - go get -d github.com/influxdata/telegraf
-#    - cd /go/src/github.com/influxdata/telegraf
-#    - git fetch --all --tags
-#    - git checkout tags/${TELEGRAF_TAG} -b ${TELEGRAF_TAG}
-#    - make deps
-#  script:
-#    - cd ${CI_PROJECT_DIR}
-#    - go test
-#  only:
-#    - master
+testing:
+  stage: testing
+  image: ${DOCKER_TESTER_IMAGE}
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - go test gitlab.inf.unibz.it/lter/browser/...
+  only:
+    - master
 
 build:
   stage: build
