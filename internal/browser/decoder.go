@@ -138,6 +138,8 @@ func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not parse start date %v", err)
 	}
+	// In order to start the day at 00:00:00
+	f.start = f.start.Add(-1 * time.Hour)
 
 	f.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
 	if err != nil {
