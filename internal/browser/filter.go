@@ -46,12 +46,17 @@ func (f *Filter) Query() (string, []interface{}) {
 // updateQuery returns a 'SHOW TAG VALUES' query for filtering.
 func (f *Filter) updateQuery() (string, []interface{}) {
 	b := ql.ShowTagValues().From(f.Fields...).WithKeyIn("landuse", "snipeit_location_ref")
+
+	var where ql.Querier
 	if len(f.Stations) > 0 {
-		b.Where(ql.Eq(ql.Or(), "snipeit_location_ref", f.Stations...))
+		where = ql.Eq(ql.Or(), "snipeit_location_ref", f.Stations...)
 	}
 	if len(f.Landuse) > 0 {
-		b.Where(ql.Eq(ql.Or(), "landuse", f.Landuse...))
+		where = ql.Eq(ql.Or(), "landuse", f.Landuse...)
 	}
+
+	b.Where(where, ql.And(), ql.TimeRange(time.Now().Add(-7*24*time.Hour), time.Now()))
+
 	return b.Query()
 }
 
