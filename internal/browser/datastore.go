@@ -120,9 +120,8 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 							log.Printf("cannot convert timestamp: %v. skipping.", err)
 							continue
 						}
-						// Timestamps in InfluxDB are in UTC, but station records are in UTC+1
-						// so we need to add +1h offset to the parsed time.
-						v = ts.Add(1 * time.Hour).Format("2006-01-02 15:04:05")
+
+						v = ts.Format("2006-01-02 15:04:05")
 					}
 
 					column[i] = fmt.Sprint(v)
