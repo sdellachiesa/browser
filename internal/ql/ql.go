@@ -252,6 +252,10 @@ func Where(q ...Querier) *WhereBuilder {
 
 func (wb *WhereBuilder) Query() (string, []interface{}) {
 	for _, query := range wb.queries {
+		if query == nil {
+			continue
+		}
+
 		q, _ := query.Query()
 
 		if len(wb.b.String()) == 0 {

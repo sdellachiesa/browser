@@ -8,6 +8,7 @@ func TestWhereBuilder(t *testing.T) {
 		want string
 	}{
 		{Where(), ""},
+		{Where(nil, And(), Eq(And(), "x", "a", "b")), "x='a' AND x='b'"},
 		{Where(Eq(And(), "x", "a", "b")), "x='a' AND x='b'"},
 		{Where(Eq(Or(), "x", "a", "b")), "x='a' OR x='b'"},
 		{Where(Eq(Or(), "x", "a")), "x='a'"},
