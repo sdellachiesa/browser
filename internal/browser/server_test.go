@@ -29,7 +29,7 @@ func (tb testBackend) Stations(ids []string) ([]*Station, error) {
 
 type testDecoder struct{}
 
-func (td testDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error) {
+func (td testDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
 	return nil, errors.New("not yet implemented")
 }
 

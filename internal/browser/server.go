@@ -19,8 +19,8 @@ import (
 // Decoder is an interface for decoding data.
 type Decoder interface {
 	// DecodeAndValidate decodes data from the given HTTP request and
-	// validates it and returns an ql.Querier.
-	DecodeAndValidate(r *http.Request) (ql.Querier, error)
+	// validates it.
+	DecodeAndValidate(r *http.Request) (*Filter, error)
 }
 
 // The Backend interface for retrieving data.
@@ -116,7 +116,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := s.db.Filter(f)
+	data, err := s.db.Filter(f.filterQuery())
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in getting data from backend: %v", err)
 		reportError(w, r, err)
@@ -179,7 +179,7 @@ func (s *Server) handleFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := s.db.Filter(f)
+	data, err := s.db.Filter(f.filterQuery())
 	if err != nil {
 		err = fmt.Errorf("handleFilter: %v", err)
 		reportError(w, r, err)
@@ -210,7 +210,7 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := s.db.Series(f)
+	b, err := s.db.Series(f.seriesQuery())
 	if err != nil {
 		err = fmt.Errorf("handleSeries: %v", err)
 		reportError(w, r, err)

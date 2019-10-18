@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
-	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 )
 
 // RequestDecoder is a decoder which validates and restricts access
@@ -59,7 +58,7 @@ func NewRequestDecoder(file string) *RequestDecoder {
 }
 
 // DecodeAndValidate takes the given HTTP request decodes and validates it.
-func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error) {
+func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
 	rule, err := rd.Rule(r.Context())
 	if err != nil {
 		return nil, err
@@ -72,8 +71,6 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error)
 		if err != nil {
 			return nil, err
 		}
-
-		f.qType = SeriesQuery
 	default: // JSON
 		err := json.NewDecoder(r.Body).Decode(&f)
 		if err == io.EOF {
@@ -83,8 +80,6 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (ql.Querier, error)
 			return nil, err
 		}
 		defer r.Body.Close()
-
-		f.qType = UpdateQuery
 	}
 
 	f.Fields = rd.inputFilter(f.Fields, rule.Policy.Fields)
