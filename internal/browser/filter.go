@@ -57,7 +57,7 @@ func (f *Filter) seriesQuery() ql.Querier {
 				ql.And(),
 				ql.TimeRange(f.start, f.end),
 			)
-			sb.GroupBy("station")
+			sb.GroupBy("station,snipeit_location_ref")
 			sb.OrderBy("time").ASC().TZ("Etc/GMT-1")
 
 			q, arg := sb.Query()

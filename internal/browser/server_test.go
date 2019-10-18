@@ -23,7 +23,7 @@ func (tb testBackend) Series(q ql.Querier) ([][]string, error) {
 	return nil, errors.New("not yet implemented")
 }
 
-func (tb testBackend) Stations(ids []string) ([]*Station, error) {
+func (tb testBackend) Stations(ids ...string) ([]*Station, error) {
 	return nil, errors.New("not yet implemented")
 }
 

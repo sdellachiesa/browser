@@ -27,7 +27,7 @@ type Decoder interface {
 type Backend interface {
 	Filter(ql.Querier) (*Filter, error)
 	Series(ql.Querier) ([][]string, error)
-	Stations(ids []string) ([]*Station, error)
+	Stations(ids ...string) ([]*Station, error)
 }
 
 // Server represents an HTTP server for serving the LTER Browser
@@ -123,7 +123,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stations, err := s.db.Stations(data.Stations)
+	stations, err := s.db.Stations(data.Stations...)
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in getting metadata from backend: %v", err)
 		reportError(w, r, err)

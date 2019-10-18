@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
@@ -71,6 +72,27 @@ func appendIfMissing(slice []string, s string) []string {
 	return append(slice, s)
 }
 
+// key is used as map key for sorting and grouping the map entries.
+type key struct {
+	station string
+
+	// timestamp is a UNIX epoch and not of a time.Time since
+	// the later should be avoid for map keys.
+	// Read https://golang.org/src/time/time.go?#L101
+	timestamp int64
+}
+
+// Time returns the key's unix timestamp as time.Time.
+func (k key) Time() time.Time {
+	timeLoc := time.FixedZone("UTC+1", 60*60)
+	return time.Unix(k.timestamp, 0).In(timeLoc)
+}
+
+// Next returns a new key with it's timestamp modified by the given duration.
+func (k key) Next(d time.Duration) key {
+	return key{k.station, k.Time().Add(d).Unix()}
+}
+
 func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 	query, _ := q.Query()
 
@@ -84,14 +106,11 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 		return nil, fmt.Errorf("%v", resp.Error())
 	}
 
-	type key struct {
-		station   string
-		timestamp string
-	}
-
-	values := make(map[key][]string)
-	keys := []key{}
-	header := []string{}
+	var (
+		table  = make(map[key][]string)
+		keys = []key{}
+		header = []string{}
+	)
 	for _, result := range resp.Results {
 		for i, serie := range result.Series {
 			if i == 0 {
@@ -99,12 +118,23 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 			}
 
 			for _, value := range serie.Values {
-				k := key{serie.Tags["station"], value[0].(string)}
+				ts, err := time.ParseInLocation(time.RFC3339, value[0].(string), time.UTC)
+				if err != nil {
+					log.Printf("cannot convert timestamp: %v. skipping.", err)
+					continue
+				}
 
-				column, ok := values[k]
+				k := key{serie.Tags["snipeit_location_ref"], ts.Unix()}
+
+				column, ok := table[k]
 				if !ok {
 					keys = append(keys, k)
+
+					// Initialize column and fill it with NaN's.
 					column = make([]string, len(value))
+					for i := range column {
+						column[i] = "NaN"
+					}
 				}
 
 				for i := range value {
@@ -113,38 +143,74 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 						continue
 					}
 
-					// The value at index 0 corresponds to the timestamp
+					// The value at index 0 corresponds to the timestamp.
 					if i == 0 {
-						ts, err := time.Parse(time.RFC3339, v.(string))
-						if err != nil {
-							log.Printf("cannot convert timestamp: %v. skipping.", err)
-							continue
-						}
-
 						v = ts.Format("2006-01-02 15:04:05")
 					}
 
 					column[i] = fmt.Sprint(v)
+
 				}
 
-				values[k] = column
+				table[k] = column
 			}
 		}
 	}
 
-	rows := [][]string{}
-	rows = append(rows, header)
-	for i := 0; i < len(keys); i++ {
-		v := values[keys[i]]
-		rows = append(rows, v)
+	// Sort by timesstamp.
+	sort.SliceStable(keys, func(i, j int) bool {
+		return keys[i].timestamp < keys[j].timestamp
+	})
+
+	// Sort by station,timestamp.
+	sort.SliceStable(keys, func(i, j int) bool {
+		return keys[i].station < keys[j].station
+	})
+
+	var (
+		rows = [][]string{header}
+		last = keys[len(keys)-1]
+	)
+	for _, k := range keys {
+		c, ok := table[k]
+		if !ok {
+			continue
+		}
+		rows = append(rows, c)
+
+		// Fill up missing timestamps in order to have a continuous timerange
+		// otherwise Researchers cannot work with the data and will complain.
+		// What a bummer. The interval of 'RAW' data in LTER is always 15 Minutes.
+		// See: https://gitlab.inf.unibz.it/lter/browser/issues/10
+		next := k.Next(15 * time.Minute)
+		for {
+			// Check if there is a record for the next timestamp if yes
+			// break out of the for loop. Otherwise stay in the loop and
+			// fill up missing rows until the next real entry.
+			_, ok := table[next]
+			if ok || next.Time().After(last.Time()) {
+				break
+			}
+
+			// Initialize column and fill it with NaN's.
+			column := make([]string, len(c))
+			for i := range column {
+				column[i] = "NaN"
+			}
+			column[0] = next.Time().Format("2006-01-02 15:04:05")
+			column[1] = c[1]
+
+			rows = append(rows, column)
+			next = next.Next(15 * time.Minute)
+		}
 	}
 
 	return rows, nil
 }
 
-// StationsMetadata returns all metadata associated with a station stored
-// in SnipeIT. It will filter for stations with the given ids.
-func (d Datastore) Stations(ids []string) ([]*Station, error) {
+// Stations retrieves all stations which make part of the LTER project from SnipeIT and
+// returns them. It will filter for the given ID's if provided.
+func (d Datastore) Stations(ids ...string) ([]*Station, error) {
 	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
 	if err != nil {
 		return nil, err
