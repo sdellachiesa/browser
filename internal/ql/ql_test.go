@@ -55,6 +55,7 @@ func TestSelectBuilder(t *testing.T) {
 	}{
 		{Select(), "SELECT *"},
 		{Select("a"), "SELECT a"},
+		{Select("a").TZ("europe/rome"), "SELECT a TZ('europe/rome')"},
 		{Select("a", "b"), "SELECT a, b"},
 		{Select("a", "b").From("c"), "SELECT a, b FROM c"},
 		{Select("a", "b").From("c").Where(Eq(And(), "x", "b")).GroupBy("t").OrderBy("a").ASC(), "SELECT a, b FROM c WHERE x='b' GROUP BY t ORDER BY a ASC"},

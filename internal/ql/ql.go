@@ -167,6 +167,7 @@ type SelectBuilder struct {
 	order    string
 	group    string
 	orderDir string
+	timezone string
 }
 
 // Select returns the base for building a 'SELECT' query.
@@ -208,6 +209,11 @@ func (sb *SelectBuilder) ASC() *SelectBuilder {
 	return sb
 }
 
+func (sb *SelectBuilder) TZ(tz string) *SelectBuilder {
+	sb.timezone = fmt.Sprintf(" TZ('%s')", tz)
+	return sb
+}
+
 func (sb *SelectBuilder) Query() (string, []interface{}) {
 	sb.b.WriteString("SELECT ")
 
@@ -235,6 +241,10 @@ func (sb *SelectBuilder) Query() (string, []interface{}) {
 
 	if sb.orderDir != "" {
 		sb.b.Append(sb.orderDir)
+	}
+
+	if sb.timezone != "" {
+		sb.b.Append(sb.timezone)
 	}
 
 	return sb.b.String(), sb.b.args
