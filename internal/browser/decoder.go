@@ -136,44 +136,42 @@ func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 		return nil, err
 	}
 
-	start, err := time.Parse("2006-01-02", r.FormValue("startDate"))
+	var err error
+	f := &Filter{}
+
+	f.start, err = time.Parse("2006-01-02", r.FormValue("startDate"))
 	if err != nil {
 		return nil, fmt.Errorf("could not parse start date %v", err)
 	}
 
-	end, err := time.Parse("2006-01-02", r.FormValue("endDate"))
+	f.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
 	if err != nil {
 		return nil, fmt.Errorf("error: could not parse end date %v", err)
 	}
 
-	if end.After(time.Now()) {
+	if f.end.After(time.Now()) {
 		return nil, errors.New("error: end date is in the future")
 	}
 
 	// Limit download of data to one year
-	limit := time.Date(end.Year()-1, end.Month(), end.Day(), 0, 0, 0, 0, time.UTC)
-	if start.Before(limit) {
+	limit := time.Date(f.end.Year()-1, f.end.Month(), f.end.Day(), 0, 0, 0, 0, time.UTC)
+	if f.start.Before(limit) {
 		return nil, errors.New("error: time range is greater then a year")
 	}
 
-	if r.Form["fields"] == nil {
+	f.Fields = r.Form["fields"]
+	if f.Fields == nil {
 		return nil, errors.New("error: at least one field must be given")
 	}
 
-	if r.Form["stations"] == nil {
+	f.Stations = r.Form["stations"]
+	if f.Stations == nil {
 		return nil, errors.New("error: at least one station must be given")
 	}
 
-	return &Filter{
-		Fields:   r.Form["fields"],
-		Stations: r.Form["stations"],
-		Landuse:  r.Form["landuse"],
+	f.Landuse = r.Form["landuse"]
 
-		// We need to shift the timerange of one hour since in influx we use UTC and in output we want
-		// UTC+1.
-		start: time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC).Add(-1 * time.Hour),
-		end:   time.Date(end.Year(), end.Month(), end.Day(), 23, 59, 59, 0, time.UTC).Add(-1 * time.Hour),
-	}, nil
+	return f, nil
 }
 
 // Rule returns a rule from the given context. If no rule is found

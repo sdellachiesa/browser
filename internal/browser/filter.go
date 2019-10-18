@@ -79,7 +79,7 @@ func (f *Filter) seriesQuery() (string, []interface{}) {
 			ql.TimeRange(f.start, f.end),
 		)
 		sb.GroupBy("station")
-		sb.OrderBy("time").ASC()
+		sb.OrderBy("time").ASC().TZ("Etc/GMT-1")
 
 		q, arg := sb.Query()
 		buf.WriteString(q)
