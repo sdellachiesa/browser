@@ -213,7 +213,7 @@ func (a *Access) find(name auth.Role) (*Rule, error) {
 func (a *Access) loadRules(file string) error {
 	fi, err := os.Stat(file)
 	if err != nil {
-		return fmt.Errorf("validator: %v", err)
+		return fmt.Errorf("access: %v", err)
 	}
 	mtime := fi.ModTime()
 	if !mtime.After(a.last) && a.rules != nil {
@@ -222,13 +222,13 @@ func (a *Access) loadRules(file string) error {
 
 	f, err := os.Open(file)
 	if err != nil {
-		return fmt.Errorf("validator: error in opening %q: %v", file, err)
+		return fmt.Errorf("access: error in opening %q: %v", file, err)
 	}
 	defer f.Close()
 
 	var r []*Rule
 	if err := json.NewDecoder(f).Decode(&r); err != nil {
-		return fmt.Errorf("validator: error in JSON decoding rules file %q: %v", file, err)
+		return fmt.Errorf("access: error in JSON decoding rules file %q: %v", file, err)
 	}
 
 	a.mu.Lock()
