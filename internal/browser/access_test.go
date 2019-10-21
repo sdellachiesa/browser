@@ -28,10 +28,10 @@ func TestInputFilter(t *testing.T) {
 		{13, []string{"b--SELECT *;", "c"}, []string{}, []string{"c"}},
 	}
 
-	rd := &RequestDecoder{}
+	a := &Access{}
 
 	for _, tc := range testCases {
-		got := rd.inputFilter(tc.in, tc.allowed)
+		got := a.inputFilter(tc.in, tc.allowed)
 		if !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("%d: got %q, want %q", tc.index, got, tc.want)
 		}

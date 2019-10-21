@@ -44,7 +44,7 @@ func main() {
 		oauthSecret    = fs.String("oauth-secret", "", "")
 		oauthRedirect  = fs.String("oauth-redirect", "", "")
 		jwtKey         = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
-		roles          = fs.String("roles", "roles.json", "JSON roles file.")
+		accessFile     = fs.String("access-file", "access.json", "Access file.")
 		_              = fs.String("config", "", "Config file (optional)")
 	)
 
@@ -92,11 +92,11 @@ func main() {
 	}
 
 	ds := browser.NewDatastore(sc, ic, *influxDatabase)
-	dec := browser.NewRequestDecoder(*roles)
+	a := browser.ParseAccessFile(*accessFile)
 
 	b, err := browser.NewServer(
 		browser.WithBackend(ds),
-		browser.WithDecoder(dec),
+		browser.WithDecoder(a),
 	)
 	if err != nil {
 		log.Fatalf("Error creating server: %v\n", err)

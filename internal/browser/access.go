@@ -17,26 +17,11 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 )
 
-// RequestDecoder is a decoder which validates and restricts access
-// to data depending on the role a request/user makes part of.
-type RequestDecoder struct {
-	mu    sync.RWMutex // guards the fields below
-	last  time.Time
-	rules []*Rule
-}
+// ErrNoRuleFound means that no rule was found for the given name.
+var ErrNoRuleFound = errors.New("access: no  rule found")
 
-// Rule denotes a simple rule which applies to a specific role.
-type Rule struct {
-	RoleName auth.Role
-	Policy   *Filter
-}
-
-// NewRequestDecoder returns a new RequestDecoder which will
-// parse rules from the given file. On a fixed interval of
-// 10 minutes it will check if the rule file has changed and
-// if so it will update the rules.
-// The file should be a JSON file with the following layout:
-//
+// Access represents a parsed JSON Access file. The file should have the following
+// format:
 // [
 //      {
 //		"roleName": "FullAccess",
@@ -44,22 +29,40 @@ type Rule struct {
 //			"fields": ["a"],
 //			"stations": ["c"],
 //			"landuse": []
-//		}
+//	},
+//	{
+//		...
+//	}
 // ]
 //
-func NewRequestDecoder(file string) *RequestDecoder {
-	rd := &RequestDecoder{}
-	if err := rd.loadRules(file); err != nil {
-		log.Fatal(err)
-	}
-	go rd.refreshRules(file)
-
-	return rd
+type Access struct {
+	mu    sync.RWMutex // guards the fields below
+	last  time.Time
+	rules []*Rule
 }
 
-// DecodeAndValidate takes the given HTTP request decodes and validates it.
-func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
-	rule, err := rd.Rule(r.Context())
+// Rule represents a single rule which applies to a specific role.
+type Rule struct {
+	RoleName auth.Role
+	Policy   *Filter
+}
+
+// ParseAccessFile parses the content of the given file and returns the parsed Access.
+// On an interval of 10*time.Minutes it will check for changes made to the given
+// file and update the parsed Access if necessary.
+func ParseAccessFile(file string) *Access {
+	a := &Access{}
+	if err := a.loadRules(file); err != nil {
+		log.Fatal(err)
+	}
+	go a.refreshRules(file)
+
+	return a
+}
+
+// DecodeAndValidate implements the Decoder interface.
+func (a *Access) DecodeAndValidate(r *http.Request) (*Filter, error) {
+	rule, err := a.Rule(r.Context())
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +70,7 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
 	f := &Filter{}
 	switch r.Header.Get("content-type") {
 	case "application/x-www-form-urlencoded": // FORM Submit
-		f, err = rd.decodeForm(r)
+		f, err = a.decodeForm(r)
 		if err != nil {
 			return nil, err
 		}
@@ -82,9 +85,9 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
 		defer r.Body.Close()
 	}
 
-	f.Fields = rd.inputFilter(f.Fields, rule.Policy.Fields)
-	f.Stations = rd.inputFilter(f.Stations, rule.Policy.Stations)
-	f.Landuse = rd.inputFilter(f.Landuse, rule.Policy.Landuse)
+	f.Fields = a.inputFilter(f.Fields, rule.Policy.Fields)
+	f.Stations = a.inputFilter(f.Stations, rule.Policy.Stations)
+	f.Landuse = a.inputFilter(f.Landuse, rule.Policy.Landuse)
 
 	return f, nil
 }
@@ -93,7 +96,7 @@ func (rd *RequestDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
 // identifiers and permitted by the given allowed values. Not permitted
 // values will be filtered out and a new slice containing the valid values
 // will be returned.
-func (rd *RequestDecoder) inputFilter(input, allowed []string) []string {
+func (a *Access) inputFilter(input, allowed []string) []string {
 	if len(input) == 0 {
 		return allowed
 	}
@@ -126,7 +129,7 @@ func (rd *RequestDecoder) inputFilter(input, allowed []string) []string {
 }
 
 // deocde data from a form post.
-func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
+func (a *Access) decodeForm(r *http.Request) (*Filter, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
 	}
@@ -171,21 +174,31 @@ func (rd *RequestDecoder) decodeForm(r *http.Request) (*Filter, error) {
 	return f, nil
 }
 
-// Rule returns a rule from the given context. If no rule is found
-// it will try to find and return the default rule.
-func (rd *RequestDecoder) Rule(ctx context.Context) (*Rule, error) {
+// Rule returns a rule from the given context. If no rule is found it will try to find and return the
+// default rule. If that failes it will return a basic hardcoded rule.
+func (a *Access) Rule(ctx context.Context) (*Rule, error) {
 	role, ok := ctx.Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
-		return rd.find(auth.Public)
+		role = auth.Public
 	}
 
-	return rd.find(role)
+	r, err := a.find(role)
+	if err != nil {
+		return &Rule{
+			RoleName: auth.Public,
+			Policy: &Filter{
+				Fields: []string{"air_t_avg", "air_rh_avg", "wind_dir", "wind_speed_avg", "wind_speed_max"},
+			},
+		}, nil
+	}
+
+	return r, nil
 }
 
-func (rd *RequestDecoder) find(name auth.Role) (*Rule, error) {
-	rd.mu.RLock()
-	rules := rd.rules
-	rd.mu.RUnlock()
+func (a *Access) find(name auth.Role) (*Rule, error) {
+	a.mu.RLock()
+	rules := a.rules
+	a.mu.RUnlock()
 
 	for _, r := range rules {
 		if r.RoleName == name {
@@ -193,17 +206,17 @@ func (rd *RequestDecoder) find(name auth.Role) (*Rule, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("No rule with name %q found.", name)
+	return nil, ErrNoRuleFound
 }
 
 // loadRules loads rules from the given file.
-func (rd *RequestDecoder) loadRules(file string) error {
+func (a *Access) loadRules(file string) error {
 	fi, err := os.Stat(file)
 	if err != nil {
 		return fmt.Errorf("validator: %v", err)
 	}
 	mtime := fi.ModTime()
-	if !mtime.After(rd.last) && rd.rules != nil {
+	if !mtime.After(a.last) && a.rules != nil {
 		return nil // no changes to rules file
 	}
 
@@ -218,18 +231,18 @@ func (rd *RequestDecoder) loadRules(file string) error {
 		return fmt.Errorf("validator: error in JSON decoding rules file %q: %v", file, err)
 	}
 
-	rd.mu.Lock()
-	rd.last = mtime
-	rd.rules = r
-	rd.mu.Unlock()
+	a.mu.Lock()
+	a.last = mtime
+	a.rules = r
+	a.mu.Unlock()
 	return nil
 }
 
 // refreshRules refreshes the rules from the given file every
 // 10 minutes.
-func (rd *RequestDecoder) refreshRules(file string) {
+func (a *Access) refreshRules(file string) {
 	for {
-		if err := rd.loadRules(file); err != nil {
+		if err := a.loadRules(file); err != nil {
 			log.Println(err)
 		}
 		time.Sleep(time.Minute * 10)
