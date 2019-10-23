@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	text "text/template"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
@@ -36,14 +37,18 @@ type Backend interface {
 type Server struct {
 	basePath string
 	mux      *http.ServeMux
-	tmpl     struct {
-		index, python, rlang *template.Template
+
+	html struct {
+		index *template.Template
 	}
 
-	// Credentials used inside the code templates.
-	credentials struct {
-		Username, Password, Database string
+	text struct {
+		python, rlang *text.Template
 	}
+
+	// Influx database name used inside code templates.
+	database string
+
 	db      Backend
 	decoder Decoder
 }
@@ -101,13 +106,11 @@ func WithDecoder(d Decoder) Option {
 	}
 }
 
-// WithCredentials returns an options function for setting
-// the server's credentials used insde the code templates.
-func WithCredentials(user, pass, db string) Option {
+// WithDatabase returns an options function for setting
+// the server's database used insde the code templates.
+func WithInfluxDB(db string) Option {
 	return func(s *Server) {
-		s.credentials.Username = user
-		s.credentials.Password = pass
-		s.credentials.Database = db
+		s.database = db
 	}
 }
 
@@ -121,7 +124,7 @@ func (s *Server) parseTemplate() error {
 		"Landuse":     MapLanduse,
 		"Measurement": MapMeasurements,
 	}
-	s.tmpl.index, err = template.New("base").Funcs(funcMap).Parse(index)
+	s.html.index, err = template.New("base").Funcs(funcMap).Parse(index)
 	if err != nil {
 		return err
 	}
@@ -130,13 +133,13 @@ func (s *Server) parseTemplate() error {
 	if err != nil {
 		return err
 	}
-	s.tmpl.python, err = template.New("python").Parse(python)
+	s.text.python, err = text.New("python").Parse(python)
 
 	rlang, err := static.File(filepath.Join(s.basePath, "templates", "r.tmpl"))
 	if err != nil {
 		return err
 	}
-	s.tmpl.rlang, err = template.New("r").Parse(rlang)
+	s.text.rlang, err = text.New("r").Parse(rlang)
 
 	return err
 }
@@ -175,7 +178,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		role = auth.Public
 	}
 
-	err = s.tmpl.index.Execute(w, struct {
+	err = s.html.index.Execute(w, struct {
 		Stations  []*Station
 		Fields    []string
 		Landuse   []string
@@ -272,15 +275,15 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		tmpl *template.Template
+		tmpl *text.Template
 		ext  string
 	)
 	switch r.FormValue("language") {
 	case "python":
-		tmpl = s.tmpl.python
+		tmpl = s.text.python
 		ext = "py"
 	case "r":
-		tmpl = s.tmpl.rlang
+		tmpl = s.text.rlang
 		ext = "r"
 	default:
 		reportError(w, r, errors.New("language not supported"))
@@ -292,15 +295,18 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-	q, _ := f.seriesQuery().Query()
+	q, _ := ql.Select(f.Fields...).From(f.Fields...).Where(
+		ql.Eq(ql.Or(), "snipeit_location_ref", f.Stations...),
+		ql.And(),
+		ql.TimeRange(f.start, f.end),
+	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
+
 	err = tmpl.Execute(w, struct {
-		Query                        template.HTML
-		Username, Password, Database string
+		Query    string
+		Database string
 	}{
-		Query:    template.HTML(q),
-		Username: s.credentials.Username,
-		Password: s.credentials.Password,
-		Database: s.credentials.Database,
+		Query:    q,
+		Database: s.database,
 	})
 	if err != nil {
 		err = fmt.Errorf("handleTemplate: error in executing template: %v", err)

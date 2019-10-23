@@ -3,14 +3,18 @@ library(influxdbr)
 
 # Create a connection to InfluxDB.
 #
-# WARNING: Please do not share username and password with outside of your
-#                   institute. It has full read access to the LTER data.
+# INFO: For security reasons we cannot include username and password here.
+#       Please create a ticket at https://support.scientificnet.org with the following
+#       information: 
+#
+#       Subject: InfluxDB: Access to LTER "{{.Database}}" Database
+#       Text: Please create a username and password for accessing the LTER "{{.Database}}" database.
 #
 con <- influx_connection(scheme = c("https"),
     host = "ts.eurac.net",
     port = 443,
-    user = "{{.Username}}",
-    pass = "{{.Password}}")
+    user = "",
+    pass = "")
 
 # Test if the connection works.
 # influx_ping(con)
