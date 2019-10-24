@@ -34,6 +34,7 @@
 				'sDateEl': 			'#startDate',
 				'eDateEl': 			'#endDate',
 				'submitEl': 		'#submit',
+				'codeEl':			'#codeBtn',
 				'mapEl': 			'map',
 				'mapData':			JSON.parse('{{.Map}}'),
 			});
@@ -139,39 +140,39 @@
 						<div class="row">
 							<div class="col-md-12">
 								<br>
-								<div class="tooltip-wrapper disabled" data-title="Please select at least one measurement and station.">
-									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button>
-								</div>
-                                {{if eq .Role "FullAccess"}}
-                                <script>                                                      
-                                    $(document).ready(function() {     
-                                        function DownloadCodeTemplate(language) {
-                                            var action = $('#filters').attr('action');
-                                            $('#language').val(language)
-                                            $('#filters').attr('action', '/api/v1/template'); 
-                                            $('#submit').click();
-                                            $('#filters').attr('action', action); 
-                                        }
-                                        $("#downloadPY").click(function() {
-                                            DownloadCodeTemplate("python");
-                                        }); 
-                                        $("#downloadR").click(function() {
-                                            DownloadCodeTemplate("r");
-                                        });
-                                    });
-                                </script>
-                                    <input type="hidden" name="language" value="" id="language">
-                                    <div class="btn-group">
-                                        <button typemustmatchpe="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<div class="tooltip-wrapper nostrike disabled" data-title="Please select at least one measurement and station.">
+									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button> &nbsp;
+
+ 									 {{if eq .Role "FullAccess"}}
+                                					<script>
+                                   						$(document).ready(function() {
+                                        						function DownloadCodeTemplate(language) {
+                                            							var action = $('#filters').attr('action');
+                                           							$('#language').val(language)
+                                            							$('#filters').attr('action', '/api/v1/template');
+                                            							$('#submit').click();
+                                            							$('#filters').attr('action', action);
+                                        						}
+                                        						$("#downloadPY").click(function() {
+                                            							DownloadCodeTemplate("python");
+                                        						});
+                                        						$("#downloadR").click(function() {
+                                            							DownloadCodeTemplate("r");
+                                        						});
+                                    						});
+                                					</script>
+                                    					<input type="hidden" name="language" value="" id="language">
+                                    					<div class="btn-group">
+                                        					<button typemustmatchpe="button" disabled id="codeBtn" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             Code Templates <span class="caret"></span>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#" id="downloadPY">Python</a></li>
-                                            <li><a href="#" id="downloadR">R</a></li>
-                                        </ul>
-                                    </div>
-                                    
-                                {{end}}
+                                        					</button>
+                                        					<ul class="dropdown-menu">
+                                            						<li><a href="#" id="downloadPY">Python</a></li>
+                                            						<li><a href="#" id="downloadR">R</a></li>
+                                        					</ul>
+                                    					</div>
+                               						 {{end}}
+								</div>
 								<br>
 								<p>
 									<br><b>Disclaimer:</b> Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider.

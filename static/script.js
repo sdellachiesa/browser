@@ -35,15 +35,18 @@ function ToggleDownload(opts) {
 
 	if ($(opts.stationEl).val() == null) {
 		$(opts.submitEl).attr("disabled", "disabled");
+		$(opts.codeEl).attr("disabled", "disabled");
 		return
 	}
 
 	if ($(opts.fieldEl).val() == null) {
 		$(opts.submitEl).attr("disabled", "disabled");
+		$(opts.codeEl).attr("disabled", "disabled");
 		return
 	}
 
 	$(opts.submitEl).removeAttr("disabled");
+	$(opts.codeEl).removeAttr("disabled");
 }
 
 // ToggleOptions enables/disables an option depending on the presents
@@ -89,6 +92,7 @@ function ValidDateRange(sDateEl, eDateEl) {
 //	sDateEl - start date element
 //	eDateEl - end date element
 //	submitEl - submit button element
+//    codeEl - code button element
 //	mapEl - map element
 /// mapData - JSON used for initialize the map and altitude range
 function browser(opts) {
@@ -210,12 +214,12 @@ function browser(opts) {
 		<strong>Altitude:</strong> ${item.Altitude} m
 		</p>
 		<p><img src="${item.Image}" width="400"></p>`, {
-			autoPan: true, 
+			autoPan: true,
 			keepInView: true,
 			maxWidth: 600,
 			className: "map-popup"
 		});
-		
+
 		mapMarkers[item.ID] = marker
 		mapBound.push(new L.latLng(item.Latitude, item.Longitude));
 

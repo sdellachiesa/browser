@@ -21,7 +21,7 @@ body {
 	font-size: 1.2em;
 }
 
-.headline {	
+.headline {
 	font-size: 1.6em;
 	line-height: 1.6;
 	margin-bottom: 20px;
@@ -107,6 +107,7 @@ body {
 
 .tooltip-wrapper.disabled {
 	cursor: not-allowed;
+	text-decoration: none;
 }
 
 .shadow {
