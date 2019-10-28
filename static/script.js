@@ -200,22 +200,22 @@ function browser(opts) {
 	L.control.zoom({position: "bottomright"}).addTo(map);
 
 	var basemap = {
-		"Open Street": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
+		"Open Street Map": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
 		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map),
 
-		"Luftbild 2014/2015/2017 (20cm) - Ortofotocarta 2014/2015/2017 (20cm)": L.tileLayer.wms('http://geoservices.retecivica.bz.it/geoserver/ows?', {
+		"Orthophotos South Tyrol (2014/2015/2017)": L.tileLayer.wms('http://geoservices.retecivica.bz.it/geoserver/ows?', {
 			layers: 'P_BZ_OF_2014_2015_2017',
 			attribution: 'Map data &copy; <a href="http://geoportal.buergernetz.bz.it/geodaten.asp">Geoportal Südtirol</a>, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a>'
 		}),
 
-	 	"Basemap (Straßenkarte) - Basemap (Carta stradale)": L.tileLayer.wms('http://geoservices.retecivica.bz.it/geoserver/ows?', {
-			layers: 'P_BZ_BASEMAP_TRAFFIC',
-			attribution: 'Map data &copy; <a href="http://geoportal.buergernetz.bz.it/geodaten.asp">Geoportal Südtirol</a>, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a>'
-		})
+		"Google Maps Terrain": L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
+			maxZoom: 20,
+			subdomains:['mt0','mt1','mt2','mt3'],
+			attribution: 'Map data &copy; Google.'})
 	}
 
 	// Add map layers.
-	L.control.layers(basemap).addTo(map)
+	L.control.layers(basemap, {}, {'collapsed': false}).addTo(map)
 
 	var mapMarkers = {};
 	var mapBound = [];
