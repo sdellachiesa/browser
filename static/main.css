@@ -124,7 +124,6 @@ body {
 	z-index:1000;
 }
 
-
 @media (max-width: 768px){
     #map, .content {
         min-height: 1000px;
