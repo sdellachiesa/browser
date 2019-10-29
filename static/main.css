@@ -18,7 +18,7 @@ body {
 }
 
 #map, .content {
-   min-height: 1000px;
+    min-height: 850px;
 }
 
 .map-popup {
@@ -124,3 +124,13 @@ body {
 	z-index:1000;
 }
 
+
+@media (max-width: 768px){
+    #map, .content {
+        min-height: 1000px;
+    }
+    
+    .navbar-brand>img {
+        height: 25px;
+    }
+} 
