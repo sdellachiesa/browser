@@ -92,7 +92,7 @@ function ValidDateRange(sDateEl, eDateEl) {
 //	sDateEl - start date element
 //	eDateEl - end date element
 //	submitEl - submit button element
-//    codeEl - code button element
+//	codeEl - code button element
 //	mapEl - map element
 /// mapData - JSON used for initialize the map and altitude range
 function browser(opts) {
@@ -100,6 +100,9 @@ function browser(opts) {
 		maxHeight: 400,
 		buttonWidth: "100%",
 		enableFiltering: true,
+		filterBehavior: "both",
+		enableRegexFiltering: true,
+		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
 			$.ajax("/api/v1/filter", {
@@ -123,6 +126,10 @@ function browser(opts) {
 		maxHeight: 400,
 	 	buttonWidth: "100%",
 		enableFiltering: true,
+		filterBehavior: "both",
+		enableRegexFiltering: true,
+		enableFullValueFiltering: true,
+		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
 			$.ajax("/api/v1/filter", {
@@ -146,6 +153,10 @@ function browser(opts) {
 		maxHeight: 400,
 		buttonWidth: "100%",
 		enableFiltering: true,
+		filterBehavior: "both",
+		enableRegexFiltering: true,
+		enableFullValueFiltering: true,
+		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
 			$.ajax("/api/v1/filter", {

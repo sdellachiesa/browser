@@ -426,6 +426,7 @@
             filterPlaceholder: 'Search',
             // possible options: 'text', 'value', 'both'
             filterBehavior: 'text',
+            enableRegexFiltering: false,
             includeFilterClearBtn: true,
             preventInputChangeEvent: false,
             nonSelectedText: 'None selected',
@@ -1142,6 +1143,16 @@
                                         }
                                         else if (filterCandidate.indexOf(this.query) > -1) {
                                             showElement = true;
+                                        }
+                                        
+                                        //regex support
+                                        if(this.options.enableRegexFiltering){
+                                            try {
+                                                var reg = new RegExp(this.query);
+                                                if(reg.test(filterCandidate.trim())){
+                                                    showElement = true;
+                                                }
+                                            } catch(e) {}
                                         }
 
                                         // Toggle current element (group or group item) according to showElement boolean.

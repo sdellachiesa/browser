@@ -27,15 +27,15 @@
 		$(document).ready(function() {
 			browser({
 				'stationEl':		'#stations',
-				'fieldEl': 			'#fields',
-				'landuseEl': 		'#landuse',
-				'altitudeEl': 		'#altitude',
-				'dateEl': 			'#datepicker',
-				'sDateEl': 			'#startDate',
-				'eDateEl': 			'#endDate',
-				'submitEl': 		'#submit',
+				'fieldEl':			'#fields',
+				'landuseEl':		'#landuse',
+				'altitudeEl':		'#altitude',
+				'dateEl':			'#datepicker',
+				'sDateEl':			'#startDate',
+				'eDateEl':			'#endDate',
+				'submitEl':			'#submit',
 				'codeEl':			'#codeBtn',
-				'mapEl': 			'map',
+				'mapEl':			'map',
 				'mapData':			JSON.parse('{{.Map}}'),
 			});
 		});
@@ -143,35 +143,35 @@
 								<div class="tooltip-wrapper nostrike disabled" data-title="Please select at least one measurement and station.">
 									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button> &nbsp;
 
- 									 {{if eq .Role "FullAccess"}}
-                                					<script>
-                                   						$(document).ready(function() {
-                                        						function DownloadCodeTemplate(language) {
-                                            							var action = $('#filters').attr('action');
-                                           							$('#language').val(language)
-                                            							$('#filters').attr('action', '/api/v1/template');
-                                            							$('#submit').click();
-                                            							$('#filters').attr('action', action);
-                                        						}
-                                        						$("#downloadPY").click(function() {
-                                            							DownloadCodeTemplate("python");
-                                        						});
-                                        						$("#downloadR").click(function() {
-                                            							DownloadCodeTemplate("r");
-                                        						});
-                                    						});
-                                					</script>
-                                    					<input type="hidden" name="language" value="" id="language">
-                                    					<div class="btn-group">
-                                        					<button typemustmatchpe="button" disabled id="codeBtn" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            Code Templates <span class="caret"></span>
-                                        					</button>
-                                        					<ul class="dropdown-menu">
-                                            						<li><a href="#" id="downloadPY">Python</a></li>
-                                            						<li><a href="#" id="downloadR">R</a></li>
-                                        					</ul>
-                                    					</div>
-                               						 {{end}}
+									{{if eq .Role "FullAccess"}}
+														<script>
+															$(document).ready(function() {
+																function DownloadCodeTemplate(language) {
+																	var action = $('#filters').attr('action');
+																	$('#language').val(language)
+																	$('#filters').attr('action', '/api/v1/template');
+																	$('#submit').click();
+																	$('#filters').attr('action', action);
+																}
+																$("#downloadPY").click(function() {
+																	DownloadCodeTemplate("python");
+																});
+																$("#downloadR").click(function() {
+																	DownloadCodeTemplate("r");
+																});
+															});
+														</script>
+														<input type="hidden" name="language" value="" id="language">
+														<div class="btn-group">
+															<button typemustmatchpe="button" disabled id="codeBtn" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																Code Templates <span class="caret"></span>
+															</button>
+															<ul class="dropdown-menu">
+																<li><a href="#" id="downloadPY">Python</a></li>
+																<li><a href="#" id="downloadR">R</a></li>
+															</ul>
+														</div>
+									 {{end}}
 								</div>
 								<br>
 								<p>
@@ -181,7 +181,7 @@
 						</div>
 					</div>
 				</form>
-                
+
 				<div class="bottom"><a href="http://www.eurac.edu" target="_blank"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a></div>
 			</div>
 			<div class="col-md-7" id="map"></div>
