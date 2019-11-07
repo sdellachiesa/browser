@@ -93,9 +93,13 @@
 									<label for="fields">Select measurement:</label>
 									<select multiple class="form-control" id="fields" name="fields">
 										{{- range .Fields}}
-										<option value="{{.}}">{{ Measurement . }}</option>
+											{{if eq $.Role "FullAccess"}}
+												<option value="{{.}}">{{ . }}</option>  
+											{{else}}
+												<option value="{{ . }}">{{ Measurement . }}</option>   
+											{{end}}
 										{{- end -}}
-								 	</select>
+									</select>
 								</div>
 							</div>
 							<div class="col-md-4">
