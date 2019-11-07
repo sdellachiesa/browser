@@ -29,12 +29,23 @@ func MapMeasurements(key string) string {
 		return "Relative Humidity"
 	case "air_t_avg":
 		return "Air Temperature"
-	case "wind_dir":
-		return "Wind Direction"
 	case "wind_speed_avg":
+		return "Wind Speed"
+	case "wind_speed":
 		return "Wind Speed"
 	case "wind_speed_max":
 		return "Wind Gust"
+	case "wind_dir":
+		return "Wind Direction"
+	case "nr_up_sw_avg":
+		return "Global Radiation"
+	case "sr_avg":
+		return "Global Radiation"
+	case "precip_rt_nrt_tot":
+		return "Precipitation"
+	case "snow_height":
+		return "Snow Height"
+
 	default:
 		return key
 	}
