@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -105,7 +106,7 @@ func (a *Access) inputFilter(input, allowed []string) []string {
 
 	m := make(map[string]struct{}, len(allowed))
 	for _, v := range allowed {
-		m[v] = struct{}{}
+		m[strings.ToLower(v)] = struct{}{}
 	}
 
 	var c []string
