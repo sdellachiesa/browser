@@ -108,7 +108,7 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 
 	var (
 		table  = make(map[key][]string)
-		keys = []key{}
+		keys   = []key{}
 		header = []string{}
 	)
 	for _, result := range resp.Results {
@@ -210,7 +210,7 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 
 // Stations retrieves all stations which make part of the LTER project from SnipeIT and
 // returns them. It will filter for the given ID's if provided.
-func (d Datastore) Stations(ids ...string) ([]*Station, error) {
+func (d Datastore) Stations(ids ...string) (Stations, error) {
 	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
 	if err != nil {
 		return nil, err
@@ -230,7 +230,7 @@ func (d Datastore) Stations(ids ...string) ([]*Station, error) {
 		return nil, err
 	}
 
-	stations := []*Station{}
+	var stations Stations
 	for _, s := range response.Rows {
 		if inArray(s.ID, ids) {
 			stations = append(stations, s)

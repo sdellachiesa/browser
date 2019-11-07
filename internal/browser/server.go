@@ -29,7 +29,7 @@ type Decoder interface {
 type Backend interface {
 	Filter(ql.Querier) (*Filter, error)
 	Series(ql.Querier) ([][]string, error)
-	Stations(ids ...string) ([]*Station, error)
+	Stations(ids ...string) (Stations, error)
 }
 
 // Server represents an HTTP server for serving the LTER Browser
@@ -166,23 +166,15 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapJSON, err := json.Marshal(stations)
-	if err != nil {
-		err = fmt.Errorf("handleIndex: error in marshaling json: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
 	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
 		role = auth.Public
 	}
 
 	err = s.html.index.Execute(w, struct {
-		Stations  []*Station
+		Station   Stations
 		Fields    []string
 		Landuse   []string
-		Map       string
 		StartDate string // TODO: Should also be set by the ACL/RBAC
 		EndDate   string // TODO: Should also be set by the ACL/RBAC
 		Role      auth.Role
@@ -190,7 +182,6 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		stations,
 		data.Fields,
 		data.Landuse,
-		string(mapJSON),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
 		role,

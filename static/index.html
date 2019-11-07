@@ -36,7 +36,7 @@
 				'submitEl':			'#submit',
 				'codeEl':			'#codeBtn',
 				'mapEl':			'map',
-				'mapData':			JSON.parse('{{.Map}}'),
+				'mapData':			JSON.parse('{{.Station}}'),
 			});
 		});
 		</script>
@@ -102,7 +102,7 @@
 								<div class="form-group">
 									<label for="stations">Select station:</label>
 									<select multiple class="form-control" id="stations" name="stations">
-										{{- range .Stations}}
+										{{- range .Station}}
 										<option value="{{ .ID }}">{{ .Name }}</option>
 				 						{{- end -}}
 									</select>

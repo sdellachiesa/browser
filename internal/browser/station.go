@@ -39,3 +39,16 @@ func (s *Station) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
+
+// Stations is a collection of LTER stations.
+type Stations []*Station
+
+// String converts stations to a JSON string.
+func (s Stations) String() string {
+	j, err := json.Marshal(s)
+	if err != nil {
+		return "{}"
+	}
+
+	return string(j)
+}
