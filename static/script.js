@@ -236,11 +236,7 @@ function browser(opts) {
 		var item = opts.mapData[k];
 
 		var marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
-		marker.bindPopup(`<p>
-		<strong>Name:</strong> ${item.Name}<br>
-		<strong>Altitude:</strong> ${item.Altitude} m
-		</p>
-		<p><img src="${item.Image}" width="400"></p>`, {
+		marker.bindPopup('<p><strong>Name:</strong> '+item.Name+'<br><strong>Altitude:</strong> '+item.Altitude+' m</p><p><img src="'+item.Image+'" width="400"></p>', {
 			autoPan: true,
 			keepInView: true,
 			maxWidth: 600,
