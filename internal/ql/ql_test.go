@@ -66,3 +66,22 @@ func TestSelectBuilder(t *testing.T) {
 		}
 	}
 }
+
+func TestShowMeasurementBuilder(t *testing.T) {
+	testCases := []struct {
+		in   Querier
+		want string
+	}{
+		{ShowMeasurement(), "SHOW MEASUREMENTS"},
+		{ShowMeasurement().With(EQ, "ab"), "SHOW MEASUREMENTS WITH MEASUREMENT = /ab/"},
+		{ShowMeasurement().With("", ""), "SHOW MEASUREMENTS"},
+		{ShowMeasurement().Where(), "SHOW MEASUREMENTS"},
+		{ShowMeasurement().Where(Eq(And(), "a", "b")), "SHOW MEASUREMENTS WHERE a='b'"},
+		{ShowMeasurement().With(EQ, "ab").Where(Eq(And(), "a", "b")), "SHOW MEASUREMENTS WITH MEASUREMENT = /ab/ WHERE a='b'"},
+	}
+	for _, tc := range testCases {
+		if got, _ := tc.in.Query(); got != tc.want {
+			t.Errorf("got %q, want %q", got, tc.want)
+		}
+	}
+}

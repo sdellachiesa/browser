@@ -97,6 +97,15 @@ func (b *Builder) merge(q Querier) *Builder {
 	return b
 }
 
+type Operator string
+
+const (
+	EQ      Operator = "="
+	NEQ              = "!="
+	MATCH            = "=~"
+	NOMATCH          = "!~"
+)
+
 // ShowTagValuesBuilder is a builder for a 'SHOW TAG VALUES' query.
 type ShowTagValuesBuilder struct {
 	b     Builder
@@ -156,6 +165,53 @@ func (st *ShowTagValuesBuilder) Query() (string, []interface{}) {
 	}
 
 	return st.b.String(), nil
+}
+
+// ShowMeasurementBuilder is a builder for a 'SHOW MEASUREMENTS' query.
+type ShowMeasurementBuilder struct {
+	b        Builder
+	operator Operator
+	regex    string
+	where    *WhereBuilder
+}
+
+// ShowMeasurement returns the base for building a 'SHOW MEASUREMENT' query.
+func ShowMeasurement() *ShowMeasurementBuilder {
+	return &ShowMeasurementBuilder{}
+}
+
+func (sm *ShowMeasurementBuilder) With(o Operator, regex string) *ShowMeasurementBuilder {
+	sm.operator = o
+	sm.regex = regex
+
+	return sm
+}
+
+func (sm *ShowMeasurementBuilder) Where(q ...Querier) *ShowMeasurementBuilder {
+	if len(q) > 0 {
+		sm.where = Where(q...)
+	}
+	return sm
+}
+
+func (sm *ShowMeasurementBuilder) Query() (string, []interface{}) {
+	sm.b.WriteString("SHOW MEASUREMENTS")
+
+	if sm.operator != "" && sm.regex != "" {
+		sm.b.Append(" WITH MEASUREMENT ")
+		sm.b.Append(string(sm.operator))
+		sm.b.Append(" /" + sm.regex + "/")
+	}
+
+	if sm.where != nil {
+		w, _ := sm.where.Query()
+		if len(w) > 0 {
+			sm.b.Append(" WHERE ")
+			sm.b.Append(w)
+		}
+	}
+
+	return sm.b.String(), nil
 }
 
 // SelectBuilder is a builder for a 'SELECT' query.
