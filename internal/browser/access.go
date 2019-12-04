@@ -45,7 +45,7 @@ type Access struct {
 // Rule represents a single rule which applies to a specific role.
 type Rule struct {
 	RoleName auth.Role
-	Policy   *Filter
+	Policy   *Message
 }
 
 // ParseAccessFile parses the content of the given file and returns the parsed Access.
@@ -62,13 +62,13 @@ func ParseAccessFile(file string) *Access {
 }
 
 // DecodeAndValidate implements the Decoder interface.
-func (a *Access) DecodeAndValidate(r *http.Request) (*Filter, error) {
+func (a *Access) DecodeAndValidate(r *http.Request) (*Message, error) {
 	rule, err := a.Rule(r.Context())
 	if err != nil {
 		return nil, err
 	}
 
-	f := &Filter{}
+	f := &Message{}
 	switch r.Header.Get("content-type") {
 	case "application/x-www-form-urlencoded; charset=UTF-8":
 		fallthrough
@@ -132,49 +132,49 @@ func (a *Access) inputFilter(input, allowed []string) []string {
 }
 
 // deocde data from a form post.
-func (a *Access) decodeForm(r *http.Request) (*Filter, error) {
+func (a *Access) decodeForm(r *http.Request) (*Message, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
 	}
 
 	var err error
-	f := &Filter{}
+	m := &Message{}
 
-	f.start, err = time.Parse("2006-01-02", r.FormValue("startDate"))
+	m.start, err = time.Parse("2006-01-02", r.FormValue("startDate"))
 	if err != nil {
 		return nil, fmt.Errorf("could not parse start date %v", err)
 	}
 	// In order to start the day at 00:00:00
-	f.start = f.start.Add(-1 * time.Hour)
+	m.start = m.start.Add(-1 * time.Hour)
 
-	f.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
+	m.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
 	if err != nil {
 		return nil, fmt.Errorf("error: could not parse end date %v", err)
 	}
 
-	if f.end.After(time.Now()) {
+	if m.end.After(time.Now()) {
 		return nil, errors.New("error: end date is in the future")
 	}
 
 	// Limit download of data to one year
-	limit := time.Date(f.end.Year()-1, f.end.Month(), f.end.Day(), 0, 0, 0, 0, time.UTC)
-	if f.start.Before(limit) {
+	limit := time.Date(m.end.Year()-1, m.end.Month(), m.end.Day(), 0, 0, 0, 0, time.UTC)
+	if m.start.Before(limit) {
 		return nil, errors.New("error: time range is greater then a year")
 	}
 
-	f.Fields = r.Form["fields"]
-	if f.Fields == nil {
+	m.Fields = r.Form["fields"]
+	if m.Fields == nil {
 		return nil, errors.New("error: at least one field must be given")
 	}
 
-	f.Stations = r.Form["stations"]
-	if f.Stations == nil {
+	m.Stations = r.Form["stations"]
+	if m.Stations == nil {
 		return nil, errors.New("error: at least one station must be given")
 	}
 
-	f.Landuse = r.Form["landuse"]
+	m.Landuse = r.Form["landuse"]
 
-	return f, nil
+	return m, nil
 }
 
 // Rule returns a rule from the given context. If no rule is found it will try to find and return the
@@ -189,7 +189,7 @@ func (a *Access) Rule(ctx context.Context) (*Rule, error) {
 	if err != nil {
 		return &Rule{
 			RoleName: auth.Public,
-			Policy: &Filter{
+			Policy: &Message{
 				Fields: []string{
 					"air_t_avg",
 					"air_rh_avg",

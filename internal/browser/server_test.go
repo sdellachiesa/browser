@@ -15,7 +15,7 @@ import (
 // a real backend.
 type testBackend struct{}
 
-func (tb testBackend) Filter(q ql.Querier) (*Filter, error) {
+func (tb testBackend) Filter(q ql.Querier) (*Message, error) {
 	return nil, errors.New("not yet implemented")
 }
 
@@ -29,7 +29,7 @@ func (tb testBackend) Stations(ids ...string) (Stations, error) {
 
 type testDecoder struct{}
 
-func (td testDecoder) DecodeAndValidate(r *http.Request) (*Filter, error) {
+func (td testDecoder) DecodeAndValidate(r *http.Request) (*Message, error) {
 	return nil, errors.New("not yet implemented")
 }
 

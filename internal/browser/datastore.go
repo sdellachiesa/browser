@@ -31,7 +31,7 @@ func NewDatastore(sc *snipeit.Client, ic client.Client, database string) *Datast
 	}
 }
 
-func (d Datastore) Filter(q ql.Querier) (*Filter, error) {
+func (d Datastore) Filter(q ql.Querier) (*Message, error) {
 	query, _ := q.Query()
 
 	log.Println(query)
@@ -44,23 +44,23 @@ func (d Datastore) Filter(q ql.Querier) (*Filter, error) {
 		return nil, fmt.Errorf("%v", resp.Error())
 	}
 
-	f := &Filter{}
+	m := &Message{}
 	for _, result := range resp.Results {
 		for _, s := range result.Series {
-			f.Fields = append(f.Fields, s.Name)
+			m.Fields = append(m.Fields, s.Name)
 
 			for _, v := range s.Values {
 				key, value := v[0].(string), v[1].(string)
 				switch key {
 				case "snipeit_location_ref":
-					f.Stations = appendIfMissing(f.Stations, value)
+					m.Stations = appendIfMissing(m.Stations, value)
 				case "landuse":
-					f.Landuse = appendIfMissing(f.Landuse, value)
+					m.Landuse = appendIfMissing(m.Landuse, value)
 				}
 			}
 		}
 	}
-	return f, nil
+	return m, nil
 }
 
 func appendIfMissing(slice []string, s string) []string {

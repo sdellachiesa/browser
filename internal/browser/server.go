@@ -22,12 +22,12 @@ import (
 type Decoder interface {
 	// DecodeAndValidate decodes data from the given HTTP request and
 	// validates it.
-	DecodeAndValidate(r *http.Request) (*Filter, error)
+	DecodeAndValidate(r *http.Request) (*Message, error)
 }
 
 // The Backend interface for retrieving data.
 type Backend interface {
-	Filter(ql.Querier) (*Filter, error)
+	Filter(ql.Querier) (*Message, error)
 	Series(ql.Querier) ([][]string, error)
 	Stations(ids ...string) (Stations, error)
 }
@@ -145,14 +145,14 @@ func (s *Server) parseTemplate() error {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	f, err := s.decoder.DecodeAndValidate(r)
+	m, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
 	}
 
-	data, err := s.db.Filter(f.filterQuery())
+	data, err := s.db.Filter(m.filterQuery())
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in getting data from backend: %v", err)
 		reportError(w, r, err)
@@ -199,14 +199,14 @@ func (s *Server) handleFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := s.decoder.DecodeAndValidate(r)
+	m, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
 		err = fmt.Errorf("handleFilter: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
 	}
 
-	data, err := s.db.Filter(f.filterQuery())
+	data, err := s.db.Filter(m.filterQuery())
 	if err != nil {
 		err = fmt.Errorf("handleFilter: %v", err)
 		reportError(w, r, err)
@@ -230,14 +230,14 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := s.decoder.DecodeAndValidate(r)
+	m, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
 		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
 	}
 
-	b, err := s.db.Series(f.seriesQuery())
+	b, err := s.db.Series(m.seriesQuery())
 	if err != nil {
 		err = fmt.Errorf("handleSeries: %v", err)
 		reportError(w, r, err)
@@ -258,7 +258,7 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := s.decoder.DecodeAndValidate(r)
+	m, err := s.decoder.DecodeAndValidate(r)
 	if err != nil {
 		err = fmt.Errorf("handleTemplate: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
@@ -286,10 +286,10 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-	q, _ := ql.Select(f.Fields...).From(f.Fields...).Where(
-		ql.Eq(ql.Or(), "snipeit_location_ref", f.Stations...),
+	q, _ := ql.Select(m.Fields...).From(m.Fields...).Where(
+		ql.Eq(ql.Or(), "snipeit_location_ref", m.Stations...),
 		ql.And(),
-		ql.TimeRange(f.start, f.end),
+		ql.TimeRange(m.start, m.end),
 	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
 
 	err = tmpl.Execute(w, struct {
