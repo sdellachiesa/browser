@@ -236,6 +236,10 @@ func (d Datastore) Stations(ids ...string) (Stations, error) {
 			stations = append(stations, s)
 		}
 	}
+	// Sort stations by name.
+	sort.Slice(stations, func(i, j int) bool {
+		return stations[i].Name < stations[j].Name
+	})
 
 	return stations, nil
 }
