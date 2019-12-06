@@ -31,7 +31,7 @@ func (m *Message) filterQuery() ql.Querier {
 			where = ql.Eq(ql.Or(), "landuse", m.Landuse...)
 		}
 
-		b.Where(where, ql.And(), ql.TimeRange(time.Now().Add(-7*24*time.Hour), time.Now()))
+		b.Where(where, ql.And(), ql.TimeRange(time.Now().Add(-100*24*time.Hour), time.Now()))
 
 		return b.Query()
 	})
