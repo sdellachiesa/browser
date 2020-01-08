@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -78,14 +78,20 @@ func (a *Access) DecodeAndValidate(r *http.Request) (*Message, error) {
 			return nil, err
 		}
 	default: // JSON
-		err := json.NewDecoder(r.Body).Decode(&f)
-		if err == io.EOF {
-			err = nil
-		}
+		defer r.Body.Close()
+		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return nil, err
 		}
-		defer r.Body.Close()
+
+		if len(b) == 0 {
+			b = []byte("{}")
+		}
+
+		err = json.Unmarshal(b, &f)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	f.Fields = a.inputFilter(f.Fields, rule.Policy.Fields)
@@ -233,14 +239,13 @@ func (a *Access) loadRules(file string) error {
 		return nil // no changes to rules file
 	}
 
-	f, err := os.Open(file)
+	f, err := ioutil.ReadFile(file)
 	if err != nil {
 		return fmt.Errorf("access: error in opening %q: %v", file, err)
 	}
-	defer f.Close()
 
 	var r []*Rule
-	if err := json.NewDecoder(f).Decode(&r); err != nil {
+	if err := json.Unmarshal(f, &r); err != nil {
 		return fmt.Errorf("access: error in JSON decoding rules file %q: %v", file, err)
 	}
 
