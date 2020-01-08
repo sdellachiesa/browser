@@ -172,18 +172,20 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.html.index.Execute(w, struct {
-		Station   Stations
-		Fields    []string
-		Landuse   []string
-		StartDate string // TODO: Should also be set by the ACL/RBAC
-		EndDate   string // TODO: Should also be set by the ACL/RBAC
-		Role      auth.Role
+		Station         Stations
+		Fields          []string
+		Landuse         []string
+		StartDate       string // TODO: Should also be set by the ACL/RBAC
+		EndDate         string // TODO: Should also be set by the ACL/RBAC
+		IsAuthenticated bool
+		Role            auth.Role
 	}{
 		stations,
 		data.Fields,
 		data.Landuse,
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
+		auth.IsAuthenticated(r),
 		role,
 	})
 	if err != nil {

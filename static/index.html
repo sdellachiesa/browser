@@ -13,7 +13,7 @@
 		<link rel="stylesheet" href="/static/leaflet.css">
 		<link rel="stylesheet" href="/static/main.css">
 		<script src="/static/jquery-1.12.4.min.js"></script>
-		
+
 		<script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101208400);</script>
 		<script async src="//static.getclicky.com/js"></script>
 
@@ -50,16 +50,16 @@
 										<li><a href="#">Deutsch</a></li>
 									</ul>
 								</li>-->
-								{{if eq .Role "Public"}}
-								<li><a href="/auth/azure">Login</a></li>
-								{{else}}
+								{{if .IsAuthenticated}}
 								<li><a href="/auth/azure/logout">Logout</a></li>
+								{{else}}
+								<li><a href="/auth/azure">Login</a></li>
 								{{end}}
 							</ul>
 						</div>
 					</div>
 				</nav>
-          
+
 				<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>. Download data by <mark>selecting at least one station and one measurement</mark>.
 				</p>
 				<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
@@ -71,9 +71,9 @@
 									<select multiple class="form-control" id="fields" name="fields">
 										{{- range .Fields}}
 											{{if eq $.Role "FullAccess"}}
-												<option value="{{.}}">{{ . }}</option>  
+												<option value="{{.}}">{{ . }}</option>
 											{{else}}
-												<option value="{{ . }}">{{ Measurement . }}</option>   
+												<option value="{{ . }}">{{ Measurement . }}</option>
 											{{end}}
 										{{- end -}}
 									</select>
@@ -183,7 +183,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<script src="/static/bootstrap.min.js"></script>
 	<script src="/static/bootstrap-datepicker.min.js"></script>
 	<script src="/static/bootstrap-multiselect.js"></script>
@@ -207,6 +207,6 @@
 			});
 		});
 	</script>
-	
+
 	</body>
 </html>

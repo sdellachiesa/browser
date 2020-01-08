@@ -79,6 +79,14 @@ func NewJWT(key []byte, role Role, w http.ResponseWriter) (string, error) {
 	return tokenString, nil
 }
 
+func IsAuthenticated(r *http.Request) bool {
+	_, err := r.Cookie(jwtCookieName)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 // RoleFromJWT reads an JWT token from a cookie, checks if it is valid
 // and returns the claims group value.
 func RoleFromJWT(key []byte, r *http.Request) (Role, error) {
