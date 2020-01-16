@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestInputFilter(t *testing.T) {
+func TestFilter(t *testing.T) {
 	testCases := []struct {
 		index   int
 		in      []string
@@ -31,7 +31,7 @@ func TestInputFilter(t *testing.T) {
 	a := &Access{}
 
 	for _, tc := range testCases {
-		got := a.inputFilter(tc.in, tc.allowed)
+		got := a.filter(tc.in, tc.allowed)
 		if !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("%d: got %q, want %q", tc.index, got, tc.want)
 		}

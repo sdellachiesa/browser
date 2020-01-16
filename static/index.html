@@ -13,10 +13,6 @@
 		<link rel="stylesheet" href="/static/leaflet.css">
 		<link rel="stylesheet" href="/static/main.css">
 		<script src="/static/jquery-1.12.4.min.js"></script>
-
-		<script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101208400);</script>
-		<script async src="//static.getclicky.com/js"></script>
-
 	</head>
 	<body>
 
@@ -50,11 +46,11 @@
 										<li><a href="#">Deutsch</a></li>
 									</ul>
 								</li>-->
-								{{if .IsAuthenticated}}
+								{{- if .IsAuthenticated -}}
 								<li><a href="/auth/azure/logout">Logout</a></li>
-								{{else}}
+								{{- else -}}
 								<li><a href="/auth/azure">Login</a></li>
-								{{end}}
+								{{- end -}}
 							</ul>
 						</div>
 					</div>
@@ -67,14 +63,14 @@
 						<div class="row">
 							<div class="col-md-4">
 								<div class="form-group">
-									<label for="fields">Select measurement:</label>
-									<select multiple class="form-control" id="fields" name="fields">
-										{{- range .Fields}}
-											{{if eq $.Role "FullAccess"}}
+									<label for="measurements">Select measurement:</label>
+									<select multiple class="form-control" id="measurements" name="measurements">
+										{{- range .Data.Measurements -}}
+											{{if eq $.Role "FullAccess" -}}
 												<option value="{{.}}">{{ . }}</option>
-											{{else}}
+											{{else -}}
 												<option value="{{ . }}">{{ Measurement . }}</option>
-											{{end}}
+											{{end -}}
 										{{- end -}}
 									</select>
 								</div>
@@ -83,7 +79,7 @@
 								<div class="form-group">
 									<label for="stations">Select station:</label>
 									<select multiple class="form-control" id="stations" name="stations">
-										{{- range .Station}}
+										{{- range .Data}}
 										<option value="{{ .ID }}">{{ .Name }}</option>
 				 						{{- end -}}
 									</select>
@@ -93,7 +89,7 @@
 								<div class="form-group">
 									<label for="landuse">Select land use:</label>
 										<select multiple class="form-control" id="landuse" name="landuse">
-											{{- range .Landuse }}
+											{{- range .Data.Landuse }}
 											<option value="{{.}}">{{ Landuse . }}</option>
 											{{- end -}}
 										</select>
@@ -189,12 +185,12 @@
 	<script src="/static/bootstrap-multiselect.js"></script>
 	<script src="/static/ion.rangeSlider.min.js"></script>
 	<script src="/static/leaflet.js"></script>
-	<script src="/static/script.js"></script>
+	<script src="/static/browser.js"></script>
 	<script>
 		$(document).ready(function() {
-			browser({
+			new browser({
 				'stationEl':		'#stations',
-				'fieldEl':			'#fields',
+				'measurementEl':	'#measurements',
 				'landuseEl':		'#landuse',
 				'altitudeEl':		'#altitude',
 				'dateEl':			'#datepicker',
@@ -203,7 +199,7 @@
 				'submitEl':			'#submit',
 				'codeEl':			'#codeBtn',
 				'mapEl':			'map',
-				'mapData':			JSON.parse('{{.Station}}'),
+				'data':			JSON.parse('{{.Data}}'),
 			});
 		});
 	</script>

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -18,39 +17,52 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 )
 
-// ErrNoRuleFound means that no rule was found for the given name.
-var ErrNoRuleFound = errors.New("access: no  rule found")
+// TODO: Currently start/end times are not handled by the ACL system.
 
-// Access represents a parsed JSON Access file. The file should have the following
-// format:
-// [
-//      {
-//		"roleName": "FullAccess",
-//		"policy": {
-//			"fields": ["a"],
-//			"stations": ["c"],
-//			"landuse": []
-//	},
-//	{
-//		...
-//	}
-// ]
+const defaultRule = "Public"
+
+// ErrNoRuleFound means that no rule was found for the given name.
+var ErrNoRuleFound = errors.New("access: no rule found")
+
+// Access represents a parsed JSON Access file, which is composed of
+// several rules. An access rule has a unique name and an access list
+// for controling the access to sepcific fields of the data. These
+// fields can be measurements, stations and landuse. If a field is
+// empty or missing full access to to it will be granted.
 //
+// An example of an access file is presented below:
+// 	[
+//		{
+//			"name": "FullAccess",
+//			"acl": {
+//				"measurements": ["a"],
+//				"stations": ["c"],
+//				"landuse": [],
+//		}
+//	]
 type Access struct {
 	mu    sync.RWMutex // guards the fields below
 	last  time.Time
 	rules []*Rule
 }
 
-// Rule represents a single rule which applies to a specific role.
+// Rule represents a single access rule.
 type Rule struct {
-	RoleName auth.Role
-	Policy   *Message
+	Name string
+	ACL  *AccessControlList
 }
 
-// ParseAccessFile parses the content of the given file and returns the parsed Access.
-// On an interval of 10*time.Minutes it will check for changes made to the given
-// file and update the parsed Access if necessary.
+// AccessControlList represents an access list.
+type AccessControlList struct {
+	Measurements []string
+	Stations     []string
+	Landuse      []string
+}
+
+// ParseAccessFile parses the content of the given file and returns
+// the parsed Access.  On an interval of 10*time.Minutes it will check
+// for changes made to the given file and update the parsed Access
+// if necessary.
 func ParseAccessFile(file string) *Access {
 	a := &Access{}
 	if err := a.loadRules(file); err != nil {
@@ -61,51 +73,11 @@ func ParseAccessFile(file string) *Access {
 	return a
 }
 
-// DecodeAndValidate implements the Decoder interface.
-func (a *Access) DecodeAndValidate(r *http.Request) (*Message, error) {
-	rule, err := a.Rule(r.Context())
-	if err != nil {
-		return nil, err
-	}
-
-	f := &Message{}
-	switch r.Header.Get("content-type") {
-	case "application/x-www-form-urlencoded; charset=UTF-8":
-		fallthrough
-	case "application/x-www-form-urlencoded": // FORM Submit
-		f, err = a.decodeForm(r)
-		if err != nil {
-			return nil, err
-		}
-	default: // JSON
-		defer r.Body.Close()
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(b) == 0 {
-			b = []byte("{}")
-		}
-
-		err = json.Unmarshal(b, &f)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	f.Fields = a.inputFilter(f.Fields, rule.Policy.Fields)
-	f.Stations = a.inputFilter(f.Stations, rule.Policy.Stations)
-	f.Landuse = a.inputFilter(f.Landuse, rule.Policy.Landuse)
-
-	return f, nil
-}
-
-// inputFilter will check the given input values if they are valid
-// identifiers and permitted by the given allowed values. Not permitted
-// values will be filtered out and a new slice containing the valid values
-// will be returned.
-func (a *Access) inputFilter(input, allowed []string) []string {
+// filter will check the given input values if they are valid
+// identifiers and permitted by the given ACL values. Not permitted
+// values will be filtered out and a new slice containing the valid
+// values will be returned.
+func (a *Access) filter(input, allowed []string) []string {
 	if len(input) == 0 {
 		return allowed
 	}
@@ -137,95 +109,64 @@ func (a *Access) inputFilter(input, allowed []string) []string {
 	return c
 }
 
-// deocde data from a form post.
-func (a *Access) decodeForm(r *http.Request) (*Message, error) {
-	if err := r.ParseForm(); err != nil {
-		return nil, err
-	}
-
-	var err error
-	m := &Message{}
-
-	m.start, err = time.Parse("2006-01-02", r.FormValue("startDate"))
-	if err != nil {
-		return nil, fmt.Errorf("could not parse start date %v", err)
-	}
-	// In order to start the day at 00:00:00
-	m.start = m.start.Add(-1 * time.Hour)
-
-	m.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
-	if err != nil {
-		return nil, fmt.Errorf("error: could not parse end date %v", err)
-	}
-
-	if m.end.After(time.Now()) {
-		return nil, errors.New("error: end date is in the future")
-	}
-
-	// Limit download of data to one year
-	limit := time.Date(m.end.Year()-1, m.end.Month(), m.end.Day(), 0, 0, 0, 0, time.UTC)
-	if m.start.Before(limit) {
-		return nil, errors.New("error: time range is greater then a year")
-	}
-
-	m.Fields = r.Form["fields"]
-	if m.Fields == nil {
-		return nil, errors.New("error: at least one field must be given")
-	}
-
-	m.Stations = r.Form["stations"]
-	if m.Stations == nil {
-		return nil, errors.New("error: at least one station must be given")
-	}
-
-	m.Landuse = r.Form["landuse"]
-
-	return m, nil
-}
-
-// Rule returns a rule from the given context. If no rule is found it will try to find and return the
-// default rule. If that failes it will return a basic hardcoded rule.
-func (a *Access) Rule(ctx context.Context) (*Rule, error) {
+func (a *Access) Filter(ctx context.Context, r *request) error {
 	role, ok := ctx.Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
 		role = auth.Public
 	}
 
-	r, err := a.find(role)
-	if err != nil {
-		return &Rule{
-			RoleName: auth.Public,
-			Policy: &Message{
-				Fields: []string{
-					"air_t_avg",
-					"air_rh_avg",
-					"wind_dir",
-					"wind_speed_avg",
-					"wind_speed_max",
-					"wind_speed",
-					"nr_up_sw_avg",
-					"sr_avg",
-					"precip_rt_nrt_tot",
-					"snow_height"},
-			},
-		}, nil
-	}
+	rule := a.Rule(string(role))
 
-	return r, nil
+	r.measurements = a.filter(r.measurements, rule.ACL.Measurements)
+	r.stations = a.filter(r.stations, rule.ACL.Stations)
+	r.landuse = a.filter(r.landuse, rule.ACL.Landuse)
+
+	return nil
 }
 
-func (a *Access) find(name auth.Role) (*Rule, error) {
+// Rule returns a rule form the given name. If no rule is found or
+// it's ACL is nil a default hardcoded rule will be returned.
+func (a *Access) Rule(name string) *Rule {
 	a.mu.RLock()
 	rules := a.rules
 	a.mu.RUnlock()
 
 	for _, r := range rules {
-		if r.RoleName == name {
-			return r, nil
+		if r.Name == name && r.ACL != nil {
+			return r
 		}
 	}
 
-	return nil, ErrNoRuleFound
+	return &Rule{
+		Name: defaultRule,
+		ACL: &AccessControlList{
+			Measurements: []string{
+				"air_t_avg",
+				"air_rh_avg",
+				"wind_dir",
+				"wind_speed_avg",
+				"wind_speed_max",
+				"wind_speed",
+				"nr_up_sw_avg",
+				"sr_avg",
+				"precip_rt_nrt_tot",
+				"snow_height"},
+		},
+	}
+}
+
+// Names returns a slice of all rule names.
+func (a *Access) Names() []string {
+	a.mu.RLock()
+	rules := a.rules
+	a.mu.RUnlock()
+
+	var n []string
+	for _, r := range rules {
+		n = append(n, r.Name)
+	}
+
+	return n
 }
 
 // loadRules loads rules from the given file.

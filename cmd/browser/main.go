@@ -91,12 +91,17 @@ func main() {
 		RedirectURL:  *oauthRedirect,
 	}
 
-	ds := browser.NewDatastore(sc, ic, *influxDatabase)
 	a := browser.ParseAccessFile(*accessFile)
+
+	// Initialize datastore
+	ds, err := browser.NewDatastore(sc, ic, *influxDatabase, a)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	b, err := browser.NewServer(
 		browser.WithBackend(ds),
-		browser.WithDecoder(a),
+		browser.WithAuthorizer(a),
 		browser.WithInfluxDB(*influxDatabase),
 	)
 	if err != nil {

@@ -2,8 +2,9 @@
 package browser
 
 import (
+	"bytes"
+	"context"
 	"encoding/csv"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -18,18 +19,23 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
 
-// Decoder is an interface for decoding data.
-type Decoder interface {
-	// DecodeAndValidate decodes data from the given HTTP request and
-	// validates it.
-	DecodeAndValidate(r *http.Request) (*Message, error)
+// Backend is an interface for retrieving LTER data.
+type Backend interface {
+	Get(string) Stations
+	Series(ql.Querier) ([][]string, error)
 }
 
-// The Backend interface for retrieving data.
-type Backend interface {
-	Filter(ql.Querier) (*Message, error)
-	Series(ql.Querier) ([][]string, error)
-	Stations(ids ...string) (Stations, error)
+// Authorizer is an interface for handling authorization to the LTER data.
+type Authorizer interface {
+	// Filter filters out not permitted or not authorized values for the given
+	// context.
+	Filter(ctx context.Context, r *request) error
+
+	// Names lists all names of registered authorization rules.
+	Names() []string
+
+	// Rule returns the rule by the given name.
+	Rule(name string) *Rule
 }
 
 // Server represents an HTTP server for serving the LTER Browser
@@ -49,12 +55,12 @@ type Server struct {
 	// Influx database name used inside code templates.
 	database string
 
-	db      Backend
-	decoder Decoder
+	access Authorizer
+	db     Backend
 }
 
 // NewServer initializes and returns a new HTTP server. It takes
-// one or more option funciton and applies them in order to the
+// one or more option function and applies them in order to the
 // server.
 func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
@@ -74,13 +80,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, fmt.Errorf("must provide and option func that specifies a Backend")
 	}
 
-	if s.decoder == nil {
-		return nil, fmt.Errorf("must provide and option func that specifies a Decoder")
+	if s.access == nil {
+		return nil, fmt.Errorf("must provide and option func that specifies a Access Control")
 	}
 
 	s.mux.HandleFunc("/", s.handleIndex)
 	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
-	s.mux.HandleFunc("/api/v1/filter", s.handleFilter)
+
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
 	s.mux.HandleFunc("/api/v1/template", s.grantAccessTo(s.handleTemplate, auth.FullAccess))
 
@@ -98,19 +104,17 @@ func WithBackend(b Backend) Option {
 	}
 }
 
-// WithDecoder returns an options function for setting
-// the server's request decoder.
-func WithDecoder(d Decoder) Option {
-	return func(s *Server) {
-		s.decoder = d
-	}
-}
-
 // WithDatabase returns an options function for setting
 // the server's database used insde the code templates.
 func WithInfluxDB(db string) Option {
 	return func(s *Server) {
 		s.database = db
+	}
+}
+
+func WithAuthorizer(a Authorizer) Option {
+	return func(s *Server) {
+		s.access = a
 	}
 }
 
@@ -145,44 +149,19 @@ func (s *Server) parseTemplate() error {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	m, err := s.decoder.DecodeAndValidate(r)
-	if err != nil {
-		err = fmt.Errorf("handleIndex: error in decoding or validating data: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
-	data, err := s.db.Filter(m.filterQuery())
-	if err != nil {
-		err = fmt.Errorf("handleIndex: error in getting data from backend: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
-	stations, err := s.db.Stations(data.Stations...)
-	if err != nil {
-		err = fmt.Errorf("handleIndex: error in getting metadata from backend: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
 	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
 		role = auth.Public
 	}
 
-	err = s.html.index.Execute(w, struct {
-		Station         Stations
-		Fields          []string
-		Landuse         []string
+	err := s.html.index.Execute(w, struct {
+		Data            Stations
 		StartDate       string // TODO: Should also be set by the ACL/RBAC
 		EndDate         string // TODO: Should also be set by the ACL/RBAC
 		IsAuthenticated bool
 		Role            auth.Role
 	}{
-		stations,
-		data.Fields,
-		data.Landuse,
+		s.db.Get(string(role)),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
 		auth.IsAuthenticated(r),
@@ -195,35 +174,11 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) handleFilter(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
-		return
-	}
-
-	m, err := s.decoder.DecodeAndValidate(r)
-	if err != nil {
-		err = fmt.Errorf("handleFilter: error in decoding or validating data: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
-	data, err := s.db.Filter(m.filterQuery())
-	if err != nil {
-		err = fmt.Errorf("handleFilter: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
-	b, err := json.Marshal(data)
-	if err != nil {
-		err = fmt.Errorf("handleFilter: %v", err)
-		reportError(w, r, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+// request represents an request received from the client.
+type request struct {
+	measurements, stations, landuse []string
+	start                           time.Time
+	end                             time.Time
 }
 
 func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
@@ -232,14 +187,43 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m, err := s.decoder.DecodeAndValidate(r)
-	if err != nil {
+	req := &request{}
+	if err := s.parseForm(r, req); err != nil {
 		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
 	}
 
-	b, err := s.db.Series(m.seriesQuery())
+	q := ql.QueryFunc(func() (string, []interface{}) {
+		var (
+			buf  bytes.Buffer
+			args []interface{}
+		)
+		for _, station := range req.stations {
+			columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
+			columns = append(columns, req.measurements...)
+
+			sb := ql.Select(columns...)
+			sb.From(req.measurements...)
+			sb.Where(
+				ql.Eq(ql.And(), "snipeit_location_ref", station),
+				ql.And(),
+				ql.TimeRange(req.start, req.end),
+			)
+			sb.GroupBy("station,snipeit_location_ref")
+			sb.OrderBy("time").ASC().TZ("Etc/GMT-1")
+
+			q, arg := sb.Query()
+			buf.WriteString(q)
+			buf.WriteString(";")
+
+			args = append(args, arg)
+		}
+
+		return buf.String(), args
+	})
+
+	b, err := s.db.Series(q)
 	if err != nil {
 		err = fmt.Errorf("handleSeries: %v", err)
 		reportError(w, r, err)
@@ -252,6 +236,7 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
 	csv.NewWriter(w).WriteAll(b)
+
 }
 
 func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
@@ -260,9 +245,9 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m, err := s.decoder.DecodeAndValidate(r)
-	if err != nil {
-		err = fmt.Errorf("handleTemplate: error in decoding or validating data: %v", err)
+	req := &request{}
+	if err := s.parseForm(r, req); err != nil {
+		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
 	}
@@ -288,13 +273,13 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-	q, _ := ql.Select(m.Fields...).From(m.Fields...).Where(
-		ql.Eq(ql.Or(), "snipeit_location_ref", m.Stations...),
+	q, _ := ql.Select(req.measurements...).From(req.measurements...).Where(
+		ql.Eq(ql.Or(), "snipeit_location_ref", req.stations...),
 		ql.And(),
-		ql.TimeRange(m.start, m.end),
+		ql.TimeRange(req.start, req.end),
 	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
 
-	err = tmpl.Execute(w, struct {
+	err := tmpl.Execute(w, struct {
 		Query    string
 		Database string
 	}{
@@ -308,6 +293,57 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Set default security headers.
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	w.Header().Set("X-Frame-Options", "deny")
+
+	s.mux.ServeHTTP(w, r)
+}
+
+func (s *Server) parseForm(r *http.Request, req *request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
+	var err error
+	req.start, err = time.Parse("2006-01-02", r.FormValue("startDate"))
+	if err != nil {
+		return fmt.Errorf("could not parse start date %v", err)
+	}
+	// In order to start the day at 00:00:00
+	req.start = req.start.Add(-1 * time.Hour)
+
+	req.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
+	if err != nil {
+		return fmt.Errorf("error: could not parse end date %v", err)
+	}
+
+	if req.end.After(time.Now()) {
+		return errors.New("error: end date is in the future")
+	}
+
+	// Limit download of data to one year
+	limit := time.Date(req.end.Year()-1, req.end.Month(), req.end.Day(), 0, 0, 0, 0, time.UTC)
+	if req.start.Before(limit) {
+		return errors.New("error: time range is greater then a year")
+	}
+
+	req.measurements = r.Form["fields"]
+	if req.measurements == nil {
+		return errors.New("error: at least one field must be given")
+	}
+
+	req.stations = r.Form["stations"]
+	if req.stations == nil {
+		return errors.New("error: at least one station must be given")
+	}
+
+	req.landuse = r.Form["landuse"]
+
+	return s.access.Filter(r.Context(), req)
+}
+
 func (s *Server) grantAccessTo(h http.HandlerFunc, roles ...auth.Role) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isAllowed(r, roles...) {
@@ -317,14 +353,6 @@ func (s *Server) grantAccessTo(h http.HandlerFunc, roles ...auth.Role) http.Hand
 
 		h(w, r)
 	}
-}
-
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Set default security headers.
-	w.Header().Set("X-XSS-Protection", "1; mode=block")
-	w.Header().Set("X-Frame-Options", "deny")
-
-	s.mux.ServeHTTP(w, r)
 }
 
 func isAllowed(r *http.Request, roles ...auth.Role) bool {

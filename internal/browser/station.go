@@ -3,6 +3,7 @@ package browser
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
@@ -12,13 +13,14 @@ import (
 // It is a custom type inorder to map custom SnipeIT location
 // fields to their correct names.
 type Station struct {
-	ID        string
-	Name      string
-	Landuse   string
-	Image     string
-	Altitude  int64
-	Latitude  float64
-	Longitude float64
+	ID           string
+	Name         string
+	Landuse      string
+	Image        string
+	Altitude     int64
+	Latitude     float64
+	Longitude    float64
+	Measurements []string
 }
 
 // UnmarshalJSON is a custom JSON unmarshaler which maps SnipeIT
@@ -51,4 +53,55 @@ func (s Stations) String() string {
 	}
 
 	return string(j)
+}
+
+// Get returns the station by given id. If no station is found it
+// will return nil and false for indicating that no station was
+// found.
+func (s Stations) Get(id string) (*Station, bool) {
+	for _, station := range s {
+		if id == station.ID {
+			return station, true
+		}
+	}
+	return nil, false
+}
+
+// Landuse returns a sorted list of the landuse of all stations,
+// removing duplicates.
+func (s Stations) Landuse() []string {
+	var l []string
+
+	for _, station := range s {
+		l = appendIfMissing(l, station.Landuse)
+	}
+
+	sort.Slice(l, func(i, j int) bool { return l[i] < l[j] })
+
+	return l
+}
+
+// Measurements returns a sorted list of all measurements of all stations,
+// removing duplicates.
+func (s Stations) Measurements() []string {
+	var v []string
+
+	for _, station := range s {
+		for _, f := range station.Measurements {
+			v = appendIfMissing(v, f)
+		}
+	}
+
+	sort.Slice(v, func(i, j int) bool { return v[i] < v[j] })
+
+	return v
+}
+
+func appendIfMissing(slice []string, s string) []string {
+	for _, el := range slice {
+		if el == s {
+			return slice
+		}
+	}
+	return append(slice, s)
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"sync"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
@@ -17,59 +18,95 @@ import (
 // Datastore denotes a backend which is composed of SnipeIT
 // and InfluxDB.
 type Datastore struct {
-	snipeit  *snipeit.Client
+	snipeit *snipeit.Client
+
 	influx   client.Client
 	database string
+
+	access Authorizer
+
+	mu    sync.RWMutex
+	cache map[string]Stations
 }
 
-// NewDatastore returns a new datastore.
-func NewDatastore(sc *snipeit.Client, ic client.Client, database string) *Datastore {
-	return &Datastore{
-		snipeit:  sc,
-		influx:   ic,
+// NewDatastore returns a new datastore and populates its cache.
+func NewDatastore(s *snipeit.Client, i client.Client, database string, acl Authorizer) (*Datastore, error) {
+	d := &Datastore{
+		snipeit:  s,
+		influx:   i,
 		database: database,
+		access:   acl,
+		cache:    make(map[string]Stations),
 	}
-}
 
-func (d Datastore) Filter(q ql.Querier) (*Message, error) {
-	query, _ := q.Query()
-
-	log.Println(query)
-
-	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
-	if err != nil {
+	if err := d.init(); err != nil {
 		return nil, err
 	}
-	if resp.Error() != nil {
-		return nil, fmt.Errorf("%v", resp.Error())
-	}
 
-	m := &Message{}
-	for _, result := range resp.Results {
-		for _, s := range result.Series {
-			m.Fields = append(m.Fields, s.Name)
+	return d, nil
+}
 
-			for _, v := range s.Values {
-				key, value := v[0].(string), v[1].(string)
-				switch key {
-				case "snipeit_location_ref":
-					m.Stations = appendIfMissing(m.Stations, value)
-				case "landuse":
-					m.Landuse = appendIfMissing(m.Landuse, value)
+// init initializes the cache for each ACL rule due to dhe slow "SHOW
+// TAG VALUES" queries on large datasets.
+func (d *Datastore) init() error {
+	for _, n := range d.access.Names() {
+		rule := d.access.Rule(n)
+
+		stations, err := d.stations(rule.ACL.Stations...)
+		if err != nil {
+			return err
+		}
+
+		var where ql.Querier
+		if len(rule.ACL.Stations) > 0 {
+			where = ql.Eq(ql.Or(), "snipeit_location_ref", rule.ACL.Stations...)
+		}
+		if len(rule.ACL.Landuse) > 0 {
+			where = ql.Eq(ql.Or(), "landuse", rule.ACL.Landuse...)
+		}
+
+		q := ql.ShowTagValues().From(rule.ACL.Measurements...).WithKeyIn("snipeit_location_ref").Where(where)
+		query, _ := q.Query()
+
+		resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
+		if err != nil {
+			return err
+		}
+		if resp.Error() != nil {
+			return fmt.Errorf("%v", resp.Error())
+		}
+
+		for _, result := range resp.Results {
+			for _, s := range result.Series {
+				for _, v := range s.Values {
+					id := v[1].(string)
+
+					station, ok := stations.Get(id)
+					if !ok {
+						continue
+					}
+
+					station.Measurements = append(station.Measurements, s.Name)
 				}
 			}
 		}
+
+		d.cache[rule.Name] = stations
 	}
-	return m, nil
+
+	return nil
 }
 
-func appendIfMissing(slice []string, s string) []string {
-	for _, el := range slice {
-		if el == s {
-			return slice
-		}
+func (d *Datastore) Get(rule string) Stations {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	s, ok := d.cache[rule]
+	if !ok {
+		return d.cache[defaultRule]
 	}
-	return append(slice, s)
+
+	return s
 }
 
 // key is used as map key for sorting and grouping the map entries.
@@ -93,7 +130,7 @@ func (k key) Next(d time.Duration) key {
 	return key{k.station, k.Time().Add(d).Unix()}
 }
 
-func (d Datastore) Series(q ql.Querier) ([][]string, error) {
+func (d *Datastore) Series(q ql.Querier) ([][]string, error) {
 	query, _ := q.Query()
 
 	log.Println(query)
@@ -208,9 +245,10 @@ func (d Datastore) Series(q ql.Querier) ([][]string, error) {
 	return rows, nil
 }
 
-// Stations retrieves all stations which make part of the LTER project from SnipeIT and
-// returns them. It will filter for the given ID's if provided.
-func (d Datastore) Stations(ids ...string) (Stations, error) {
+// stations retrieves all stations which make part of the LTER project
+// from SnipeIT and returns them. It will filter for the given ID's
+// if provided.
+func (d *Datastore) stations(ids ...string) (Stations, error) {
 	u, err := d.snipeit.AddOptions("locations", &snipeit.LocationOptions{Search: "LTER"})
 	if err != nil {
 		return nil, err
@@ -232,10 +270,15 @@ func (d Datastore) Stations(ids ...string) (Stations, error) {
 
 	var stations Stations
 	for _, s := range response.Rows {
+		if s.Name == "LTER" {
+			continue
+		}
+
 		if inArray(s.ID, ids) {
 			stations = append(stations, s)
 		}
 	}
+
 	// Sort stations by name.
 	sort.Slice(stations, func(i, j int) bool {
 		return stations[i].Name < stations[j].Name
