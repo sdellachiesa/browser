@@ -36,4 +36,39 @@ result <- influx_query(con,
     query = "{{.Query}}",
     return_xts = FALSE)
 
+# to_drop : a character vector with tags to exclude because either 
+# they make the merge not possible or are not useful
+to_drop = c("series_names","series_tags" ,
+            "statement_id","series_partial",
+            "snipeit_location_ref","unit","aggr")
+
+# select the table
+result  = result[[1]]
+# excludes columns (tags) to drop
+result  = result[!names(result)%in% to_drop]
+
+# possible tags: a list of possible tags in the database - needed to select 
+#the measurements as columns
+possible_tags = c("time","station","landuse","altitude","latitude","longitude",
+"series_names","series_tags" ,"statement_id","series_partial",
+"snipeit_location_ref","unit","aggr")
+
+# list the measurements as those that are not tags ()
+measurements = names(result)[!names(result)%in% possible_tags]
+
+# subset_data: a function that splits the dowloaded table in 1 table per measurement
+# (this is needed for the merge funciton)
+subset_data =  function (measurement,result){
+
+  result <- result[!is.na(result[measurement]),]
+  result <- result[,colSums(is.na(result))<nrow(result)]
+  return(result)
+
+}
+
+# for loop to split the different measurements
+result = lapply(measurements, subset_data ,result)
+# to merge all the measurements tables
+result = do.call(merge, result)
+
 head(result)
