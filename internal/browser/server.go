@@ -329,7 +329,7 @@ func (s *Server) parseForm(r *http.Request, req *request) error {
 		return errors.New("error: time range is greater then a year")
 	}
 
-	req.measurements = r.Form["fields"]
+	req.measurements = r.Form["measurements"]
 	if req.measurements == nil {
 		return errors.New("error: at least one field must be given")
 	}
