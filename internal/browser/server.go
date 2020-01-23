@@ -273,7 +273,10 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-	q, _ := ql.Select(req.measurements...).From(req.measurements...).Where(
+	columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
+	columns = append(columns, req.measurements...)
+
+	q, _ := ql.Select(columns...).From(req.measurements...).Where(
 		ql.Eq(ql.Or(), "snipeit_location_ref", req.stations...),
 		ql.And(),
 		ql.TimeRange(req.start, req.end),
