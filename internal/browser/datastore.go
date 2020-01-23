@@ -288,7 +288,7 @@ func (d *Datastore) stations(ids ...string) (Stations, error) {
 }
 
 func inArray(s string, a []string) bool {
-	if a == nil {
+	if a == nil || len(a) == 0 {
 		return true
 	}
 
