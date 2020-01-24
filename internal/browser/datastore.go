@@ -103,7 +103,7 @@ func (d *Datastore) Get(rule string) Stations {
 
 	s, ok := d.cache[rule]
 	if !ok {
-		return d.cache[defaultRule]
+		return d.cache[defaultRule.Name]
 	}
 
 	return s

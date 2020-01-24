@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +18,22 @@ import (
 
 // TODO: Currently start/end times are not handled by the ACL system.
 
-const defaultRule = "Public"
+var defaultRule = &Rule{
+	Name: "Public",
+	ACL: &AccessControlList{
+		Measurements: []string{
+			"air_t_avg",
+			"air_rh_avg",
+			"wind_dir",
+			"wind_speed_avg",
+			"wind_speed_max",
+			"wind_speed",
+			"nr_up_sw_avg",
+			"sr_avg",
+			"precip_rt_nrt_tot",
+			"snow_height"},
+	},
+}
 
 // ErrNoRuleFound means that no rule was found for the given name.
 var ErrNoRuleFound = errors.New("access: no rule found")
@@ -73,18 +87,18 @@ func ParseAccessFile(file string) *Access {
 	return a
 }
 
-// filter will check the given input values if they are valid
+// enforce will check the given input values if they are valid
 // identifiers and permitted by the given ACL values. Not permitted
 // values will be filtered out and a new slice containing the valid
 // values will be returned.
-func (a *Access) filter(input, allowed []string) []string {
+func (a *Access) enforce(input, allowed []string) []string {
 	if len(input) == 0 {
 		return allowed
 	}
 
 	m := make(map[string]struct{}, len(allowed))
 	for _, v := range allowed {
-		m[strings.ToLower(v)] = struct{}{}
+		m[v] = struct{}{}
 	}
 
 	var c []string
@@ -117,9 +131,9 @@ func (a *Access) Filter(ctx context.Context, r *request) error {
 
 	rule := a.Rule(string(role))
 
-	r.measurements = a.filter(r.measurements, rule.ACL.Measurements)
-	r.stations = a.filter(r.stations, rule.ACL.Stations)
-	r.landuse = a.filter(r.landuse, rule.ACL.Landuse)
+	r.measurements = a.enforce(r.measurements, rule.ACL.Measurements)
+	r.stations = a.enforce(r.stations, rule.ACL.Stations)
+	r.landuse = a.enforce(r.landuse, rule.ACL.Landuse)
 
 	return nil
 }
@@ -127,6 +141,10 @@ func (a *Access) Filter(ctx context.Context, r *request) error {
 // Rule returns a rule form the given name. If no rule is found or
 // it's ACL is nil a default hardcoded rule will be returned.
 func (a *Access) Rule(name string) *Rule {
+	if name == "" {
+		return defaultRule
+	}
+
 	a.mu.RLock()
 	rules := a.rules
 	a.mu.RUnlock()
@@ -137,25 +155,10 @@ func (a *Access) Rule(name string) *Rule {
 		}
 	}
 
-	return &Rule{
-		Name: defaultRule,
-		ACL: &AccessControlList{
-			Measurements: []string{
-				"air_t_avg",
-				"air_rh_avg",
-				"wind_dir",
-				"wind_speed_avg",
-				"wind_speed_max",
-				"wind_speed",
-				"nr_up_sw_avg",
-				"sr_avg",
-				"precip_rt_nrt_tot",
-				"snow_height"},
-		},
-	}
+	return defaultRule
 }
 
-// Names returns a slice of all rule names.
+// Names returns a slice of names of all complete rules.
 func (a *Access) Names() []string {
 	a.mu.RLock()
 	rules := a.rules
@@ -163,6 +166,9 @@ func (a *Access) Names() []string {
 
 	var n []string
 	for _, r := range rules {
+		if r.ACL == nil || r.Name == "" {
+			continue
+		}
 		n = append(n, r.Name)
 	}
 
