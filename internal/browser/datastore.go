@@ -2,6 +2,8 @@
 package browser
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,11 +11,25 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
 	client "github.com/influxdata/influxdb1-client/v2"
 )
+
+// Authorizer is an interface for handling authorization to the LTER data.
+type Authorizer interface {
+	// Filter filters out not permitted or not authorized values for the given
+	// context.
+	Filter(ctx context.Context, r *request) error
+
+	// Names lists all names of registered authorization rules.
+	Names() []string
+
+	// Rule returns the rule by the given name.
+	Rule(name string) *Rule
+}
 
 // Datastore denotes a backend which is composed of SnipeIT
 // and InfluxDB.
@@ -97,16 +113,62 @@ func (d *Datastore) init() error {
 	return nil
 }
 
-func (d *Datastore) Get(rule string) Stations {
+func (d *Datastore) Get(role auth.Role) Stations {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	s, ok := d.cache[rule]
+	s, ok := d.cache[string(role)]
 	if !ok {
 		return d.cache[defaultRule.Name]
 	}
 
 	return s
+}
+
+func (d *Datastore) Query(ctx context.Context, req *request) string {
+	d.access.Filter(ctx, req)
+
+	columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
+	columns = append(columns, req.measurements...)
+
+	q, _ := ql.Select(columns...).From(req.measurements...).Where(
+		ql.Eq(ql.Or(), "snipeit_location_ref", req.stations...),
+		ql.And(),
+		ql.TimeRange(req.start, req.end),
+	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
+
+	return q
+}
+
+func (d *Datastore) seriesQuery(req *request) ql.Querier {
+	return ql.QueryFunc(func() (string, []interface{}) {
+		var (
+			buf  bytes.Buffer
+			args []interface{}
+		)
+		for _, station := range req.stations {
+			columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
+			columns = append(columns, req.measurements...)
+
+			sb := ql.Select(columns...)
+			sb.From(req.measurements...)
+			sb.Where(
+				ql.Eq(ql.And(), "snipeit_location_ref", station),
+				ql.And(),
+				ql.TimeRange(req.start, req.end),
+			)
+			sb.GroupBy("station,snipeit_location_ref")
+			sb.OrderBy("time").ASC().TZ("Etc/GMT-1")
+
+			q, arg := sb.Query()
+			buf.WriteString(q)
+			buf.WriteString(";")
+
+			args = append(args, arg)
+		}
+
+		return buf.String(), args
+	})
 }
 
 // key is used as map key for sorting and grouping the map entries.
@@ -130,9 +192,10 @@ func (k key) Next(d time.Duration) key {
 	return key{k.station, k.Time().Add(d).Unix()}
 }
 
-func (d *Datastore) Series(q ql.Querier) ([][]string, error) {
-	query, _ := q.Query()
+func (d *Datastore) Series(ctx context.Context, req *request) ([][]string, error) {
+	d.access.Filter(ctx, req)
 
+	query, _ := d.seriesQuery(req).Query()
 	log.Println(query)
 
 	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))

@@ -101,7 +101,6 @@ func main() {
 
 	b, err := browser.NewServer(
 		browser.WithBackend(ds),
-		browser.WithAuthorizer(a),
 		browser.WithInfluxDB(*influxDatabase),
 	)
 	if err != nil {

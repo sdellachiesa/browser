@@ -2,7 +2,6 @@
 package browser
 
 import (
-	"bytes"
 	"context"
 	"encoding/csv"
 	"errors"
@@ -15,27 +14,14 @@ import (
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
-	"gitlab.inf.unibz.it/lter/browser/internal/ql"
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
 
 // Backend is an interface for retrieving LTER data.
 type Backend interface {
-	Get(string) Stations
-	Series(ql.Querier) ([][]string, error)
-}
-
-// Authorizer is an interface for handling authorization to the LTER data.
-type Authorizer interface {
-	// Filter filters out not permitted or not authorized values for the given
-	// context.
-	Filter(ctx context.Context, r *request) error
-
-	// Names lists all names of registered authorization rules.
-	Names() []string
-
-	// Rule returns the rule by the given name.
-	Rule(name string) *Rule
+	Get(auth.Role) Stations
+	Series(context.Context, *request) ([][]string, error)
+	Query(context.Context, *request) string
 }
 
 // Server represents an HTTP server for serving the LTER Browser
@@ -55,8 +41,7 @@ type Server struct {
 	// Influx database name used inside code templates.
 	database string
 
-	access Authorizer
-	db     Backend
+	db Backend
 }
 
 // NewServer initializes and returns a new HTTP server. It takes
@@ -78,10 +63,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.db == nil {
 		return nil, fmt.Errorf("must provide and option func that specifies a Backend")
-	}
-
-	if s.access == nil {
-		return nil, fmt.Errorf("must provide and option func that specifies a Access Control")
 	}
 
 	s.mux.HandleFunc("/", s.handleIndex)
@@ -109,12 +90,6 @@ func WithBackend(b Backend) Option {
 func WithInfluxDB(db string) Option {
 	return func(s *Server) {
 		s.database = db
-	}
-}
-
-func WithAuthorizer(a Authorizer) Option {
-	return func(s *Server) {
-		s.access = a
 	}
 }
 
@@ -156,12 +131,12 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	err := s.html.index.Execute(w, struct {
 		Data            Stations
-		StartDate       string // TODO: Should also be set by the ACL/RBAC
-		EndDate         string // TODO: Should also be set by the ACL/RBAC
+		StartDate       string
+		EndDate         string
 		IsAuthenticated bool
 		Role            auth.Role
 	}{
-		s.db.Get(string(role)),
+		s.db.Get(role),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
 		auth.IsAuthenticated(r),
@@ -194,36 +169,8 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := ql.QueryFunc(func() (string, []interface{}) {
-		var (
-			buf  bytes.Buffer
-			args []interface{}
-		)
-		for _, station := range req.stations {
-			columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
-			columns = append(columns, req.measurements...)
-
-			sb := ql.Select(columns...)
-			sb.From(req.measurements...)
-			sb.Where(
-				ql.Eq(ql.And(), "snipeit_location_ref", station),
-				ql.And(),
-				ql.TimeRange(req.start, req.end),
-			)
-			sb.GroupBy("station,snipeit_location_ref")
-			sb.OrderBy("time").ASC().TZ("Etc/GMT-1")
-
-			q, arg := sb.Query()
-			buf.WriteString(q)
-			buf.WriteString(";")
-
-			args = append(args, arg)
-		}
-
-		return buf.String(), args
-	})
-
-	b, err := s.db.Series(q)
+	ctx := r.Context()
+	b, err := s.db.Series(ctx, req)
 	if err != nil {
 		err = fmt.Errorf("handleSeries: %v", err)
 		reportError(w, r, err)
@@ -236,7 +183,6 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
 	csv.NewWriter(w).WriteAll(b)
-
 }
 
 func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
@@ -273,14 +219,8 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-	columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
-	columns = append(columns, req.measurements...)
-
-	q, _ := ql.Select(columns...).From(req.measurements...).Where(
-		ql.Eq(ql.Or(), "snipeit_location_ref", req.stations...),
-		ql.And(),
-		ql.TimeRange(req.start, req.end),
-	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
+	ctx := r.Context()
+	q := s.db.Query(ctx, req)
 
 	err := tmpl.Execute(w, struct {
 		Query    string
@@ -344,7 +284,7 @@ func (s *Server) parseForm(r *http.Request, req *request) error {
 
 	req.landuse = r.Form["landuse"]
 
-	return s.access.Filter(r.Context(), req)
+	return nil
 }
 
 func (s *Server) grantAccessTo(h http.HandlerFunc, roles ...auth.Role) http.HandlerFunc {
