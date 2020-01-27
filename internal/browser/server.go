@@ -69,7 +69,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
 
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
-	s.mux.HandleFunc("/api/v1/template", s.grantAccessTo(s.handleTemplate, auth.FullAccess))
+	s.mux.HandleFunc("/api/v1/template", grantAccessTo(s.handleTemplate, auth.FullAccess))
 
 	return s, nil
 }
@@ -162,8 +162,8 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &request{}
-	if err := s.parseForm(r, req); err != nil {
+	req, err := parseForm(r)
+	if err != nil {
 		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
@@ -191,9 +191,9 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &request{}
-	if err := s.parseForm(r, req); err != nil {
-		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
+	req, err := parseForm(r)
+	if err != nil {
+		err = fmt.Errorf("handleTemplate: error in decoding or validating data: %v", err)
 		reportError(w, r, err)
 		return
 	}
@@ -215,14 +215,13 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filename := fmt.Sprintf("LTSER_IT25_Matsch_Mazia_%d.%s", time.Now().Unix(), ext)
-	w.Header().Set("Content-Type", "text/text")
 	w.Header().Set("Content-Description", "File Transfer")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
 	ctx := r.Context()
 	q := s.db.Query(ctx, req)
 
-	err := tmpl.Execute(w, struct {
+	err = tmpl.Execute(w, struct {
 		Query    string
 		Database string
 	}{
@@ -244,50 +243,52 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func (s *Server) parseForm(r *http.Request, req *request) error {
+// TODO: move date checks and start date -1 hour computation to the authorizer/backend.
+func parseForm(r *http.Request) (*request, error) {
 	if err := r.ParseForm(); err != nil {
-		return err
+		return nil, err
 	}
 
-	var err error
-	req.start, err = time.Parse("2006-01-02", r.FormValue("startDate"))
+	start, err := time.Parse("2006-01-02", r.FormValue("startDate"))
 	if err != nil {
-		return fmt.Errorf("could not parse start date %v", err)
+		return nil, fmt.Errorf("could not parse start date %v", err)
 	}
 	// In order to start the day at 00:00:00
-	req.start = req.start.Add(-1 * time.Hour)
+	start = start.Add(-1 * time.Hour)
 
-	req.end, err = time.Parse("2006-01-02", r.FormValue("endDate"))
+	end, err := time.Parse("2006-01-02", r.FormValue("endDate"))
 	if err != nil {
-		return fmt.Errorf("error: could not parse end date %v", err)
+		return nil, fmt.Errorf("error: could not parse end date %v", err)
 	}
 
-	if req.end.After(time.Now()) {
-		return errors.New("error: end date is in the future")
+	if end.After(time.Now()) {
+		return nil, errors.New("error: end date is in the future")
 	}
 
 	// Limit download of data to one year
-	limit := time.Date(req.end.Year()-1, req.end.Month(), req.end.Day(), 0, 0, 0, 0, time.UTC)
-	if req.start.Before(limit) {
-		return errors.New("error: time range is greater then a year")
+	limit := time.Date(end.Year()-1, end.Month(), end.Day(), 0, 0, 0, 0, time.UTC)
+	if start.Before(limit) {
+		return nil, errors.New("error: time range is greater then a year")
 	}
 
-	req.measurements = r.Form["measurements"]
-	if req.measurements == nil {
-		return errors.New("error: at least one field must be given")
+	if r.Form["measurements"] == nil {
+		return nil, errors.New("error: at least one field must be given")
 	}
 
-	req.stations = r.Form["stations"]
-	if req.stations == nil {
-		return errors.New("error: at least one station must be given")
+	if r.Form["stations"] == nil {
+		return nil, errors.New("error: at least one station must be given")
 	}
 
-	req.landuse = r.Form["landuse"]
-
-	return nil
+	return &request{
+		measurements: r.Form["measurements"],
+		stations:     r.Form["stations"],
+		landuse:      r.Form["landuse"],
+		start:        start,
+		end:          end,
+	}, nil
 }
 
-func (s *Server) grantAccessTo(h http.HandlerFunc, roles ...auth.Role) http.HandlerFunc {
+func grantAccessTo(h http.HandlerFunc, roles ...auth.Role) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isAllowed(r, roles...) {
 			http.NotFound(w, r)
