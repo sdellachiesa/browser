@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -113,13 +111,4 @@ func RoleFromJWT(key []byte, r *http.Request) (Role, error) {
 	}
 
 	return ParseRole(claims.Role), nil
-}
-
-func randomString(length int) string {
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-
-	return base64.URLEncoding.EncodeToString(b)
 }

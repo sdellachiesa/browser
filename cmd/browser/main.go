@@ -43,7 +43,9 @@ func main() {
 		oauthClientID  = fs.String("oauth-clientid", "", "")
 		oauthSecret    = fs.String("oauth-secret", "", "")
 		oauthRedirect  = fs.String("oauth-redirect", "", "")
+		oauthState     = fs.String("oauth-state", "", "Random string for OAuth2 state code.")
 		jwtKey         = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
+		jwtAppNonce    = fs.String("jwt-app-nonce", "", "Random string for JWT verification.")
 		accessFile     = fs.String("access-file", "access.json", "Access file.")
 		_              = fs.String("config", "", "Config file (optional)")
 	)
@@ -107,7 +109,7 @@ func main() {
 		log.Fatalf("Error creating server: %v\n", err)
 	}
 
-	handler := auth.Azure(b, oauthConfig, []byte(*jwtKey))
+	handler := auth.Azure(b, oauthConfig, *oauthState, *jwtAppNonce, []byte(*jwtKey))
 
 	log.Printf("Starting server on %s\n", *httpAddr)
 	if !*serveTLS {

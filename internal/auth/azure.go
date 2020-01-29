@@ -20,10 +20,7 @@ import (
 // On the Oauth2 flow it will request an ID Token from Azure AD,
 // verify it and read the role claim. Store it in a newly created JWT
 // token and redirect to /.
-func Azure(next http.Handler, cfg *oauth2.Config, jwtKey []byte) http.Handler {
-	state := randomString(32)
-	appNonce := randomString(32)
-
+func Azure(next http.Handler, cfg *oauth2.Config, state, appNonce string, jwtKey []byte) http.Handler {
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, "https://login.microsoftonline.com/92513267-03e3-401a-80d4-c58ed6674e3b/v2.0")
 	if err != nil {
