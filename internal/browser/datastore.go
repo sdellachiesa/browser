@@ -134,7 +134,7 @@ func (d *Datastore) Query(ctx context.Context, req *request) string {
 	q, _ := ql.Select(columns...).From(req.measurements...).Where(
 		ql.Eq(ql.Or(), "snipeit_location_ref", req.stations...),
 		ql.And(),
-		ql.TimeRange(req.start, req.end),
+		ql.TimeRange(req.start.Add(-1*time.Hour), req.end),
 	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
 
 	return q
@@ -155,7 +155,7 @@ func (d *Datastore) seriesQuery(req *request) ql.Querier {
 			sb.Where(
 				ql.Eq(ql.And(), "snipeit_location_ref", station),
 				ql.And(),
-				ql.TimeRange(req.start, req.end),
+				ql.TimeRange(req.start.Add(-1*time.Hour), req.end),
 			)
 			sb.GroupBy("station,snipeit_location_ref")
 			sb.OrderBy("time").ASC().TZ("Etc/GMT-1")

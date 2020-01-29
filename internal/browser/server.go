@@ -243,7 +243,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-// TODO: move date checks and start date -1 hour computation to the authorizer/backend.
 func parseForm(r *http.Request) (*request, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
@@ -253,12 +252,10 @@ func parseForm(r *http.Request) (*request, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not parse start date %v", err)
 	}
-	// In order to start the day at 00:00:00
-	start = start.Add(-1 * time.Hour)
 
 	end, err := time.Parse("2006-01-02", r.FormValue("endDate"))
 	if err != nil {
-		return nil, fmt.Errorf("error: could not parse end date %v", err)
+		return nil, fmt.Errorf("could not parse end date %v", err)
 	}
 
 	if end.After(time.Now()) {
@@ -268,15 +265,15 @@ func parseForm(r *http.Request) (*request, error) {
 	// Limit download of data to one year
 	limit := time.Date(end.Year()-1, end.Month(), end.Day(), 0, 0, 0, 0, time.UTC)
 	if start.Before(limit) {
-		return nil, errors.New("error: time range is greater then a year")
+		return nil, errors.New("time range is greater then a year")
 	}
 
 	if r.Form["measurements"] == nil {
-		return nil, errors.New("error: at least one field must be given")
+		return nil, errors.New("at least one measurement must be given")
 	}
 
 	if r.Form["stations"] == nil {
-		return nil, errors.New("error: at least one station must be given")
+		return nil, errors.New("at least one station must be given")
 	}
 
 	return &request{
