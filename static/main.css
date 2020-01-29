@@ -21,8 +21,16 @@ body {
     min-height: 850px;
 }
 
-.map-popup {
+.mapPopup {
 	font-size: 1.2em;
+	overflow: auto;
+	height: 400px;
+}
+
+.mapPopup ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
 .headline {
@@ -128,8 +136,8 @@ body {
     #map, .content {
         min-height: 1000px;
     }
-    
+
     .navbar-brand>img {
         height: 25px;
     }
-} 
+}

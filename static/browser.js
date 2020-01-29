@@ -71,13 +71,14 @@ function browser(opts) {
 			let item = opts.data[k];
 
 			let marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
+			let c = document.getElementById("s"+item.ID)
 
-			// Marker popup html
-			marker.bindPopup('<p><strong>Name:</strong> '+item.Name+'<br><strong>Altitude:</strong> '+item.Altitude+' m</p><p><img src="'+item.Image+'" width="400"></p>', {
+			marker.bindPopup(c, {
 			autoPan: true,
 			keepInView: true,
-			maxWidth: 600,
-			className: "map-popup"});
+			maxWidth: 600});
+
+			marker.bindTooltip(c.getAttribute("data-name"))
 
 			mapMarkers[item.ID] = marker
 			mapBound.push(new L.latLng(item.Latitude, item.Longitude));

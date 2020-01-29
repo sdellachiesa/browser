@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	text "text/template"
 	"time"
 
@@ -100,6 +101,7 @@ func (s *Server) parseTemplate() error {
 	}
 
 	funcMap := template.FuncMap{
+		"Join":        strings.Join,
 		"Landuse":     MapLanduse,
 		"Measurement": MapMeasurements,
 	}
