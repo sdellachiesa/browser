@@ -46,13 +46,13 @@ function browser(opts) {
 		L.control.zoom({position: "bottomright"}).addTo(map);
 
 		const basemap = {
-		"Open Street Map": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map),
-
 		"Orthophotos South Tyrol (2014/2015/2017)": L.tileLayer.wms('http://geoservices.retecivica.bz.it/geoserver/ows?', {
 			layers: 'P_BZ_OF_2014_2015_2017',
 			attribution: 'Map data &copy; <a href="http://geoportal.buergernetz.bz.it/geodaten.asp">Geoportal Südtirol</a>, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a>'
-		}),
+		}).addTo(map),
+
+		"Open Street Map": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}),
 
 		"Google Maps Terrain": L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
 			maxZoom: 20,
