@@ -404,8 +404,8 @@ func TimeRange(from, to time.Time) Querier {
 	var b Builder
 	return QueryFunc(func() (string, []interface{}) {
 		fmt.Fprintf(&b, "time >= '%s' AND time <= '%s'",
-			from.Format("2006-01-02T15:04:00Z"),
-			to.Format("2006-01-02T15:04:00Z"),
+			from.Format("2006-01-02T15:04:05Z"),
+			to.Format("2006-01-02T15:04:05Z"),
 		)
 		return b.String(), nil
 	})
