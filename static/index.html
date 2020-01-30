@@ -165,21 +165,26 @@
 		</div>
 	</div>
 
-	{{ range .Data -}}
 	<div style="display:none">
-	<div id="s{{.ID}}" data-name="{{.Name}} - {{ Landuse .Landuse }} - {{ .Altitude}}m" class="mapPopup">
-		<h5>{{.Name}}</h5>
-		<p><img src="{{.Image}}" width="200"></p>
-		<ul>
-			<li><strong>Altitude:</strong> {{.Altitude}}m</li>
-			<li><strong>Landuse:</strong> {{ Landuse .Landuse}}</li>
-			<li><strong>Latitude:</strong> {{.Latitude}}</li>
-			<li><strong>Longitude:</strong> {{.Longitude}}</li>
-			<li><strong>Measurements:</strong> {{ Join .Measurements ", " }}</li>
-		</ul>
-	</div>
-	</div>
+		<a id="dlcatchment" class="dl-catchment" href="/static/dl/LTER_IT25_Mazia_Matsch_Catchment.zip">Download Catchment</a>
+
+
+	{{ range .Data -}}
+		<div id="s{{.ID}}" data-name="{{.Name}} - {{ Landuse .Landuse }} - {{ .Altitude}}m" class="mapPopup">
+			<h5>{{.Name}}</h5>
+			<p><img src="{{.Image}}" width="200"></p>
+			<ul>
+				<li><strong>Altitude:</strong> {{.Altitude}}m</li>
+				<li><strong>Landuse:</strong> {{ Landuse .Landuse}}</li>
+				<li><strong>Latitude:</strong> {{.Latitude}}</li>
+				<li><strong>Longitude:</strong> {{.Longitude}}</li>
+				<li><strong>Measurements:</strong> {{ Join .Measurements ", " }}</li>
+			</ul>
+		</div>
 	{{ end -}}
+	</div>
+
+
 
 	<script src="/static/bootstrap.min.js"></script>
 	<script src="/static/bootstrap-datepicker.min.js"></script>
@@ -199,6 +204,7 @@
 				'eDateEl':			'#endDate',
 				'submitEl':			'#submit',
 				'codeEl':			'#codeBtn',
+				'catchmentEl':		'dlcatchment',
 				'mapEl':			'map',
 				'data':			JSON.parse('{{.Data}}'),
 			});

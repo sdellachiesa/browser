@@ -11,6 +11,7 @@
 //	eDateEl - end date element
 //	submitEl - submit button element
 //	codeEl - code button element
+//     catchmentEl - download link for catchment shape files
 //	mapEl - map element
 function browser(opts) {
 	const mapMarkers = {};
@@ -41,9 +42,6 @@ function browser(opts) {
 
 	function loadMap() {
 		const map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
-
-		L.control.scale({position: "bottomright"}).addTo(map);
-		L.control.zoom({position: "bottomright"}).addTo(map);
 
 		const basemap = {
 		"Orthophotos South Tyrol (2014/2015/2017)": L.tileLayer.wms('http://geoservices.retecivica.bz.it/geoserver/ows?', {
@@ -87,6 +85,24 @@ function browser(opts) {
 		});
 
 		map.fitBounds(catchment.getBounds());
+
+		L.Control.Catchment = L.Control.extend({
+			onAdd: function(map) {
+				const div = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control-layers-expanded');
+				div.appendChild(document.getElementById(opts.catchmentEl));
+				return div;
+			},
+
+			onRemove: function(map) {},
+		});
+
+		L.control.catchment = function(opts) {
+			return new L.Control.Catchment(opts);
+		}
+
+		L.control.catchment({position: 'bottomleft'}).addTo(map);
+		L.control.scale({position: "bottomright"}).addTo(map);
+		L.control.zoom({position: "bottomright"}).addTo(map);
 	}
 
 	// isValidDateRange checks if the selected date range is valid and
