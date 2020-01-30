@@ -237,7 +237,7 @@ function browser(opts) {
 		return {measurements, stations};
 	}
 
-	function highlightMapMarker() {
+	function toggleMapMarkers() {
 		$(opts.stationEl).children('option').map(function() {
 			let el = $(this)
 			let m = mapMarkers[el.val()];
@@ -253,6 +253,39 @@ function browser(opts) {
 		});
 	}
 
+	function handleUpdateMeasurement() {
+		const m = filterByMeasurements($(opts.measurementEl).val());
+
+		toggleOptions([
+			{el: opts.stationEl, data: m.stations},
+			{el: opts.landuseEl, data: m.landuse}
+		]);
+		toggleDownload();
+		toggleMapMarkers();
+	}
+
+	function handleUpdateStation() {
+		const s = filterByStations($(opts.stationEl).val());
+
+		toggleOptions([
+			{el: opts.measurementEl, data: s.measurements},
+			{el: opts.landuseEl, data: s.landuse}
+		]);
+		toggleDownload();
+		toggleMapMarkers();
+	}
+
+	function handleUpdateLanduse() {
+		const l = filterByLanduse($(opts.landuseEl).val());
+
+		toggleOptions([
+			{el: opts.measurementEl, data: l.measurements},
+			{el: opts.stationEl, data: l.stations}
+		]);
+		toggleDownload();
+		toggleMapMarkers();
+	}
+
 	// Initialize UI elements
 
 	$(opts.measurementEl).multiselect({
@@ -264,14 +297,14 @@ function browser(opts) {
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			const m = filterByMeasurements($(opts.measurementEl).val());
-
-			toggleOptions([
-				{el: opts.stationEl, data: m.stations},
-				{el: opts.landuseEl, data: m.landuse}
-			]);
-			toggleDownload();
-		}
+			handleUpdateMeasurement();
+		},
+		onSelectAll: function() {
+			handleUpdateMeasurement();
+		},
+		onDeselectAll: function() {
+			handleUpdateMeasurement();
+		},
 	});
 
 	$(opts.stationEl).multiselect({
@@ -284,20 +317,13 @@ function browser(opts) {
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			const s = filterByStations($(opts.stationEl).val());
-
-			toggleOptions([
-				{el: opts.measurementEl, data: s.measurements},
-				{el: opts.landuseEl, data: s.landuse}
-			]);
-			toggleDownload();
-			highlightMapMarker();
+			handleUpdateStation();
 		},
 		onSelectAll: function() {
-			highlightMapMarker();
+			handleUpdateStation();
 		},
 		onDeselectAll: function() {
-			highlightMapMarker();
+			handleUpdateStation();
 		},
 	});
 
@@ -311,14 +337,14 @@ function browser(opts) {
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			const l = filterByLanduse($(opts.landuseEl).val());
-
-			toggleOptions([
-				{el: opts.measurementEl, data: l.measurements},
-				{el: opts.stationEl, data: l.stations}
-			]);
-			toggleDownload();
-		}
+			handleUpdateLanduse();
+		},
+		onSelectAll: function() {
+			handleUpdateLanduse();
+		},
+		onDeselectAll: function() {
+			handleUpdateLanduse();
+		},
 	});
 
 	$(opts.altitudeEl).ionRangeSlider({
