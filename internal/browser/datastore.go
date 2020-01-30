@@ -131,13 +131,10 @@ func (d *Datastore) Query(ctx context.Context, req *request) string {
 	c := []string{"station", "landuse", "altitude", "latitude", "longitude"}
 	c = append(c, req.measurements...)
 
-	s := req.start.Add(-1 * time.Hour)
-	e := time.Date(req.end.Year(), req.end.Month(), req.end.Day(), 22, 59, 59, 59, time.UTC)
-
 	q, _ := ql.Select(c...).From(req.measurements...).Where(
 		ql.Eq(ql.Or(), "snipeit_location_ref", req.stations...),
 		ql.And(),
-		ql.TimeRange(s, e),
+		ql.TimeRange(req.start, req.end),
 	).OrderBy("time").ASC().TZ("Etc/GMT-1").Query()
 
 	return q
@@ -150,8 +147,6 @@ func (d *Datastore) seriesQuery(req *request) ql.Querier {
 			args []interface{}
 		)
 
-		s := req.start.Add(-1 * time.Hour)
-		e := time.Date(req.end.Year(), req.end.Month(), req.end.Day(), 22, 59, 59, 59, time.UTC)
 		for _, station := range req.stations {
 			columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
 			columns = append(columns, req.measurements...)
@@ -161,7 +156,7 @@ func (d *Datastore) seriesQuery(req *request) ql.Querier {
 			sb.Where(
 				ql.Eq(ql.And(), "snipeit_location_ref", station),
 				ql.And(),
-				ql.TimeRange(s, e),
+				ql.TimeRange(req.start, req.end),
 			)
 			sb.GroupBy("station,snipeit_location_ref")
 			sb.OrderBy("time").ASC().TZ("Etc/GMT-1")

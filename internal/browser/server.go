@@ -245,6 +245,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
+// parseForm parses form values from the given http.Request and returns
+// an request. It performs basic validation for end date and download
+// limit.  Data in influx is UTC but LTER data is UTC+1 therefor
+// parseForm will adapt start and end times. It will shift the start
+// time to -1 hour and will set the end time to 22:59:59 in order to
+// capture a full day.
 func parseForm(r *http.Request) (*request, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
@@ -282,8 +288,8 @@ func parseForm(r *http.Request) (*request, error) {
 		measurements: r.Form["measurements"],
 		stations:     r.Form["stations"],
 		landuse:      r.Form["landuse"],
-		start:        start,
-		end:          end,
+		start:        start.Add(-1 * time.Hour),
+		end:          time.Date(end.Year(), end.Month(), end.Day(), 22, 59, 59, 59, time.UTC),
 	}, nil
 }
 

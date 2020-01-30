@@ -171,11 +171,13 @@ func TestParseForm(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error parsing start date: %v", err)
 	}
+	startDate = startDate.Add(-1 * time.Hour)
 
 	endDate, err := time.Parse("2006-01-02", "2020-01-23")
 	if err != nil {
 		t.Fatalf("error parsing start date: %v", err)
 	}
+	endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 22, 59, 59, 59, time.UTC)
 
 	testCases := []struct {
 		reqBody []byte
