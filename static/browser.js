@@ -237,6 +237,21 @@ function browser(opts) {
 		return {measurements, stations};
 	}
 
+	function highlightMapMarker() {
+		$(opts.stationEl).children('option').map(function() {
+			let el = $(this)
+			let m = mapMarkers[el.val()];
+			let i = m.getIcon();
+
+			if (el.prop('selected')) {
+				i.options.iconUrl =  "marker-icon-yellow.png";
+			} else {
+				i.options.iconUrl = "marker-icon.png"
+			}
+			m.setIcon(i);
+
+		});
+	}
 
 	// Initialize UI elements
 
@@ -276,8 +291,14 @@ function browser(opts) {
 				{el: opts.landuseEl, data: s.landuse}
 			]);
 			toggleDownload();
-
-		}
+			highlightMapMarker();
+		},
+		onSelectAll: function() {
+			highlightMapMarker();
+		},
+		onDeselectAll: function() {
+			highlightMapMarker();
+		},
 	});
 
 	$(opts.landuseEl).multiselect({
@@ -312,7 +333,7 @@ function browser(opts) {
 			const measurements = new Set();
 
 			opts.data.forEach(function(item) {
-				var marker = mapMarkers[item.ID]
+				let marker = mapMarkers[item.ID]
 				if (item.Altitude >= data.from && item.Altitude <= data.to) {
 					stations.add(item.ID);
 					landuse.add(item.Landuse);
