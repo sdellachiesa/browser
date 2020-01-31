@@ -254,18 +254,37 @@ function browser(opts) {
 	}
 
 	function toggleMapMarkers() {
+		const blue = L.icon({
+    			iconUrl: '/static/third_party/leaflet/images/marker-icon.png',
+    			iconRetinaUrl: '/static/third_party/leaflet/images/marker-icon-2x.png',
+    			iconSize: [25, 41],
+   			iconAnchor: [12, 41],
+    			popupAnchor: [1, -34],
+    			tooltipAnchor: [16, -28],
+    			shadowUrl: '/static/third_party/leaflet/images/marker-shadow.png',
+    			shadowSize: [41, 41],
+		});
+
+		const yellow = L.icon({
+    			iconUrl: '/static/third_party/leaflet/images/marker-icon-yellow.png',
+    			iconRetinaUrl: '/static/third_party/leaflet/images/marker-icon-2x-yellow.png',
+    			iconSize: [25, 41],
+   			iconAnchor: [12, 41],
+    			popupAnchor: [1, -34],
+    			tooltipAnchor: [16, -28],
+    			shadowUrl: '/static/third_party/leaflet/images/marker-shadow.png',
+    			shadowSize: [41, 41],
+		});
+
 		$(opts.stationEl).children('option').map(function() {
 			let el = $(this)
 			let m = mapMarkers[el.val()];
-			let i = m.getIcon();
 
 			if (el.prop('selected')) {
-				i.options.iconUrl =  "marker-icon-yellow.png";
+				m.setIcon(yellow);
 			} else {
-				i.options.iconUrl = "marker-icon.png"
+				m.setIcon(blue);
 			}
-			m.setIcon(i);
-
 		});
 	}
 
@@ -313,6 +332,7 @@ function browser(opts) {
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
+
 			handleUpdateMeasurement();
 		},
 		onSelectAll: function() {
