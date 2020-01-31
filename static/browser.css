@@ -17,6 +17,22 @@ body {
 	padding: 0;
 }
 
+.page {
+	padding: 0 15px 15px 15px;
+	font-size: 1.1em;
+	line-height: 1.5;
+}
+
+.page>h1 {
+	font-size: 2.2rem;
+	line-height: 1;
+}
+
+.page>p {
+	max-width: 60rem;
+	word-wrap: break-word;
+}
+
 #map, .content {
     min-height: 850px;
 }
@@ -41,34 +57,23 @@ body {
 	list-style: none;
 }
 
-.headline {
-	font-size: 1.6em;
-	line-height: 1.6;
-	margin-bottom: 20px;
-	padding: 15px;
-}
-
-.headline > a {
-	text-decoration: underline;
-}
-
-.filter {
-	margin: 40px 10px 20px 0;
-}
-
-.filter > .row {
-	margin-bottom: 20px;
-}
-
 .bottom {
 	bottom: 0;
 	margin: 0 0 20px 20px;
-    position: absolute;
+    	position: absolute;
 }
 
 .navbar-default {
 	border-radius: 0;
 	padding:0;
+}
+
+.navbar-header > h1 {
+	margin: 0;
+	padding: 26px 10px 0 10px;
+	font-size: 1.4em;
+	color: rgb(119, 119, 119);
+	font-weight: normal;
 }
 
 .nav {
@@ -141,11 +146,21 @@ body {
 }
 
 @media (max-width: 768px){
-    #map, .content {
-        min-height: 1000px;
-    }
+	#map, .content {
+		min-height: 1000px;
+	}
 
-    .navbar-brand>img {
-        height: 25px;
-    }
+	.navbar-header > h1 {
+		display: none;
+	}
+
+	.navbar-brand > img {
+		height: 25px;
+	}
+}
+
+@media (max-width: 1700px){
+	.navbar-header > h1 {
+		display: none;
+	}
 }

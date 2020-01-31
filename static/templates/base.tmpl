@@ -1,10 +1,11 @@
+
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>LTER Data Browser</title>
+		<title>LTER Matsch / Mazia Data Browser</title>
 		<link rel="icon" href="/static/favicon.ico">
 		<link rel="stylesheet" href="/static/third_party/bootstrap/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/static/third_party/bootstrap-datepicker/bootstrap-datepicker3.min.css">
@@ -16,60 +17,26 @@
 	</head>
 	<body>
 
+	{{block "content" . }}
+	{{ $lang := .Language}}
 	<div class="container-fluid layout">
 		<div class="row">
 			<div class="col-md-5 shadow content">
-				<nav class="navbar navbar-default">
-					<div class="container-fluid">
-						<!-- Brand and toggle get grouped for better mobile display -->
-						<div class="navbar-header">
-							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-							<a class="navbar-brand" href="#"><img src="/static/images/logo.gif" alt="LTER Data Browser"></a>
-						</div>
+				{{block "nav" .}}Navigation{{end}}
 
-						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-							<ul class="nav navbar-nav">
-								<!-- <li class="active"><a href="/">Home</a></li> -->
-								<!-- <li><a href="#">Glossary</a></li> -->
-								<!-- <li><a href="#">About</a></li> -->
-							</ul>
-							<ul class="nav navbar-nav navbar-right">
-							<!-- 	<li class="dropdown">
-									<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Language <span class="caret"></span></a>
-									<ul class="dropdown-menu">
-										<li><a href="#">Italiano</a></li>
-										<li><a href="#">Deutsch</a></li>
-									</ul>
-								</li>-->
-								{{- if .IsAuthenticated -}}
-								<li><a href="/auth/azure/logout">Logout</a></li>
-								{{- else -}}
-								<li><a href="/auth/azure">Login</a></li>
-								{{- end -}}
-							</ul>
-						</div>
-					</div>
-				</nav>
 
-				<p class="headline"><b>Filter</b> and <b>download</b> meteorologial data of the long-term socio-ecological research site <a href="http://lter.eurac.edu" target="_blank">Matschertal / Val di Mazia</a>. Download data by <mark>selecting at least one station and one measurement</mark>.
-				</p>
 				<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
 					<div class="container-fluid filter">
 						<div class="row">
 							<div class="col-md-4">
 								<div class="form-group">
-									<label for="measurements">Select measurement:</label>
+									<label for="measurements">{{T "Select measurement:" $lang}}</label>
 									<select multiple class="form-control" id="measurements" name="measurements">
 										{{- range .Data.Measurements -}}
 											{{if eq $.Role "FullAccess" -}}
 												<option value="{{.}}">{{ . }}</option>
 											{{else -}}
-												<option value="{{ . }}">{{ Measurement . }}</option>
+												<option value="{{ . }}">{{ T . $lang}}</option>
 											{{end -}}
 										{{- end -}}
 									</select>
@@ -77,7 +44,7 @@
 							</div>
 							<div class="col-md-4">
 								<div class="form-group">
-									<label for="stations">Select station:</label>
+									<label for="stations">{{T "Select station:" $lang}}</label>
 									<select multiple class="form-control" id="stations" name="stations">
 										{{- range .Data}}
 										<option value="{{ .ID }}">{{ .Name }}</option>
@@ -87,10 +54,10 @@
 							</div>
 							<div class="col-md-4">
 								<div class="form-group">
-									<label for="landuse">Select land use:</label>
+									<label for="landuse">{{T "Select land use:" $lang}}</label>
 										<select multiple class="form-control" id="landuse" name="landuse">
 											{{- range .Data.Landuse }}
-											<option value="{{.}}">{{ Landuse . }}</option>
+											<option value="{{.}}">{{ T . $lang}}</option>
 											{{- end -}}
 										</select>
 								</div>
@@ -99,9 +66,9 @@
 						<div class="row">
 							<div class="col-md-6">
 								<div class="form-group" id="timerange">
-									<label for="dateRange">Pick a date range:</label>
-									<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>Warning</b>: Empty dates are not allowed.</div>" data-trigger="manual" data-placement="top">
-										<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off" data-html="true" data-content="<p class='text-warning'><b>Warning:</b> Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.</p>" data-trigger="manual" data-placement="top">
+									<label for="dateRange">{{T "Pick a date range:" $lang}}</label>
+									<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Empty dates are not allowed." $lang}}</div>" data-trigger="manual" data-placement="top">
+										<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Selected time range is to big. Maximal allowed range is one year. Please use multiple requests." $lang}}</p>" data-trigger="manual" data-placement="top">
 										<span class="input-group-addon">to</span>
 										<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
 									</div>
@@ -109,7 +76,7 @@
 							</div>
 							<div class="col-md-6">
 								<div class="form-group">
-									<label for="altitude">Select altitude range[m]:</label>
+									<label for="altitude">{{T "Select altitude range[m]:" $lang}}</label>
 									<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
 								</div>
 							</div>
@@ -117,8 +84,8 @@
 						<div class="row">
 							<div class="col-md-12">
 								<br>
-								<div class="tooltip-wrapper nostrike disabled" data-title="Please select at least one measurement and station.">
-									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">Download CSV</button> &nbsp;
+								<div class="tooltip-wrapper nostrike disabled" data-title="{{T "Please select at least one measurement and station." $lang}}">
+									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">{{T "Download CSV" $lang}}</button> &nbsp;
 
 									{{if eq .Role "FullAccess"}}
 														<script>
@@ -152,7 +119,7 @@
 								</div>
 								<br>
 								<p>
-									<br><b>Disclaimer:</b> Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider.
+									<br><b>{{T "Disclaimer" $lang}}</b>: {{T "Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider." $lang}}
 								</p>
 							</div>
 						</div>
@@ -166,25 +133,22 @@
 	</div>
 
 	<div style="display:none">
-		<a id="dlcatchment" class="dl-catchment" href="/static/dl/LTER_IT25_Mazia_Matsch_Catchment.zip">Download Catchment</a>
+		<a id="dlcatchment" class="dl-catchment" href="/static/dl/LTER_IT25_Mazia_Matsch_Catchment.zip">{{T "Download Catchment" $lang}}</a>
 
-
-	{{ range .Data -}}
-		<div id="s{{.ID}}" data-name="{{.Name}} - {{ Landuse .Landuse }} - {{ .Altitude}}m" class="mapPopup">
+		{{ range .Data -}}
+		<div id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Altitude}}m" class="mapPopup">
 			<h5>{{.Name}}</h5>
 			<p><img src="{{.Image}}" width="200"></p>
 			<ul>
-				<li><strong>Altitude:</strong> {{.Altitude}}m</li>
-				<li><strong>Landuse:</strong> {{ Landuse .Landuse}}</li>
-				<li><strong>Latitude:</strong> {{.Latitude}}</li>
-				<li><strong>Longitude:</strong> {{.Longitude}}</li>
-				<li><strong>Measurements:</strong> {{ Join .Measurements ", " }}</li>
+				<li><strong>{{T "Altitude" $lang}}:</strong> {{.Altitude}}m</li>
+				<li><strong>{{T "Landuse" $lang}}:</strong> {{ T .Landuse $lang}}</li>
+				<li><strong>{{T "Latitude" $lang}}:</strong> {{.Latitude}}</li>
+				<li><strong>{{T "Longitude" $lang}}:</strong> {{.Longitude}}</li>
+				<li><strong>{{T "Measurements" $lang}}:</strong> {{ Join .Measurements ", " }}</li>
 			</ul>
 		</div>
-	{{ end -}}
+		{{ end -}}
 	</div>
-
-
 
 	<script src="/static/third_party/bootstrap/js/bootstrap.min.js"></script>
 	<script src="/static/third_party/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
@@ -210,6 +174,7 @@
 			});
 		});
 	</script>
+	{{end}}
 
 	</body>
 </html>

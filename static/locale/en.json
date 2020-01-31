@@ -1,0 +1,16 @@
+{
+	"pa": "Pasture",
+	"me": "Meadows",
+	"bs": "Bare soil",
+	"fo": "Forest",
+	"air_rh_avg": "Relative Humidity",
+	"air_t_avg": "Air Temperature",
+	"wind_speed_avg": "Wind Speed",
+	"wind_speed": "Wind Speed",
+	"wind_speed_max": "Wind Gust",
+	"wind_dir": "Wind Direction",
+	"nr_up_sw_avg": "Global Radiation",
+	"sr_avg": "Global Radiation",
+	"precip_rt_nrt_tot": "Precipitation",
+	"snow_height": "Snow Height"
+}

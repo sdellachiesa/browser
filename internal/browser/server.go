@@ -4,6 +4,7 @@ package browser
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,9 +15,14 @@ import (
 	text "text/template"
 	"time"
 
+	"golang.org/x/text/language"
+	"gopkg.in/russross/blackfriday.v2"
+
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
+
+const langCookieName = "browser-lang"
 
 // Backend is an interface for retrieving LTER data.
 type Backend interface {
@@ -32,7 +38,7 @@ type Server struct {
 	mux      *http.ServeMux
 
 	html struct {
-		index *template.Template
+		index, page *template.Template
 	}
 
 	text struct {
@@ -42,7 +48,8 @@ type Server struct {
 	// Influx database name used inside code templates.
 	database string
 
-	db Backend
+	db      Backend
+	matcher language.Matcher
 }
 
 // NewServer initializes and returns a new HTTP server. It takes
@@ -66,7 +73,14 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, fmt.Errorf("must provide and option func that specifies a Backend")
 	}
 
+	s.matcher = language.NewMatcher([]language.Tag{
+		language.English, // The first language is used as fallback.
+		language.Italian,
+		language.German,
+	})
+
 	s.mux.HandleFunc("/", s.handleIndex)
+	s.mux.HandleFunc("/p/", s.handlePage)
 	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
 
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
@@ -95,17 +109,44 @@ func WithInfluxDB(db string) Option {
 }
 
 func (s *Server) parseTemplate() error {
-	index, err := static.File(filepath.Join(s.basePath, "index.html"))
+	base, err := static.File(filepath.Join(s.basePath, "templates", "base.tmpl"))
+	if err != nil {
+		return err
+	}
+
+	nav, err := static.File(filepath.Join(s.basePath, "templates", "nav.tmpl"))
 	if err != nil {
 		return err
 	}
 
 	funcMap := template.FuncMap{
-		"Join":        strings.Join,
-		"Landuse":     MapLanduse,
-		"Measurement": MapMeasurements,
+		"Join": strings.Join,
+		"T":    s.translate,
 	}
-	s.html.index, err = template.New("base").Funcs(funcMap).Parse(index)
+	s.html.index, err = template.New("base").Funcs(funcMap).Parse(base)
+	if err != nil {
+		return err
+	}
+	s.html.index, err = s.html.index.Parse(nav)
+	if err != nil {
+		return err
+	}
+
+	page, err := static.File(filepath.Join(s.basePath, "templates", "page.tmpl"))
+	if err != nil {
+		return err
+	}
+
+	s.html.page, err = template.New("base").Funcs(funcMap).Parse(base)
+	if err != nil {
+		return err
+	}
+	s.html.page, err = s.html.page.Parse(page)
+	if err != nil {
+		return err
+	}
+
+	s.html.page, err = s.html.page.Parse(nav)
 	if err != nil {
 		return err
 	}
@@ -114,7 +155,11 @@ func (s *Server) parseTemplate() error {
 	if err != nil {
 		return err
 	}
+
 	s.text.python, err = text.New("python").Parse(python)
+	if err != nil {
+		return err
+	}
 
 	rlang, err := static.File(filepath.Join(s.basePath, "templates", "r.tmpl"))
 	if err != nil {
@@ -126,6 +171,8 @@ func (s *Server) parseTemplate() error {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	tag, _ := language.MatchStrings(s.matcher, langFromCookie(r), r.Header.Get("Accept-Language"))
+
 	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
 		role = auth.Public
@@ -137,17 +184,80 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		EndDate         string
 		IsAuthenticated bool
 		Role            auth.Role
+		Language        string
+		Path            string
 	}{
 		s.db.Get(role),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
 		auth.IsAuthenticated(r),
 		role,
+		tag.String(),
+		r.URL.Path,
 	})
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in executing template: %v", err)
 		reportError(w, r, err)
 		return
+	}
+}
+
+func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
+	if filepath.Ext(r.URL.Path) != ".md" {
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		return
+	}
+
+	tag, _ := language.MatchStrings(s.matcher, langFromCookie(r), r.Header.Get("Accept-Language"))
+
+	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
+	if !ok {
+		role = auth.Public
+	}
+
+	p, err := static.File(filepath.Join(s.basePath, "pages", tag.String(), filepath.Base(r.URL.Path)))
+	if err != nil {
+		http.Error(w, "page not found", http.StatusNotFound)
+		return
+	}
+
+	if err := s.html.page.Execute(w, struct {
+		IsAuthenticated bool
+		Role            auth.Role
+		Language        string
+		Content         interface{}
+		Path            string
+	}{
+		auth.IsAuthenticated(r),
+		role,
+		tag.String(),
+		template.HTML(blackfriday.Run([]byte(p))),
+		r.URL.Path,
+	}); err != nil {
+		err = fmt.Errorf("handleIndex: error in executing template: %v", err)
+		reportError(w, r, err)
+		return
+	}
+}
+
+func langFromCookie(r *http.Request) string {
+	c, err := r.Cookie(langCookieName)
+	if err != nil {
+		return ""
+	}
+	return c.Value
+}
+
+func validLanguage(s string) bool {
+	switch s {
+	case "en":
+		return true
+	case "de":
+		return true
+	case "it":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -242,6 +352,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	w.Header().Set("X-Frame-Options", "deny")
 
+	// Set language cookie
+	if validLanguage(r.FormValue("l")) {
+		http.SetCookie(w, &http.Cookie{
+			Name:  langCookieName,
+			Value: r.FormValue("l"),
+			Path:  "/",
+		})
+		http.Redirect(w, r, r.URL.Path, http.StatusMovedPermanently)
+		return
+	}
+
 	s.mux.ServeHTTP(w, r)
 }
 
@@ -322,4 +443,24 @@ func isAllowed(r *http.Request, roles ...auth.Role) bool {
 func reportError(w http.ResponseWriter, r *http.Request, err error) {
 	log.Printf("%v\n", err)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+}
+
+func (s *Server) translate(key, lang string) string {
+	j, err := static.File(filepath.Join(s.basePath, "locale", fmt.Sprintf("%s.json", lang)))
+	if err != nil {
+		return key
+	}
+
+	var m map[string]string
+	if err := json.Unmarshal([]byte(j), &m); err != nil {
+		log.Printf("translation: %v\n", err)
+		return key
+	}
+
+	v, ok := m[key]
+	if !ok {
+		return key
+	}
+
+	return v
 }
