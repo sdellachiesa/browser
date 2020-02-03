@@ -33,5 +33,9 @@
 	"nr_up_sw_avg": "Globalstrahlung",
 	"sr_avg": "Globalstrahlung",
 	"precip_rt_nrt_tot": "Niederschlag",
-	"snow_height": "Schneehöhe"
+	"snow_height": "Schneehöhe",
+	"Data licence": "Daten Lizenz",
+	"Data is released with CC BY 4.0": "Die Daten werden mit der CC BY 4.0 Lizenz ausgegeben",
+	"This license lets others distribute, remix, adapt, and build upon your work, even commercially, as long as they credit you for the original creation.": "Sie dürfen das Material in jedwedem Format oder Medium vervielfältigen und weiterverbreiten.",
+	"Please give appropriate credit of the data provider as follow: We thank the long term socio-ecological research area LT(S)ER IT25 - Matsch/Mazia - Italy for providing the data.": "Bitte bestätigen Sie den Datenanbiter wie folgt: Wir danken  die sozio-ökologischen Langzeitforschungs-Standorts LT(S)ER IT25 - Matsch/Mazia - Italien für die Daten."
 }

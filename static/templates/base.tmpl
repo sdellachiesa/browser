@@ -117,10 +117,30 @@
 														</div>
 									 {{end}}
 								</div>
-								<br>
-								<p>
-									<br><b>{{T "Disclaimer" $lang}}</b>: {{T "Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider." $lang}}
-								</p>
+
+								{{if eq .Role "Public"}}
+								<div class="bs-callout bs-callout-warning">
+									<h4>{{T "Data licence" $lang}}</h4>
+									<p>
+									{{T "Data is released with CC BY 4.0" $lang}} <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a>
+									</p>
+									<p>
+									{{T "This license lets others distribute, remix, adapt, and build upon your work, even commercially, as long as they credit you for the original creation." $lang}}
+
+									</p>
+									<p>
+									{{T "Please give appropriate credit of the data provider as follow: We thank the long term socio-ecological research area LT(S)ER IT25 - Matsch/Mazia - Italy for providing the data." $lang}}
+									</p>
+									<p>
+									DEIMS.iD: <a href="https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964">https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964</a>
+									</p>
+								</div>
+								{{end}}
+
+								<div class="bs-callout">
+									<h5>{{T "Disclaimer" $lang}}</h5>
+									<p>{{T "Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider." $lang}}</p>
+								</div>
 							</div>
 						</div>
 					</div>
