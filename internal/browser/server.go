@@ -54,6 +54,9 @@ type Server struct {
 
 	db      Backend
 	matcher language.Matcher
+
+	// Google Analytics code
+	analyticsCode string
 }
 
 // NewServer initializes and returns a new HTTP server. It takes
@@ -118,6 +121,12 @@ func WithInfluxDB(db string) Option {
 	}
 }
 
+func WithAnalyticsCode(analytics string) Option {
+	return func(s *Server) {
+		s.analyticsCode = analytics
+	}
+}
+
 func (s *Server) parseTemplate() error {
 	funcMap := template.FuncMap{
 		"T":         s.translate,
@@ -167,6 +176,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Language        string
 		Path            string
 		Token           string
+		AnalyticsCode   string
 	}{
 		s.db.Get(role),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
@@ -176,6 +186,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		s.language(r),
 		r.URL.Path,
 		xsrftoken.Generate(s.key, "", "/api/v1/"),
+		s.analyticsCode,
 	})
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in executing template: %v", err)
@@ -208,12 +219,14 @@ func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
 		Language        string
 		Content         interface{}
 		Path            string
+		AnalyticsCode   string
 	}{
 		auth.IsAuthenticated(r),
 		role,
 		lang,
 		template.HTML(blackfriday.Run([]byte(p))),
 		r.URL.Path,
+		s.analyticsCode,
 	}); err != nil {
 		err = fmt.Errorf("handleIndex: error in executing template: %v", err)
 		reportError(w, r, err)

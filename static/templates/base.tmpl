@@ -11,12 +11,20 @@
 		<link rel="stylesheet" href="/static/third_party/bootstrap-multiselect/bootstrap-multiselect.css">
 		<link rel="stylesheet" href="/static/third_party/ion-rangeslider/ion.rangeSlider.min.css">
 		<link rel="stylesheet" href="/static/third_party/leaflet/leaflet.css">
+		<link rel="stylesheet" href="/static/third_party/cookies-eu-banner/css/cookies-eu-banner.default.css">
 		<link rel="stylesheet" href="/static/browser.css">
 		<script src="/static/third_party/jquery/jquery-1.12.4.min.js"></script>
 		<script src="/static/third_party/bootstrap/js/bootstrap.min.js"></script>
+		<script src="/static/third_party/cookies-eu-banner/js/cookies-eu-banner.js"></script>
 	</head>
 	<body>
-
+	
+	<div id="cookies-eu-banner" style="display: none;">
+    {{T "Eu banner" .Language}}
+    <a href="http://privacy.eurac.edu" id="cookies-eu-more">{{T "Eu banner Read more" .Language}}</a>
+    <button id="cookies-eu-reject">{{T "Eu banner Reject" .Language}}</button>
+    <button id="cookies-eu-accept">{{T "Eu banner Accept" .Language}}</button>
+    </div>
 	{{block "content" . }}
 	{{ $lang := .Language}}
 	{{block "nav" .}}Navigation{{end}}
@@ -206,6 +214,56 @@
 				'mapEl':			'map',
 				'data':			JSON.parse('{{.Data}}'),
 			});
+		
+
+			{{if $.AnalyticsCode}}
+			new CookiesEuBanner(function () {
+				var newScript = document.createElement("script");
+				newScript.type = "text/javascript";
+				newScript.setAttribute("async", "true");
+				newScript.setAttribute("src", "https://www.googletagmanager.com/gtag/js?id={{$.AnalyticsCode}}");
+				document.documentElement.firstChild.appendChild(newScript);
+
+				window.dataLayer = window.dataLayer || [];
+          		function gtag(){dataLayer.push(arguments);}
+          		gtag('js', new Date());
+
+				// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features  
+				gtag('set', 'allow_ad_personalization_signals', false);
+				gtag('config', '{{$.AnalyticsCode}}');
+				
+
+				var measurements = $( "#measurements");
+				var stations = $( "#stations");
+				var landuse = $( "#landuse");
+				var startDate = $( "#startDate");
+				var endDate = $( "#endDate");
+				var altitude = $( "#altitude");
+
+				
+
+				$( "#filters" ).submit(function( event ) {
+
+					var obj = {
+						"measurements" : measurements.val(),
+						"stations" : stations.val(),
+						"landuse" : landuse.val(),
+						"startDate" : startDate.val(),
+						"endDate" : endDate.val(),
+						"altitude" : altitude.val()
+						}
+
+					gtag('event', 'submit', {
+					'event_category' : 'search',
+					'event_label' : JSON.stringify(obj)
+					});
+               
+			   
+            	});
+
+			}, true, true);
+			{{end}}
+
 		});
 	</script>
 	{{end}}

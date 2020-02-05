@@ -2,4 +2,31 @@
 {{block "nav" .}}Navigation{{end}}
 
 <div class="page">{{.Content}}</div>
+
+	<script>
+		$(document).ready(function() {
+			
+			{{if $.AnalyticsCode}}
+			new CookiesEuBanner(function () {
+				var newScript = document.createElement("script");
+				newScript.type = "text/javascript";
+				newScript.setAttribute("async", "true");
+				newScript.setAttribute("src", "https://www.googletagmanager.com/gtag/js?id={{$.AnalyticsCode}}");
+				document.documentElement.firstChild.appendChild(newScript);
+
+				window.dataLayer = window.dataLayer || [];
+          		function gtag(){dataLayer.push(arguments);}
+          		gtag('js', new Date());
+
+				// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features  
+				gtag('set', 'allow_ad_personalization_signals', false);
+				gtag('config', '{{$.AnalyticsCode}}');
+				
+
+			}, true, true);
+			{{end}}
+
+		});
+	</script>
+
 {{end}}

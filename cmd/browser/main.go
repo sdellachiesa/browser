@@ -48,6 +48,7 @@ func main() {
 		jwtAppNonce    = fs.String("jwt-app-nonce", "", "Random string for JWT verification.")
 		accessFile     = fs.String("access-file", "access.json", "Access file.")
 		_              = fs.String("config", "", "Config file (optional)")
+		analyticsCode  = fs.String("analytics-code", "", "Google Analytics Code")
 	)
 
 	ff.Parse(fs, os.Args[1:],
@@ -104,6 +105,7 @@ func main() {
 	b, err := browser.NewServer(
 		browser.WithBackend(ds),
 		browser.WithInfluxDB(*influxDatabase),
+		browser.WithAnalyticsCode(*analyticsCode),
 	)
 	if err != nil {
 		log.Fatalf("Error creating server: %v\n", err)

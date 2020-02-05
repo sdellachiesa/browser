@@ -12,5 +12,9 @@
 	"nr_up_sw_avg": "Global Radiation",
 	"sr_avg": "Global Radiation",
 	"precip_rt_nrt_tot": "Precipitation",
-	"snow_height": "Snow Height"
+	"snow_height": "Snow Height",
+	"Eu banner": "This site uses cookies to improve navigation and provide additional functionality.",
+	"Eu banner Accept": "Accept",
+	"Eu banner Reject": "Reject",
+	"Eu banner Read more": "Read more"
 }
