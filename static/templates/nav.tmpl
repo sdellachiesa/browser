@@ -24,9 +24,9 @@
 				<li class="dropdown">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{T "Language" .Language}} <span class="caret"></span></a>
 					<ul class="dropdown-menu">
-						{{ if ne .Language "en"}}<li><a href="?l=en">English</a></li>{{end}}
-						{{ if ne .Language "it"}}<li><a href="?l=it">Italiano</a></li>{{end}}
-						{{ if ne .Language "de"}}<li><a href="?l=de">Deutsch</a></li>{{end}}
+						{{ if ne .Language "en"}}<li><a href="/l/en">English</a></li>{{end}}
+						{{ if ne .Language "it"}}<li><a href="/l/it">Italiano</a></li>{{end}}
+						{{ if ne .Language "de"}}<li><a href="/l/de">Deutsch</a></li>{{end}}
 					</ul>
 				</li>
 				{{- if .IsAuthenticated -}}

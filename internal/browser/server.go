@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	text "text/template"
 	"time"
@@ -80,6 +81,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.mux.HandleFunc("/", s.handleIndex)
 	s.mux.HandleFunc("/p/", s.handlePage)
+	s.mux.HandleFunc("/l/", s.handleLanguage)
 	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
 
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
@@ -244,25 +246,24 @@ func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func langFromCookie(r *http.Request) string {
-	c, err := r.Cookie(langCookieName)
-	if err != nil {
-		return ""
-	}
-	return c.Value
-}
+func (s *Server) handleLanguage(w http.ResponseWriter, r *http.Request) {
+	l := r.URL.Path[len("/l/"):]
 
-func validLanguage(s string) bool {
-	switch s {
-	case "en":
-		return true
-	case "de":
-		return true
-	case "it":
-		return true
-	default:
-		return false
+	if validLanguage(l) {
+		http.SetCookie(w, &http.Cookie{
+			Name:  langCookieName,
+			Value: l,
+			Path:  "/",
+		})
 	}
+
+	ref := "/"
+	u, err := url.Parse(r.Referer())
+	if err == nil {
+		ref = u.Path
+	}
+
+	http.Redirect(w, r, ref, http.StatusSeeOther)
 }
 
 // request represents an request received from the client.
@@ -356,18 +357,28 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	w.Header().Set("X-Frame-Options", "deny")
 
-	// Set language cookie
-	if validLanguage(r.FormValue("l")) {
-		http.SetCookie(w, &http.Cookie{
-			Name:  langCookieName,
-			Value: r.FormValue("l"),
-			Path:  "/",
-		})
-		http.Redirect(w, r, r.URL.Path, http.StatusMovedPermanently)
-		return
-	}
-
 	s.mux.ServeHTTP(w, r)
+}
+
+func langFromCookie(r *http.Request) string {
+	c, err := r.Cookie(langCookieName)
+	if err != nil {
+		return ""
+	}
+	return c.Value
+}
+
+func validLanguage(s string) bool {
+	switch s {
+	case "en":
+		return true
+	case "de":
+		return true
+	case "it":
+		return true
+	default:
+		return false
+	}
 }
 
 // parseForm parses form values from the given http.Request and returns
