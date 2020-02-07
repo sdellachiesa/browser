@@ -68,11 +68,6 @@ func (d *Datastore) init() error {
 	for _, n := range d.access.Names() {
 		rule := d.access.Rule(n)
 
-		stations, err := d.stations(rule.ACL.Stations...)
-		if err != nil {
-			return err
-		}
-
 		var where ql.Querier
 		if len(rule.ACL.Stations) > 0 {
 			where = ql.Eq(ql.Or(), "snipeit_location_ref", rule.ACL.Stations...)
@@ -92,6 +87,10 @@ func (d *Datastore) init() error {
 			return fmt.Errorf("%v", resp.Error())
 		}
 
+		stations, err := d.stations(rule.ACL.Stations...)
+		if err != nil {
+			return err
+		}
 		for _, result := range resp.Results {
 			for _, s := range result.Series {
 				for _, v := range s.Values {
@@ -107,7 +106,7 @@ func (d *Datastore) init() error {
 			}
 		}
 
-		d.cache[rule.Name] = stations
+		d.cache[rule.Name] = stations.WithMeasurements()
 	}
 
 	return nil

@@ -67,6 +67,18 @@ func (s Stations) Get(id string) (*Station, bool) {
 	return nil, false
 }
 
+// WithMeasurements returns all  stations with at least one or
+// more measurement.
+func (s Stations) WithMeasurements() Stations {
+	var stations Stations
+	for _, station := range s {
+		if len(station.Measurements) > 0 {
+			stations = append(stations, station)
+		}
+	}
+	return stations
+}
+
 // Landuse returns a sorted list of the landuse of all stations,
 // removing duplicates.
 func (s Stations) Landuse() []string {
