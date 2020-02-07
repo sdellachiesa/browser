@@ -166,7 +166,18 @@
 				<li><strong>{{T "Landuse" $lang}}:</strong> {{ T .Landuse $lang}}</li>
 				<li><strong>{{T "Latitude" $lang}}:</strong> {{.Latitude}}</li>
 				<li><strong>{{T "Longitude" $lang}}:</strong> {{.Longitude}}</li>
-				<li><strong>{{T "Measurements" $lang}}:</strong> {{ Join .Measurements ", " }}</li>
+				<li>
+					<strong>{{T "Measurements" $lang}}:</strong>
+					{{$c := len .Measurements}}
+					{{- range $i, $el  := .Measurements -}}
+						{{if eq $.Role "FullAccess" -}}
+							{{- $el -}}
+						{{else}}
+							{{- T $el $lang -}}
+						{{end -}}
+						{{- if not (Last $i $c)}}, {{end}}
+					{{- end -}}
+				</li>
 			</ul>
 		</div>
 		{{ end -}}

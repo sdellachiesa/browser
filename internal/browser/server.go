@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-	"strings"
 	text "text/template"
 	"time"
 
@@ -120,8 +119,13 @@ func (s *Server) parseTemplate() error {
 	}
 
 	funcMap := template.FuncMap{
-		"Join": strings.Join,
-		"T":    s.translate,
+		"T": s.translate,
+		"Last": func(i, l int) bool {
+			if i < (l - 1) {
+				return false
+			}
+			return true
+		},
 	}
 	s.html.index, err = template.New("base").Funcs(funcMap).Parse(base)
 	if err != nil {
