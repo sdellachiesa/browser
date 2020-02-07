@@ -171,6 +171,39 @@ func (d *Datastore) seriesQuery(req *request) ql.Querier {
 	})
 }
 
+func (d *Datastore) units(req *request, h []string) ([]string, error) {
+	q := ql.ShowTagValues().From(req.measurements...).WithKeyIn("unit").Where(ql.TimeRange(req.start, req.end))
+	query, _ := q.Query()
+
+	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
+	if err != nil {
+		return []string{}, err
+	}
+	if resp.Error() != nil {
+		return []string{}, fmt.Errorf("%v", resp.Error())
+	}
+
+	m := make(map[string]string)
+	for _, result := range resp.Results {
+		for _, serie := range result.Series {
+			for _, value := range serie.Values {
+				m[serie.Name] = value[1].(string)
+			}
+		}
+	}
+
+	units := make([]string, len(h))
+	var ok bool
+	for i, v := range h {
+		units[i], ok = m[v]
+		if !ok {
+			continue
+		}
+	}
+
+	return units, nil
+}
+
 // key is used as map key for sorting and grouping the map entries.
 type key struct {
 	station string
@@ -267,10 +300,10 @@ func (d *Datastore) Series(ctx context.Context, req *request) ([][]string, error
 		return keys[i].station < keys[j].station
 	})
 
-	var (
-		rows = [][]string{header}
-		last = keys[len(keys)-1]
-	)
+	units, _ := d.units(req, header)
+	rows := [][]string{header, units}
+	last := keys[len(keys)-1]
+
 	for _, k := range keys {
 		c, ok := table[k]
 		if !ok {
