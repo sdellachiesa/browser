@@ -11,7 +11,7 @@
 //	eDateEl - end date element
 //	submitEl - submit button element
 //	codeEl - code button element
-//     dlMapAreaEl - area for download links on the map
+//	dlMapAreaEl - area for download links on the map
 //	mapEl - map element
 function browser(opts) {
 	const mapMarkers = {};
@@ -210,20 +210,26 @@ function browser(opts) {
 	// 	measurements - set of measurements
 	//	landuse - set of landuses
 	function filterByStations(stations) {
-		const measurements = new Set();
+		let measurements = new Set();
 		const landuse = new Set();
 
 		if (! Array.isArray(stations)) {
 			return {measurements, landuse};
 		}
 
-		opts.data.forEach(function(o) {
-			if (stations.indexOf(o.ID) >= 0) {
-				if (Array.isArray(o.Measurements)) {
-					o.Measurements.forEach(m => measurements.add(m));
-				}
-				landuse.add(o.Landuse);
+		opts.data.forEach(function(o, i) {
+			if (stations.indexOf(o.ID) < 0) {
+				return;
 			}
+
+			if (Array.isArray(o.Measurements)) {
+				if (measurements.size === 0) {
+					o.Measurements.forEach(m => measurements.add(m));
+					return;
+				}
+				measurements = new Set(o.Measurements.filter(x => measurements.has(x)));
+			}
+			landuse.add(o.Landuse);
 		});
 
 		return {measurements, landuse};
@@ -242,12 +248,14 @@ function browser(opts) {
 		}
 
 		opts.data.forEach(function(o) {
-			if (landuse.indexOf(o.Landuse) >= 0) {
-				if (Array.isArray(o.Measurements)) {
-					o.Measurements.forEach(m => measurements.add(m));
-				}
-				stations.add(o.ID);
+			if (landuse.indexOf(o.Landuse) < 0) {
+				return;
 			}
+
+			if (Array.isArray(o.Measurements)) {
+				o.Measurements.forEach(m => measurements.add(m));
+			}
+			stations.add(o.ID);
 		});
 
 		return {measurements, stations};
