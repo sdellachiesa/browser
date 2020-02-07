@@ -77,14 +77,9 @@ func (d *Datastore) init() error {
 		}
 
 		q := ql.ShowTagValues().From(rule.ACL.Measurements...).WithKeyIn("snipeit_location_ref").Where(where)
-		query, _ := q.Query()
-
-		resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
+		resp, err := d.exec(q)
 		if err != nil {
 			return err
-		}
-		if resp.Error() != nil {
-			return fmt.Errorf("%v", resp.Error())
 		}
 
 		stations, err := d.stations(rule.ACL.Stations...)
@@ -110,6 +105,21 @@ func (d *Datastore) init() error {
 	}
 
 	return nil
+}
+
+// exec executes the given ql querie and returns a response.
+func (d *Datastore) exec(q ql.Querier) (*client.Response, error) {
+	query, _ := q.Query()
+
+	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
+	if err != nil {
+		return nil, err
+	}
+	if resp.Error() != nil {
+		return nil, fmt.Errorf("%v", resp.Error())
+	}
+
+	return resp, nil
 }
 
 func (d *Datastore) Get(role auth.Role) Stations {
@@ -172,15 +182,12 @@ func (d *Datastore) seriesQuery(req *request) ql.Querier {
 }
 
 func (d *Datastore) units(req *request, h []string) ([]string, error) {
-	q := ql.ShowTagValues().From(req.measurements...).WithKeyIn("unit").Where(ql.TimeRange(req.start, req.end))
-	query, _ := q.Query()
+	units := make([]string, len(h))
 
-	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
+	q := ql.ShowTagValues().From(req.measurements...).WithKeyIn("unit").Where(ql.TimeRange(req.start, req.end))
+	resp, err := d.exec(q)
 	if err != nil {
-		return []string{}, err
-	}
-	if resp.Error() != nil {
-		return []string{}, fmt.Errorf("%v", resp.Error())
+		return units, err
 	}
 
 	m := make(map[string]string)
@@ -192,7 +199,6 @@ func (d *Datastore) units(req *request, h []string) ([]string, error) {
 		}
 	}
 
-	units := make([]string, len(h))
 	var ok bool
 	for i, v := range h {
 		units[i], ok = m[v]
@@ -228,15 +234,9 @@ func (k key) Next(d time.Duration) key {
 func (d *Datastore) Series(ctx context.Context, req *request) ([][]string, error) {
 	d.access.Filter(ctx, req)
 
-	query, _ := d.seriesQuery(req).Query()
-	log.Println(query)
-
-	resp, err := d.influx.Query(client.NewQuery(query, d.database, ""))
+	resp, err := d.exec(d.seriesQuery(req))
 	if err != nil {
 		return nil, err
-	}
-	if resp.Error() != nil {
-		return nil, fmt.Errorf("%v", resp.Error())
 	}
 
 	var (
