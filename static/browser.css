@@ -20,7 +20,7 @@ body {
 .page {
 	padding: 0 15px 15px 15px;
 	font-size: 1.1em;
-	line-height: 1.5;
+	line-height: 1.5em;
 }
 
 .page>h1 {
@@ -34,7 +34,7 @@ body {
 }
 
 #map, .content {
-    min-height: 850px;
+	min-height: 850px;
 }
 
 #dlMapArea a {
@@ -71,19 +71,34 @@ body {
 }
 
 .navbar-header > h1 {
-	margin: 0;
-	padding: 26px 10px 0 10px;
-	font-size: 1.4em;
+	margin: 30px 5px 0 0;
+	font-size: 1.2em;
 	color: rgb(119, 119, 119);
-	font-weight: normal;
+	float: right;
 }
 
 .nav {
-    padding: 10px 0 10px 0;
+	margin: 0;
+	padding: 12px 0 0 0;
+}
+
+.navbar {
+	min-height: 72px;
+	padding: 0;
+	margin: 0;
+}
+
+.navbar-brand {
+	margin: 0;
+	padding: 5px 10px  0 10px;
+	height: auto;
 }
 
 .navbar-brand>img {
-    height: 45px;
+	margin: 0;
+	padding: 0;
+    	height: 60px;
+    	float: left;
 }
 
 .navbar-nav>li {
@@ -142,11 +157,10 @@ body {
 }
 
 .shadow {
-	box-shadow: 10px 0 10px -2px rgba(0, 0, 0, 0.2);
-	padding: 0;
+	border-right: 1px solid #ccc;
+	padding: 20px 0 0 0;
 	z-index:1000;
 }
-
 
 .bs-callout {
     padding: 20px;
@@ -160,22 +174,23 @@ body {
     border-left-color: #aa6708;
 }
 
-@media (max-width: 768px){
+@media (max-width: 1100){
 	#map, .content {
 		min-height: 1000px;
 	}
 
+	.navbar {
+		min-height: 50px;
+	}
+
 	.navbar-header > h1 {
-		display: none;
+		margin: 20px 0 0 0;
+		padding: 0;
+		float: left;
 	}
 
 	.navbar-brand > img {
-		height: 25px;
+		height: 40px;
 	}
 }
 
-@media (max-width: 1700px){
-	.navbar-header > h1 {
-		display: none;
-	}
-}

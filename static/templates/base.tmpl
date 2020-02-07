@@ -20,17 +20,15 @@
 
 	{{block "content" . }}
 	{{ $lang := .Language}}
+	{{block "nav" .}}Navigation{{end}}
 	<div class="container-fluid layout">
 		<div class="row">
-			<div class="col-md-5 shadow content">
-				{{block "nav" .}}Navigation{{end}}
-
-
+			<div class="col-lg-5 shadow content">
 				<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
 					<input type="hidden" name="token" value="{{.Token}}">
 					<div class="container-fluid filter">
 						<div class="row">
-							<div class="col-md-4">
+							<div class="col-lg-4">
 								<div class="form-group">
 									<label for="measurements">{{T "Select measurement:" $lang}}</label>
 									<select multiple class="form-control" id="measurements" name="measurements">
@@ -44,7 +42,7 @@
 									</select>
 								</div>
 							</div>
-							<div class="col-md-4">
+							<div class="col-lg-4">
 								<div class="form-group">
 									<label for="stations">{{T "Select station:" $lang}}</label>
 									<select multiple class="form-control" id="stations" name="stations">
@@ -54,7 +52,7 @@
 									</select>
 								</div>
 							</div>
-							<div class="col-md-4">
+							<div class="col-lg-4">
 								<div class="form-group">
 									<label for="landuse">{{T "Select land use:" $lang}}</label>
 										<select multiple class="form-control" id="landuse" name="landuse">
@@ -66,7 +64,7 @@
 							</div>
 						</div>
 						<div class="row">
-							<div class="col-md-6">
+							<div class="col-lg-6">
 								<div class="form-group" id="timerange">
 									<label for="dateRange">{{T "Pick a date range:" $lang}}</label>
 									<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Empty dates are not allowed." $lang}}</div>" data-trigger="manual" data-placement="top">
@@ -76,7 +74,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="col-md-6">
+							<div class="col-lg-6">
 								<div class="form-group">
 									<label for="altitude">{{T "Select altitude range[m]:" $lang}}</label>
 									<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
@@ -84,7 +82,7 @@
 							</div>
 						</div>
 						<div class="row">
-							<div class="col-md-12">
+							<div class="col-lg-12">
 								<br>
 								<div class="tooltip-wrapper nostrike disabled" data-title="{{T "Please select at least one measurement and station." $lang}}">
 									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">{{T "Download CSV" $lang}}</button> &nbsp;
@@ -147,7 +145,7 @@
 
 				<div class="bottom"><a href="http://www.eurac.edu" target="_blank"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a></div>
 			</div>
-			<div class="col-md-7" id="map"></div>
+			<div class="col-lg-7" id="map"></div>
 		</div>
 	</div>
 
