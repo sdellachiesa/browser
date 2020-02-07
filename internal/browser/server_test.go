@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 	"text/template"
 	"time"
+
+	"golang.org/x/net/xsrftoken"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 )
@@ -34,36 +37,39 @@ func TestHandleSeries(t *testing.T) {
 	s, err := NewServer(func(s *Server) {
 		s.basePath = "../../static"
 		s.db = &testBackend{}
+		s.key = "testing"
 	})
 	if err != nil {
 		t.Fatalf("NewServer: %v", err)
 	}
+	token := xsrftoken.Generate(s.key, "", "/api/v1/")
 
 	testCases := []struct {
 		method          string
 		statusCode      int
 		respContentType string
-		reqBody         []byte
+		reqBody         string
 		respBody        []byte
 	}{
-		{http.MethodGet, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodPut, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodHead, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodPatch, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodDelete, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodOptions, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", nil, nil},
-		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", []byte(``), nil},
-		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", []byte(`startDate=2019-07-23`), nil},
-		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1`), nil},
-		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", []byte(`startDate=2019-07-23&endDate=2020-01-23&measurements=a`), nil},
-		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", []byte(`startDate=2019-07-23&endDate=2020-01-23&landuse=a`), nil},
-		{http.MethodPost, http.StatusOK, "text/csv", []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a`), []byte("\"test,series\"\n")},
-		{http.MethodPost, http.StatusOK, "text/csv", []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me`), []byte("\"test,series\"\n")},
+		{http.MethodGet, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
+		{http.MethodPut, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
+		{http.MethodHead, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
+		{http.MethodPatch, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
+		{http.MethodDelete, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
+		{http.MethodOptions, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
+		{http.MethodPost, http.StatusForbidden, "text/plain; charset=utf-8", "", nil},
+		{http.MethodPost, http.StatusForbidden, "text/plain; charset=utf-8", "", nil},
+		{http.MethodPost, http.StatusForbidden, "text/plain; charset=utf-8", "token=bla", nil},
+		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&token=" + token, nil},
+		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&stations=1&token=" + token, nil},
+		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&measurements=a&token=" + token, nil},
+		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&landuse=a&token=" + token, nil},
+		{http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&token=" + token, []byte("\"test,series\"\n")},
+		{http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&token="+token, []byte("\"test,series\"\n")},
 	}
 
 	for _, tc := range testCases {
-		req := httptest.NewRequest(tc.method, "/api/v1/series", bytes.NewReader(tc.reqBody))
+		req := httptest.NewRequest(tc.method, "/api/v1/series", strings.NewReader(tc.reqBody))
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 		w := httptest.NewRecorder()
