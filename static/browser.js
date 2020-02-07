@@ -11,7 +11,7 @@
 //	eDateEl - end date element
 //	submitEl - submit button element
 //	codeEl - code button element
-//     catchmentEl - download link for catchment shape files
+//     dlMapAreaEl - area for download links on the map
 //	mapEl - map element
 function browser(opts) {
 	const mapMarkers = {};
@@ -86,21 +86,21 @@ function browser(opts) {
 
 		map.fitBounds(catchment.getBounds());
 
-		L.Control.Catchment = L.Control.extend({
+		L.Control.DownloadArea = L.Control.extend({
 			onAdd: function(map) {
 				const div = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control-layers-expanded');
-				div.appendChild(document.getElementById(opts.catchmentEl));
+				div.appendChild(document.getElementById(opts.dlMapAreaEl));
 				return div;
 			},
 
 			onRemove: function(map) {},
 		});
 
-		L.control.catchment = function(opts) {
-			return new L.Control.Catchment(opts);
+		L.control.downloadArea = function(opts) {
+			return new L.Control.DownloadArea(opts);
 		}
 
-		L.control.catchment({position: 'bottomleft'}).addTo(map);
+		L.control.downloadArea({position: 'topright'}).addTo(map);
 		L.control.scale({position: "bottomright"}).addTo(map);
 		L.control.zoom({position: "bottomright"}).addTo(map);
 	}

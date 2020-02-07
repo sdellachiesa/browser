@@ -153,7 +153,9 @@
 	</div>
 
 	<div style="display:none">
-		<a id="dlcatchment" class="dl-catchment" href="/static/dl/LTER_IT25_Mazia_Matsch_Catchment.zip">{{T "Download Catchment" $lang}}</a>
+		<div id="dlMapArea">
+			<a href="/static/dl/LTER_IT25_Mazia_Matsch_Catchment.zip">{{T "Download Catchment" $lang}}</a>
+		</div>
 
 		{{ range .Data -}}
 		<div id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Altitude}}m" class="mapPopup">
@@ -188,7 +190,7 @@
 				'eDateEl':			'#endDate',
 				'submitEl':			'#submit',
 				'codeEl':			'#codeBtn',
-				'catchmentEl':		'dlcatchment',
+				'dlMapAreaEl':		'dlMapArea',
 				'mapEl':			'map',
 				'data':			JSON.parse('{{.Data}}'),
 			});
