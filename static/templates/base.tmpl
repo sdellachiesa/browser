@@ -27,6 +27,7 @@
 
 
 				<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
+					<input type="hidden" name="token" value="{{.Token}}">
 					<div class="container-fluid filter">
 						<div class="row">
 							<div class="col-md-4">

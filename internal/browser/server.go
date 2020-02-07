@@ -3,6 +3,7 @@ package browser
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -15,6 +16,7 @@ import (
 	text "text/template"
 	"time"
 
+	"golang.org/x/net/xsrftoken"
 	"golang.org/x/text/language"
 	"gopkg.in/russross/blackfriday.v2"
 
@@ -34,6 +36,8 @@ type Backend interface {
 // Server represents an HTTP server for serving the LTER Browser
 // application.
 type Server struct {
+	// key to prevent request forgery; static for server's lifetime.
+	key      string
 	basePath string
 	mux      *http.ServeMux
 
@@ -72,6 +76,12 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.db == nil {
 		return nil, fmt.Errorf("must provide and option func that specifies a Backend")
 	}
+
+	key, err := generateKey()
+	if err != nil {
+		return nil, err
+	}
+	s.key = key
 
 	s.matcher = language.NewMatcher([]language.Tag{
 		language.English, // The first language is used as fallback.
@@ -192,6 +202,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Role            auth.Role
 		Language        string
 		Path            string
+		Token           string
 	}{
 		s.db.Get(role),
 		time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
@@ -200,6 +211,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		role,
 		tag.String(),
 		r.URL.Path,
+		xsrftoken.Generate(s.key, "", "/api/v1/"),
 	})
 	if err != nil {
 		err = fmt.Errorf("handleIndex: error in executing template: %v", err)
@@ -279,6 +291,11 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !xsrftoken.Valid(r.FormValue("token"), s.key, "", "/api/v1/") {
+		http.Error(w, "Invalid XSRF token", http.StatusForbidden)
+		return
+	}
+
 	req, err := parseForm(r)
 	if err != nil {
 		err = fmt.Errorf("handleSeries: error in decoding or validating data: %v", err)
@@ -350,6 +367,26 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 		reportError(w, r, err)
 		return
 	}
+}
+
+func (s *Server) translate(key, lang string) string {
+	j, err := static.File(filepath.Join(s.basePath, "locale", fmt.Sprintf("%s.json", lang)))
+	if err != nil {
+		return key
+	}
+
+	var m map[string]string
+	if err := json.Unmarshal([]byte(j), &m); err != nil {
+		log.Printf("translation: %v\n", err)
+		return key
+	}
+
+	v, ok := m[key]
+	if !ok {
+		return key
+	}
+
+	return v
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -460,22 +497,11 @@ func reportError(w http.ResponseWriter, r *http.Request, err error) {
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func (s *Server) translate(key, lang string) string {
-	j, err := static.File(filepath.Join(s.basePath, "locale", fmt.Sprintf("%s.json", lang)))
+func generateKey() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
 	if err != nil {
-		return key
+		return "", err
 	}
-
-	var m map[string]string
-	if err := json.Unmarshal([]byte(j), &m); err != nil {
-		log.Printf("translation: %v\n", err)
-		return key
-	}
-
-	v, ok := m[key]
-	if !ok {
-		return key
-	}
-
-	return v
+	return fmt.Sprintf("%x", b), nil
 }
