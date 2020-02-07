@@ -5,6 +5,8 @@ ENV BUILD_DIR /tmp/browser
 ADD . ${BUILD_DIR}
 WORKDIR ${BUILD_DIR}
 
+ENV GONOPROXY="gitlab.inf.unibz.it"
+ENV GONOSUMDB="gitlab.inf.unibz.it"
 RUN go generate gitlab.inf.unibz.it/lter/browser/static
 RUN CGO_ENABLED=0 GOOS=linux go build -o browser cmd/browser/main.go
 
