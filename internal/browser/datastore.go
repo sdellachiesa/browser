@@ -31,8 +31,8 @@ type Authorizer interface {
 	Rule(name string) *Rule
 }
 
-// Datastore denotes a backend which is composed of SnipeIT
-// and InfluxDB.
+// Datastore implements the Backend interface and talks to InfluxDB
+// and SnipeIT and handles all data authorization.
 type Datastore struct {
 	snipeit *snipeit.Client
 
@@ -45,7 +45,8 @@ type Datastore struct {
 	cache map[string]Stations
 }
 
-// NewDatastore returns a new datastore and populates its cache.
+// NewDatastore returns a new datastore, initializes it's cache and
+// keeps updating the cache every 12*time.Hour.
 func NewDatastore(s *snipeit.Client, i client.Client, database string, acl Authorizer) (*Datastore, error) {
 	d := &Datastore{
 		snipeit:  s,
@@ -55,16 +56,21 @@ func NewDatastore(s *snipeit.Client, i client.Client, database string, acl Autho
 		cache:    make(map[string]Stations),
 	}
 
-	if err := d.init(); err != nil {
+	if err := d.loadCache(); err != nil {
 		return nil, err
 	}
+
+	go d.refreshCache(12*time.Hour)
 
 	return d, nil
 }
 
-// init initializes the cache for each ACL rule due to dhe slow "SHOW
-// TAG VALUES" queries on large datasets.
-func (d *Datastore) init() error {
+// loadCache initializes the datastore's cache for each ACL rule due
+// to dhe slow "SHOW TAG VALUES" queries on large datasets inside
+// InfluxDB.
+func (d *Datastore) loadCache() error {
+	cache := make(map[string]Stations)
+
 	for _, n := range d.access.Names() {
 		rule := d.access.Rule(n)
 
@@ -86,6 +92,7 @@ func (d *Datastore) init() error {
 		if err != nil {
 			return err
 		}
+
 		for _, result := range resp.Results {
 			for _, s := range result.Series {
 				for _, v := range s.Values {
@@ -101,10 +108,24 @@ func (d *Datastore) init() error {
 			}
 		}
 
-		d.cache[rule.Name] = stations.WithMeasurements()
+		cache[rule.Name] = stations.WithMeasurements()
 	}
 
+	d.mu.Lock()
+	d.cache = cache
+	d.mu.Unlock()
+
 	return nil
+}
+
+// refreshCache refreshes the server cache on the given interval.
+func (d *Datastore) refreshCache(i time.Duration) {
+	for {
+		if err:= d.loadCache(); err != nil {
+			log.Println(err)
+		}
+		time.Sleep(i)
+	}
 }
 
 // exec executes the given ql querie and returns a response.
