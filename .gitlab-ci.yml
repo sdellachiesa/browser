@@ -15,6 +15,9 @@ testing:
   stage: testing
   image: ${DOCKER_TESTER_IMAGE}
   script:
+    - export GONOPROXY="gitlab.inf.unibz.it"
+    - export GONOSUMDB="gitlab.inf.unibz.it"
+    - go env
     - cd ${CI_PROJECT_DIR}
     - go test gitlab.inf.unibz.it/lter/browser/...
   only:
