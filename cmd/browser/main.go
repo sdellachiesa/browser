@@ -154,6 +154,5 @@ func redirectHandler() http.Handler {
 		w.Header().Set("Connection", "close")
 		url := "https://" + r.Host + r.URL.String()
 		http.Redirect(w, r, url, http.StatusMovedPermanently)
-		return
 	})
 }
