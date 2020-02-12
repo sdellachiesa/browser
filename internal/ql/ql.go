@@ -101,9 +101,9 @@ type Operator string
 
 const (
 	EQ      Operator = "="
-	NEQ              = "!="
-	MATCH            = "=~"
-	NOMATCH          = "!~"
+	NEQ     Operator = "!="
+	MATCH   Operator = "=~"
+	NOMATCH Operator = "!~"
 )
 
 // ShowTagValuesBuilder is a builder for a 'SHOW TAG VALUES' query.
