@@ -65,7 +65,7 @@ func TestHandleSeries(t *testing.T) {
 		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&measurements=a&token=" + token, nil},
 		{http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&landuse=a&token=" + token, nil},
 		{http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&token=" + token, []byte("\"test,series\"\n")},
-		{http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&token="+token, []byte("\"test,series\"\n")},
+		{http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&token=" + token, []byte("\"test,series\"\n")},
 	}
 
 	for _, tc := range testCases {
@@ -166,7 +166,7 @@ func TestHandleTemplate(t *testing.T) {
 			}
 
 			if !bytes.Equal(b, want.Bytes()) {
-				t.Errorf("got unexpected body: %s; want %s", string(b), string(want.Bytes()))
+				t.Errorf("got unexpected body: %s; want %s", string(b), want.String())
 			}
 		}
 	}

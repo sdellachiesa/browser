@@ -9,8 +9,6 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 )
 
-var testAccess Access
-
 func TestEnforce(t *testing.T) {
 	testCases := []struct {
 		index   string

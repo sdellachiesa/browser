@@ -60,7 +60,7 @@ func NewDatastore(s *snipeit.Client, i client.Client, database string, acl Autho
 		return nil, err
 	}
 
-	go d.refreshCache(12*time.Hour)
+	go d.refreshCache(12 * time.Hour)
 
 	return d, nil
 }
@@ -121,7 +121,7 @@ func (d *Datastore) loadCache() error {
 // refreshCache refreshes the server cache on the given interval.
 func (d *Datastore) refreshCache(i time.Duration) {
 	for {
-		if err:= d.loadCache(); err != nil {
+		if err := d.loadCache(); err != nil {
 			log.Println(err)
 		}
 		time.Sleep(i)
@@ -220,12 +220,13 @@ func (d *Datastore) units(req *request, h []string) ([]string, error) {
 		}
 	}
 
-	var ok bool
 	for i, v := range h {
-		units[i], ok = m[v]
+		u, ok := m[v]
 		if !ok {
 			continue
 		}
+
+		units[i] = u
 	}
 
 	return units, nil
@@ -405,7 +406,7 @@ func (d *Datastore) stations(ids ...string) (Stations, error) {
 }
 
 func inArray(s string, a []string) bool {
-	if a == nil || len(a) == 0 {
+	if len(a) == 0 {
 		return true
 	}
 

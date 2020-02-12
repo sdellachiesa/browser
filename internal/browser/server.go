@@ -133,10 +133,7 @@ func (s *Server) parseTemplate() error {
 	funcMap := template.FuncMap{
 		"T": s.translate,
 		"Last": func(i, l int) bool {
-			if i < (l - 1) {
-				return false
-			}
-			return true
+			return i == (l - 1)
 		},
 	}
 	s.html.index, err = template.New("base").Funcs(funcMap).Parse(base)

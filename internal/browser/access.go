@@ -38,6 +38,10 @@ var defaultRule = &Rule{
 // ErrNoRuleFound means that no rule was found for the given name.
 var ErrNoRuleFound = errors.New("access: no rule found")
 
+// identifier is a regular expression used for checking if a given
+// user input is a valid influx identifier.
+var identifier = regexp.MustCompile(`^\w+$`)
+
 // Access represents a parsed JSON Access file, which is composed of
 // several rules. An access rule has a unique name and an access list
 // for controling the access to sepcific fields of the data. These
@@ -103,12 +107,11 @@ func (a *Access) enforce(input, allowed []string) []string {
 
 	var c []string
 	for _, v := range input {
-		ok, err := regexp.MatchString(`^\w+$`, v)
-		if err != nil || !ok {
+		if ok := identifier.MatchString(v); !ok {
 			continue
 		}
 
-		_, ok = m[v]
+		_, ok := m[v]
 		if !ok && len(m) > 0 {
 			continue
 		}
