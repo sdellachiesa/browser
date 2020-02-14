@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/net/xsrftoken"
+	"golang.org/x/text/language"
+	"gopkg.in/russross/blackfriday.v2"
 	"html/template"
 	"log"
 	"net/http"
@@ -15,10 +18,6 @@ import (
 	"path/filepath"
 	text "text/template"
 	"time"
-
-	"golang.org/x/net/xsrftoken"
-	"golang.org/x/text/language"
-	"gopkg.in/russross/blackfriday.v2"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/static"
@@ -37,9 +36,8 @@ type Backend interface {
 // application.
 type Server struct {
 	// key to prevent request forgery; static for server's lifetime.
-	key      string
-	basePath string
-	mux      *http.ServeMux
+	key string
+	mux *http.ServeMux
 
 	html struct {
 		index, page *template.Template
@@ -61,8 +59,7 @@ type Server struct {
 // server.
 func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
-		basePath: "static",
-		mux:      http.NewServeMux(),
+		mux: http.NewServeMux(),
 	}
 
 	for _, option := range options {
@@ -92,7 +89,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.mux.HandleFunc("/", s.handleIndex)
 	s.mux.HandleFunc("/p/", s.handlePage)
 	s.mux.HandleFunc("/l/", s.handleLanguage)
-	s.mux.HandleFunc("/static/", static.ServeContent(".tmpl", ".html"))
+	s.mux.HandleFunc("/static/", static.ServeContent)
 
 	s.mux.HandleFunc("/api/v1/series", s.handleSeries)
 	s.mux.HandleFunc("/api/v1/template", grantAccessTo(s.handleTemplate, auth.FullAccess))
@@ -120,67 +117,35 @@ func WithInfluxDB(db string) Option {
 }
 
 func (s *Server) parseTemplate() error {
-	base, err := static.File(filepath.Join(s.basePath, "templates", "base.tmpl"))
-	if err != nil {
-		return err
-	}
-
-	nav, err := static.File(filepath.Join(s.basePath, "templates", "nav.tmpl"))
-	if err != nil {
-		return err
-	}
-
 	funcMap := template.FuncMap{
 		"T": s.translate,
 		"Last": func(i, l int) bool {
 			return i == (l - 1)
 		},
 	}
-	s.html.index, err = template.New("base").Funcs(funcMap).Parse(base)
-	if err != nil {
-		return err
-	}
-	s.html.index, err = s.html.index.Parse(nav)
+
+	var err error
+	s.html.index, err = static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "base.tmpl", "nav.tmpl")
 	if err != nil {
 		return err
 	}
 
-	page, err := static.File(filepath.Join(s.basePath, "templates", "page.tmpl"))
+	s.html.page, err = static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "base.tmpl", "page.tmpl", "nav.tmpl")
 	if err != nil {
 		return err
 	}
 
-	s.html.page, err = template.New("base").Funcs(funcMap).Parse(base)
-	if err != nil {
-		return err
-	}
-	s.html.page, err = s.html.page.Parse(page)
+	s.text.python, err = static.ParseTextTemplates(nil, "python.tmpl")
 	if err != nil {
 		return err
 	}
 
-	s.html.page, err = s.html.page.Parse(nav)
+	s.text.rlang, err = static.ParseTextTemplates(nil, "r.tmpl")
 	if err != nil {
 		return err
 	}
 
-	python, err := static.File(filepath.Join(s.basePath, "templates", "python.tmpl"))
-	if err != nil {
-		return err
-	}
-
-	s.text.python, err = text.New("python").Parse(python)
-	if err != nil {
-		return err
-	}
-
-	rlang, err := static.File(filepath.Join(s.basePath, "templates", "r.tmpl"))
-	if err != nil {
-		return err
-	}
-	s.text.rlang, err = text.New("r").Parse(rlang)
-
-	return err
+	return nil
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -226,8 +191,9 @@ func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		role = auth.Public
 	}
+
 	lang := s.language(r)
-	p, err := static.File(filepath.Join(s.basePath, "pages", lang, filepath.Base(r.URL.Path)))
+	p, err := static.File(filepath.Join("pages", lang, filepath.Base(r.URL.Path)))
 	if err != nil {
 		http.Error(w, "page not found", http.StatusNotFound)
 		return
@@ -364,7 +330,7 @@ func (s *Server) handleTemplate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) translate(key, lang string) string {
-	j, err := static.File(filepath.Join(s.basePath, "locale", fmt.Sprintf("%s.json", lang)))
+	j, err := static.File(filepath.Join("locale", fmt.Sprintf("%s.json", lang)))
 	if err != nil {
 		return key
 	}

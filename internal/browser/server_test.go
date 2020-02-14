@@ -35,7 +35,6 @@ func (tb *testBackend) Query(ctx context.Context, req *request) string {
 
 func TestHandleSeries(t *testing.T) {
 	s, err := NewServer(func(s *Server) {
-		s.basePath = "../../static"
 		s.db = &testBackend{}
 		s.key = "testing"
 	})
@@ -100,7 +99,6 @@ func TestHandleSeries(t *testing.T) {
 
 func TestHandleTemplate(t *testing.T) {
 	s, err := NewServer(func(s *Server) {
-		s.basePath = "../../static"
 		s.db = &testBackend{}
 		s.database = "testDB"
 	})
