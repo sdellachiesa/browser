@@ -184,7 +184,6 @@ func (s *Server) parseTemplate() error {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	tag, _ := language.MatchStrings(s.matcher, langFromCookie(r), r.Header.Get("Accept-Language"))
 
 	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
@@ -206,7 +205,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		time.Now().Format("2006-01-02"),
 		auth.IsAuthenticated(r),
 		role,
-		tag.String(),
+		s.language(r),
 		r.URL.Path,
 		xsrftoken.Generate(s.key, "", "/api/v1/"),
 	})
@@ -223,14 +222,12 @@ func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tag, _ := language.MatchStrings(s.matcher, langFromCookie(r), r.Header.Get("Accept-Language"))
-
 	role, ok := r.Context().Value(auth.JWTClaimsContextKey).(auth.Role)
 	if !ok {
 		role = auth.Public
 	}
-
-	p, err := static.File(filepath.Join(s.basePath, "pages", tag.String(), filepath.Base(r.URL.Path)))
+	lang := s.language(r)
+	p, err := static.File(filepath.Join(s.basePath, "pages", lang, filepath.Base(r.URL.Path)))
 	if err != nil {
 		http.Error(w, "page not found", http.StatusNotFound)
 		return
@@ -245,7 +242,7 @@ func (s *Server) handlePage(w http.ResponseWriter, r *http.Request) {
 	}{
 		auth.IsAuthenticated(r),
 		role,
-		tag.String(),
+		lang,
 		template.HTML(blackfriday.Run([]byte(p))),
 		r.URL.Path,
 	}); err != nil {
@@ -384,6 +381,16 @@ func (s *Server) translate(key, lang string) string {
 	}
 
 	return v
+}
+
+func (s *Server) language(r *http.Request) string {
+	tag, _ := language.MatchStrings(s.matcher, langFromCookie(r), r.Header.Get("Accept-Language"))
+
+	if !validLanguage(tag.String()) {
+		return "en"
+	}
+
+	return tag.String()
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
