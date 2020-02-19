@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 	<head>
@@ -40,6 +39,11 @@
 											{{end -}}
 										{{- end -}}
 									</select>
+									{{if eq $.Role "FullAccess" -}}
+									<div class="showHide">
+										<input type="checkbox" name="showStd" id="showStd"> Show standard deviations
+									</div>
+									{{end}}
 								</div>
 							</div>
 							<div class="col-lg-4">

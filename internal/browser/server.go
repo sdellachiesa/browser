@@ -8,16 +8,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/net/xsrftoken"
-	"golang.org/x/text/language"
-	"gopkg.in/russross/blackfriday.v2"
 	"html/template"
 	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strings"
 	text "text/template"
 	"time"
+
+	"golang.org/x/net/xsrftoken"
+	"golang.org/x/text/language"
+	"gopkg.in/russross/blackfriday.v2"
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/static"
@@ -118,7 +120,8 @@ func WithInfluxDB(db string) Option {
 
 func (s *Server) parseTemplate() error {
 	funcMap := template.FuncMap{
-		"T": s.translate,
+		"T":         s.translate,
+		"HasSuffix": strings.HasSuffix,
 		"Last": func(i, l int) bool {
 			return i == (l - 1)
 		},

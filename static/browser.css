@@ -162,6 +162,11 @@ body {
 	z-index:1000;
 }
 
+.showHide {
+	padding: 2px;
+	font-size: 0.8em;
+}
+
 .bs-callout {
     padding: 20px;
     margin: 20px 0;

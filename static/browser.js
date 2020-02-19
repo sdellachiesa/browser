@@ -329,8 +329,24 @@ function browser(opts) {
 		toggleMapMarkers();
 	}
 
-	// Initialize UI elements
+	let stdOptions = [];
 
+	function hideStdOptions() {
+		stdOptions = [];
+		$(opts.measurementEl).children('option').map(function() {
+			let el = $(this);
+			let v = el.val();
+
+			if (v.endsWith("_std")) {
+				stdOptions.push(el.remove());
+			}
+		});
+	}
+
+	// Hide all standard deviations.
+	hideStdOptions();
+
+	// Initialize UI elements
 	$(opts.measurementEl).multiselect({
 		maxHeight: 400,
 		buttonWidth: "100%",
@@ -340,7 +356,6 @@ function browser(opts) {
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-
 			handleUpdateMeasurement();
 		},
 		onSelectAll: function() {
@@ -349,6 +364,26 @@ function browser(opts) {
 		onDeselectAll: function() {
 			handleUpdateMeasurement();
 		},
+	});
+
+	$('#showStd').on('change', function() {
+		if (this.checked) {
+			stdOptions.forEach(function(o) {
+				$(opts.measurementEl).append(o);
+			});
+
+			const options = $("#measurements option");
+			options.detach().sort(function(a,b) {
+   				let at = $(a).text();
+    				let bt = $(b).text();
+    				return (at > bt)?1:((at < bt)?-1:0);
+			});
+			options.appendTo(opts.measurementEl);
+		} else {
+			hideStdOptions();
+		}
+		$(opts.measurementEl).multiselect("rebuild");
+		handleUpdateStation();
 	});
 
 	$(opts.stationEl).multiselect({
