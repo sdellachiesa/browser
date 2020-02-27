@@ -66,7 +66,7 @@ function browser(opts) {
 		const catchment = L.polygon(points, {color: '#3388ff', fillColor: '#000000', fillOpacity: 0.2}).addTo(map);
 
 		// Add map layers.
-		L.control.layers(basemap, {}, {'collapsed': false}).addTo(map)
+		L.control.layers(basemap, {}, {'collapsed': false, position: 'topleft'}).addTo(map)
 
 		Object.keys(opts.data).map(function(k) {
 			let item = opts.data[k];
@@ -77,7 +77,7 @@ function browser(opts) {
 			marker.bindPopup(c, {
 			autoPan: true,
 			keepInView: true,
-			maxWidth: 600});
+			maxWidth: 400});
 
 			marker.bindTooltip(c.getAttribute("data-name"))
 
@@ -100,9 +100,17 @@ function browser(opts) {
 			return new L.Control.DownloadArea(opts);
 		}
 
-		L.control.downloadArea({position: 'topright'}).addTo(map);
-		L.control.scale({position: "bottomright"}).addTo(map);
-		L.control.zoom({position: "bottomright"}).addTo(map);
+		L.control.downloadArea({position: 'topleft'}).addTo(map);
+		//L.control.attribution({position: 'topright'}).addTo(map);
+		L.control.zoom({position: "topright"}).addTo(map);
+		L.control.scale({position: "topright"}).addTo(map);
+
+		map.on('popupopen', function(e) {
+			$(".leaflet-control").hide();
+		});
+		map.on('popupclose', function(e) {
+			$(".leaflet-control").show();
+		});
 	}
 
 	// isValidDateRange checks if the selected date range is valid and

@@ -33,10 +33,6 @@ body {
 	word-wrap: break-word;
 }
 
-#map, .content {
-	min-height: 850px;
-}
-
 #dlMapArea a {
 	font-weight: bold;
 	color: #333;
@@ -45,6 +41,10 @@ body {
 #dlMapArea a:hover {
 	text-decoration: none;
 	color: #000;
+}
+
+#map {
+	z-index: 1;
 }
 
 .mapPopup {
@@ -156,10 +156,9 @@ body {
 	text-decoration: none;
 }
 
-.shadow {
+.border {
 	border-right: 1px solid #ccc;
 	padding: 20px 0 0 0;
-	z-index:1000;
 }
 
 .showHide {
@@ -198,4 +197,17 @@ body {
 		height: 40px;
 	}
 }
+
+@media (max-width: 1200px) {
+	#map, .content {
+		min-height: 900px;
+	}
+}
+
+@media (max-width: 600px) {
+	#map, .content {
+		min-height: 1100px;
+	}
+}
+
 
