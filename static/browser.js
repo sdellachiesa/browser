@@ -44,7 +44,7 @@ function browser(opts) {
 		const map = L.map(opts.mapEl, {zoomControl: false}).setView([46.69765764825818, 10.638368502259254], 13);
 
 		const basemap = {
-		"Orthophotos South Tyrol (2014/2015/2017)": L.tileLayer.wms('http://geoservices.retecivica.bz.it/geoserver/ows?', {
+		"Orthophotos South Tyrol (2014/2015/2017)": L.tileLayer.wms('https://geoservices.retecivica.bz.it/geoserver/ows?', {
 			layers: 'P_BZ_OF_2014_2015_2017',
 			attribution: 'Map data &copy; <a href="http://geoportal.buergernetz.bz.it/geodaten.asp">Geoportal Südtirol</a>, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC-0</a>'
 		}).addTo(map),
