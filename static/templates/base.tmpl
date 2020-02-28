@@ -18,7 +18,7 @@
 		<script src="/static/third_party/cookies-eu-banner/js/cookies-eu-banner.js"></script>
 	</head>
 	<body>
-	
+
 	<div id="cookies-eu-banner" style="display: none;">
     {{T "Eu banner" .Language}}
     <a href="http://privacy.eurac.edu" id="cookies-eu-more">{{T "Eu banner Read more" .Language}}</a>
@@ -193,6 +193,23 @@
 		{{ end -}}
 	</div>
 
+	<div class="modal fade" tabindex="-1" role="dialog" id="registerModal">
+  		<div class="modal-dialog" role="document">
+    			<div class="modal-content">
+      				<div class="modal-header">
+        					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        					<h4 class="modal-title">{{ T "Register" .Language}}</h4>
+      				</div>
+      				<div class="modal-body">
+        					<p class="page">{{ T "To get full data access please write a short introduction of yourself and your data usage intend to:" .Language}} <a href="mailto:alpine.environment@eurac.edu">alpine.environment@eurac.edu</a></p>
+      				</div>
+      				<div class="modal-footer">
+        					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      				</div>
+    			</div><!-- /.modal-content -->
+ 	 	</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
 	<script src="/static/third_party/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
 	<script src="/static/third_party/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 	<script src="/static/third_party/ion-rangeslider/ion.rangeSlider.min.js"></script>
@@ -214,7 +231,7 @@
 				'mapEl':			'map',
 				'data':			JSON.parse('{{.Data}}'),
 			});
-		
+
 
 			{{if $.AnalyticsCode}}
 			new CookiesEuBanner(function () {
@@ -228,10 +245,10 @@
           		function gtag(){dataLayer.push(arguments);}
           		gtag('js', new Date());
 
-				// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features  
+				// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
 				gtag('set', 'allow_ad_personalization_signals', false);
 				gtag('config', '{{$.AnalyticsCode}}');
-				
+
 
 				var measurements = $( "#measurements");
 				var stations = $( "#stations");
@@ -240,7 +257,7 @@
 				var endDate = $( "#endDate");
 				var altitude = $( "#altitude");
 
-				
+
 
 				$( "#filters" ).submit(function( event ) {
 
@@ -257,8 +274,8 @@
 					'event_category' : 'search',
 					'event_label' : JSON.stringify(obj)
 					});
-               
-			   
+
+
             	});
 
 			}, true, true);

@@ -31,7 +31,7 @@
 				{{- if .IsAuthenticated -}}
 				<li><a href="/auth/azure/logout">{{T "Logout" .Language}}</a></li>
 				{{- else -}}
-				<li><a href="mailto:alpine.environment@eurac.edu?subject=LTSER: Request for full data access&body=Please introduce yourself and your data usage intend.&cc=georg.niedrist@eruac.edu">{{ T "Register" .Language}}</a></li>
+				<li><a href="#" data-toggle="modal" data-target="#registerModal">{{ T "Register" .Language}}</a></li>
 				<li><a href="/auth/azure">{{T "Login" .Language}}</a></li>
 				{{- end -}}
 			</ul>
