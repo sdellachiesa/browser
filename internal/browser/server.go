@@ -251,6 +251,11 @@ func (s *Server) handleLanguage(w http.ResponseWriter, r *http.Request) {
 		ref = u.Path
 	}
 
+	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+	w.Header().Set("Expires", time.Unix(0, 0).Format(http.TimeFormat))
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("X-Accel-Expires", "0")
+
 	http.Redirect(w, r, ref, http.StatusSeeOther)
 }
 
