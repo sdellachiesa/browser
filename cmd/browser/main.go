@@ -46,6 +46,7 @@ func main() {
 		oauthState     = fs.String("oauth-state", "", "Random string for OAuth2 state code.")
 		jwtKey         = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
 		jwtAppNonce    = fs.String("jwt-app-nonce", "", "Random string for JWT verification.")
+		xsrfKey        = fs.String("xsrf-key", "d71404b42640716b0050ad187489c128ec3d611179cf14a29ddd6ea0d536a2c1", "Random string used for generating XSRF token.")
 		accessFile     = fs.String("access-file", "access.json", "Access file.")
 		_              = fs.String("config", "", "Config file (optional)")
 		analyticsCode  = fs.String("analytics-code", "", "Google Analytics Code")
@@ -106,6 +107,7 @@ func main() {
 		browser.WithBackend(ds),
 		browser.WithInfluxDB(*influxDatabase),
 		browser.WithAnalyticsCode(*analyticsCode),
+		browser.WithKey(*xsrfKey),
 	)
 	if err != nil {
 		log.Fatalf("Error creating server: %v\n", err)

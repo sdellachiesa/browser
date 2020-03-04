@@ -3,7 +3,6 @@ package browser
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -79,12 +78,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, fmt.Errorf("must provide and option func that specifies a Backend")
 	}
 
-	key, err := generateKey()
-	if err != nil {
-		return nil, err
-	}
-	s.key = key
-
 	s.matcher = language.NewMatcher([]language.Tag{
 		language.English, // The first language is used as fallback.
 		language.Italian,
@@ -124,6 +117,13 @@ func WithInfluxDB(db string) Option {
 func WithAnalyticsCode(analytics string) Option {
 	return func(s *Server) {
 		s.analyticsCode = analytics
+	}
+}
+
+// WithKey sets the key for generating an xsrf token.
+func WithKey(key string) Option {
+	return func(s *Server) {
+		s.key = key
 	}
 }
 
@@ -486,13 +486,4 @@ func isAllowed(r *http.Request, roles ...auth.Role) bool {
 func reportError(w http.ResponseWriter, r *http.Request, err error) {
 	log.Printf("%v\n", err)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-}
-
-func generateKey() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%x", b), nil
 }
