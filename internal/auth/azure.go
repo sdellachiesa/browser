@@ -45,11 +45,14 @@ func Azure(next http.Handler, cfg *oauth2.Config, state, appNonce string, jwtKey
 			w.Header().Set("Expires", time.Unix(0, 0).Format(http.TimeFormat))
 			w.Header().Set("Pragma", "no-cache")
 			w.Header().Set("X-Accel-Expires", "0")
-
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 
 		case "/auth/azure":
+			w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+			w.Header().Set("Expires", time.Unix(0, 0).Format(http.TimeFormat))
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("X-Accel-Expires", "0")
 			http.Redirect(w, r, cfg.AuthCodeURL(state, oidc.Nonce(appNonce)), http.StatusMovedPermanently)
 			return
 
@@ -103,6 +106,10 @@ func Azure(next http.Handler, cfg *oauth2.Config, state, appNonce string, jwtKey
 				return
 			}
 
+			w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+			w.Header().Set("Expires", time.Unix(0, 0).Format(http.TimeFormat))
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("X-Accel-Expires", "0")
 			http.Redirect(w, r, "/", http.StatusMovedPermanently)
 			return
 
