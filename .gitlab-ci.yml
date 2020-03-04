@@ -53,6 +53,7 @@ deploy_staging:
     - kubectl --namespace eurac-alpenv-browser-stage set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
   environment:
     name: staging
+    url: https://browser-stage.lter.eurac.edu
   only:
     - master
 
@@ -69,13 +70,13 @@ deploy_production:
   script:
     - docker pull ${CONTAINER_IMAGE}:${CI_COMMIT_SHA}
     - docker tag ${CONTAINER_IMAGE}:${CI_COMMIT_SHA} ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
-    - docker push ${CONTAINER_IMAGE}:latest
     - docker push ${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
+    - docker tag ${CONTAINER_IMAGE}:${CI_COMMIT_SHA} ${CONTAINER_IMAGE}:latest
+    - docker push ${CONTAINER_IMAGE}:latest
+    - kubectl config set-credentials gitlab-deploy --token=$K8S_PRODUCTION_TOKEN
     - kubectl --namespace eurac-alpenv set image deployment/browser browser=${CONTAINER_IMAGE}:${CI_COMMIT_TAG}
   environment:
     name: production
-  when: manual
+    url: https://browser.lter.eurac.edu
   only:
     - tags
-  only:
-    - master
