@@ -15,6 +15,7 @@
 //	mapEl - map element
 function browser(opts) {
 	const mapMarkers = {};
+	const maxMeasurement = 30;
 
 	function getMaxAltitude() {
 		let a = 0;
@@ -130,6 +131,11 @@ function browser(opts) {
 		return true;
 	}
 
+	function maxMeasurementSelected() {
+		const selectedOptions = $(opts.measurementEl + ' option:selected');
+		return selectedOptions.length > maxMeasurement
+	}
+
 	// toggleDownload enables the download botton if at least one
 	// station and one measurement was selected. Moreover it checks
 	// if the time range selected is not ore than a year. Otherwise
@@ -157,7 +163,12 @@ function browser(opts) {
 			return
 		}
 
-		$(opts.submitEl).removeAttr("disabled");
+		if (maxMeasurementSelected()) {
+			$(opts.submitEl).attr("disabled", "disabled");
+		} else {
+			$(opts.submitEl).removeAttr("disabled");
+		}
+
 		$(opts.codeEl).removeAttr("disabled");
 	}
 
@@ -365,12 +376,25 @@ function browser(opts) {
 		includeSelectAllOption: true,
 		onChange: function() {
 			handleUpdateMeasurement();
+
+			if (maxMeasurementSelected()) {
+				$(opts.measurementEl).popover('show');
+			} else {
+				$(opts.measurementEl).popover('hide');
+			}
 		},
 		onSelectAll: function() {
 			handleUpdateMeasurement();
+
+			if (maxMeasurementSelected()) {
+				$(opts.measurementEl).popover('show');
+			} else {
+				$(opts.measurementEl).popover('hide');
+			}
 		},
 		onDeselectAll: function() {
 			handleUpdateMeasurement();
+			$(opts.measurementEl).popover('hide');
 		},
 	});
 

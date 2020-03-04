@@ -45,5 +45,7 @@
 	"Eu banner Accept": "Akzeptieren",
 	"Eu banner Reject": "Absprechen",
 	"Eu banner Read more": "Mehr Informationen",
-	"To get full data access please write a short introduction of yourself and your data usage intend to:": "Um vollen Datenzugriff zu erhalten, schreiben Sie bitte eine E-Mail mit einer kurzen Beschreibung und Grund der Datennutzung an:"
+	"To get full data access please write a short introduction of yourself and your data usage intend to:": "Um vollen Datenzugriff zu erhalten, schreiben Sie bitte eine E-Mail mit einer kurzen Beschreibung und Grund der Datennutzung an:",
+	"Too many measurements selected. Maximum allowed are 30 for now, we are working to support more.": "Zuviele Parameter wurden ausgwählt. Momentan sind maximal 30 Parameter zugelassen.",
+	"Show standard deviations": "Standard deviation anzeigen"
 }

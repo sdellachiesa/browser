@@ -38,7 +38,7 @@
 							<div class="col-lg-4">
 								<div class="form-group">
 									<label for="measurements">{{T "Select measurement:" $lang}}</label>
-									<select multiple class="form-control" id="measurements" name="measurements">
+									<select multiple class="form-control" id="measurements" name="measurements" data-toggle="popover" data-placement="top" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Too many measurements selected. Maximum allowed are 30 for now, we are working to support more." $lang}}</div>" data-container="body">
 										{{- range .Data.Measurements -}}
 											{{if eq $.Role "FullAccess" -}}
 												<option value="{{.}}">{{ . }}</option>
@@ -49,7 +49,7 @@
 									</select>
 									{{if eq $.Role "FullAccess" -}}
 									<div class="showHide">
-										<input type="checkbox" name="showStd" id="showStd"> Show standard deviations
+										<input type="checkbox" name="showStd" id="showStd"> {{T "Show standard deviations" $lang}}
 									</div>
 									{{end}}
 								</div>
