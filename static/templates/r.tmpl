@@ -72,6 +72,9 @@ if(length(measurements)> 1){
   # for loop to split the different measurements
   result = lapply(measurements, subset_data ,result)
   # to merge all the measurements tables
-  result = do.call(merge, result)
+  result <- Reduce(
+    function(x, y, ...) merge(x, y, all = TRUE, ...),
+    result
+  ) 
 }
 head(result)
