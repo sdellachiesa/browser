@@ -247,7 +247,7 @@ func (s *Server) handleLanguage(w http.ResponseWriter, r *http.Request) {
 
 	ref := "/"
 	u, err := url.Parse(r.Referer())
-	if err == nil {
+	if err == nil && u.Path != "" {
 		ref = u.Path
 	}
 
