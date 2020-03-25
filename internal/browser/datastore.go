@@ -13,8 +13,8 @@ import (
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/internal/ql"
-	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
+	"github.com/euracresearch/go-snipeit"
 	client "github.com/influxdata/influxdb1-client/v2"
 )
 

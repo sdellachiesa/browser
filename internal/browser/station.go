@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 
-	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
+	"github.com/euracresearch/go-snipeit"
 )
 
 // Station describes metadata about a physical LTER station.

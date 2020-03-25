@@ -12,12 +12,12 @@ import (
 
 	"gitlab.inf.unibz.it/lter/browser/internal/auth"
 	"gitlab.inf.unibz.it/lter/browser/internal/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
 
+	"github.com/euracresearch/go-snipeit"
 	"github.com/peterbourgon/ff"
 
 	client "github.com/influxdata/influxdb1-client/v2"
