@@ -31,4 +31,4 @@ Meteorological data downloaded from this app comes with no warranty and has not 
 
 # Acknowledgements
 
-Project team: Georg Niedrist, Alessandro Zandonai, Stefano Della Chiesa, Chrisitan Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)
+Project team: Stefano Della Chiesa, Georg Niedrist, Alessandro Zandonai, Chrisitan Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)

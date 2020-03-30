@@ -32,4 +32,4 @@ La qualità dei dati metereologici scaricati con questa applicazione non è gara
 
 # Ringraziamenti
 
-Team di progetto: Georg Niedrist, Alessandro Zandonai, Stefano Della Chiesa, Chrisitan Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)
+Team di progetto: Stefano Della Chiesa, Georg Niedrist, Alessandro Zandonai, Chrisitan Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)
