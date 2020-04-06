@@ -17,7 +17,7 @@ type Station struct {
 	Name         string
 	Landuse      string
 	Image        string
-	Elevation     int64
+	Elevation    int64
 	Latitude     float64
 	Longitude    float64
 	Measurements []string
