@@ -19,7 +19,9 @@ testing:
     - export GONOSUMDB="gitlab.inf.unibz.it"
     - go env
     - cd ${CI_PROJECT_DIR}
-    - go test gitlab.inf.unibz.it/lter/browser/...
+    - diff -u <(echo -n) <(gofmt -d -s .)
+    - go vet ./...
+    - go test -v -race ./...
   only:
     - master
 
