@@ -18,19 +18,30 @@ body {
 }
 
 .page {
-	padding: 0 15px 15px 15px;
-	font-size: 1.1em;
-	line-height: 1.5em;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
-.page>h1 {
+.page>article {
+	padding: 20px;
+	line-height: 1.5em;
+	font-size: 1.1em;
+	height: 100%;
+}
+
+.page>article>h1 {
 	font-size: 2.2rem;
 	line-height: 1;
 }
 
-.page>p {
+.page>article>p {
 	max-width: 60rem;
 	word-wrap: break-word;
+}
+
+.page>footer {
+	padding: 20px;
 }
 
 #dlMapArea a {

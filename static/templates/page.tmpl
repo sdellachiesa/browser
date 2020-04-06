@@ -1,8 +1,14 @@
 {{define "content"}}
-{{block "nav" .}}Navigation{{end}}
+<div class="page">
+	{{block "nav" .}}Navigation{{end}}
 
-<div class="page">{{.Content}}</div>
-
+	<article>
+		{{.Content}}
+	</article>
+	<footer>
+		<a href="http://www.eurac.edu" target="_blank"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a>
+		</footer>
+</div>
 	<script>
 		$(document).ready(function() {
 
