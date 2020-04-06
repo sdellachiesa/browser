@@ -161,7 +161,7 @@ func (d *Datastore) Get(role auth.Role) Stations {
 func (d *Datastore) Query(ctx context.Context, req *request) string {
 	d.access.Filter(ctx, req)
 
-	c := []string{"station", "landuse", "altitude", "latitude", "longitude"}
+	c := []string{"station", "landuse", "altitude as elevation", "latitude", "longitude"}
 	c = append(c, req.measurements...)
 
 	q, _ := ql.Select(c...).From(req.measurements...).Where(
@@ -181,7 +181,7 @@ func (d *Datastore) seriesQuery(req *request) ql.Querier {
 		)
 
 		for _, station := range req.stations {
-			columns := []string{"station", "landuse", "altitude", "latitude", "longitude"}
+			columns := []string{"station", "landuse", "altitude as elevation", "latitude", "longitude"}
 			columns = append(columns, req.measurements...)
 
 			sb := ql.Select(columns...)

@@ -88,8 +88,8 @@
 							</div>
 							<div class="col-lg-6">
 								<div class="form-group">
-									<label for="altitude">{{T "Select altitude range[m]:" $lang}}</label>
-									<input type="text" class="js-range-slider" name="altitude" id="altitude" value="" >
+									<label for="elevation">{{T "Select elevation range [m]:" $lang}}</label>
+									<input type="text" class="js-range-slider" name="elevation" id="elevation" value="" >
 								</div>
 							</div>
 						</div>
@@ -168,11 +168,11 @@
 		</div>
 
 		{{ range .Data -}}
-		<div id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Altitude}}m" class="mapPopup">
+		<div id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Elevation}} m" class="mapPopup">
 			<h5>{{.Name}}</h5>
 			<p><img src="{{.Image}}" width="200"></p>
 			<ul>
-				<li><strong>{{T "Altitude" $lang}}:</strong> {{.Altitude}}m</li>
+				<li><strong>{{T "Elevation" $lang}}:</strong> {{.Elevation}}m</li>
 				<li><strong>{{T "Landuse" $lang}}:</strong> {{ T .Landuse $lang}}</li>
 				<li><strong>{{T "Latitude" $lang}}:</strong> {{.Latitude}}</li>
 				<li><strong>{{T "Longitude" $lang}}:</strong> {{.Longitude}}</li>
@@ -221,7 +221,7 @@
 				'stationEl':		'#stations',
 				'measurementEl':	'#measurements',
 				'landuseEl':		'#landuse',
-				'altitudeEl':		'#altitude',
+				'elevationEl':		'#elevation',
 				'dateEl':			'#datepicker',
 				'sDateEl':			'#startDate',
 				'eDateEl':			'#endDate',
@@ -255,7 +255,7 @@
 				var landuse = $( "#landuse");
 				var startDate = $( "#startDate");
 				var endDate = $( "#endDate");
-				var altitude = $( "#altitude");
+				var elevation = $( "#elevation");
 
 
 
@@ -267,7 +267,7 @@
 						"landuse" : landuse.val(),
 						"startDate" : startDate.val(),
 						"endDate" : endDate.val(),
-						"altitude" : altitude.val()
+						"elevation" : elevation.val()
 						}
 
 					gtag('event', 'submit', {

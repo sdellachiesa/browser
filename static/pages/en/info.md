@@ -13,7 +13,7 @@ Meaning of the column names in the csv or excel downloaded table:
 * *time:*	date/time of measurement (UTC +1).
 * *station:* station code.
 * *landuse code:* (me = meadows, pa = pasture, bs = bare soil, fo = forest).
-* *altitude:* altitude of the station in meters.
+* *elevation:* elevation of the station in meters.
 * *latitude:* latitude, coordinates in decimal degrees.
 * *longitude:* longitude, coordinates in decimal degrees.
 * *air_rh_avg:* Relative humidity in percent (15 min average).

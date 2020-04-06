@@ -17,7 +17,7 @@ type Station struct {
 	Name         string
 	Landuse      string
 	Image        string
-	Altitude     int64
+	Elevation     int64
 	Latitude     float64
 	Longitude    float64
 	Measurements []string
@@ -35,7 +35,7 @@ func (s *Station) UnmarshalJSON(b []byte) error {
 	s.Name = l.Name
 	s.Landuse = l.Currency
 	s.Image = l.Image
-	s.Altitude, _ = strconv.ParseInt(l.Zip, 10, 64)
+	s.Elevation, _ = strconv.ParseInt(l.Zip, 10, 64)
 	s.Latitude, _ = strconv.ParseFloat(l.Address, 64)
 	s.Longitude, _ = strconv.ParseFloat(l.Address2, 64)
 

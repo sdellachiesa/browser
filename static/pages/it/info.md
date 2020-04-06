@@ -14,7 +14,7 @@ sotto sono riportati le descrizioni delle abbreviazioni delle colonne della tabe
 * *time:*	data/ora della misura (UTC +1).
 * *station:* codice della statione.
 * *landuse code:* uso del suolo (me = prati, pa = pascoli, bs = suolo nudo, fo = boschi).
-* *altitude:* quota della stazione di misura in meteri.
+* *elevation:* quota della stazione di misura in meteri.
 * *latitude:* latitudine, coordinate in gradi decimali.
 * *longitude:* longitudine coordinate in gradi decimali.
 * *air_rh_avg:* Umidità relativa in percentuale (media  ongni 15 min).

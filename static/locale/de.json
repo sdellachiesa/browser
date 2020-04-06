@@ -9,7 +9,7 @@
 	"Warning": "Warnung",
 	"Empty dates are not allowed.": "Ein Datumsbreich muss angegeben werden.",
 	"Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.": "Ausgwählter Datumsbreich zu groß. Maximal 1 Jahr. Für mehr als 1 Jahr bitte mehrer Anfragen generiern.",
-	"Select altitude range[m]:": "Wählen Sie den Höhenbereich [m]",
+	"Select elevation range [m]:": "Wählen Sie den Höhenbereich [m]",
 	"Download CSV": "CSV herunterladen",
 	"Please select at least one measurement and station.": "Es muss mindestens ein Parameter und eine Station ausgewählt werden",
 	"Disclaimer": "Haftungsausschluss",

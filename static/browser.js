@@ -5,7 +5,7 @@
 //	stationEl - stations select element
 //	measurementEl - measurements select element
 //	landuseEl - landuse select element
-//	altitudeEl - altitude range element
+//	elevationEl - elevation range element
 //	dateEl - date picker element
 //	sDateEl - start date element
 //	eDateEl - end date element
@@ -17,24 +17,24 @@ function browser(opts) {
 	const mapMarkers = {};
 	const maxMeasurement = 30;
 
-	function getMaxAltitude() {
+	function getMaxElevation() {
 		let a = 0;
 
 		opts.data.forEach(function(s) {
-			if (s.Altitude >= a) {
-				a = s.Altitude
+			if (s.Elevation >= a) {
+				a = s.Elevation
 			}
 		});
 
 		return Math.round(a/1000)*1000;
 	}
 
-	function getMinAltitude() {
+	function getMinElevation() {
 		let a = 10000;
 
 		opts.data.forEach(function(s) {
-			if (s.Altitude <= a) {
-				a = s.Altitude
+			if (s.Elevation <= a) {
+				a = s.Elevation
 			}
 		});
 
@@ -458,11 +458,11 @@ function browser(opts) {
 		},
 	});
 
-	$(opts.altitudeEl).ionRangeSlider({
+	$(opts.elevationEl).ionRangeSlider({
 		skin: "round",
 		type: "double",
-		min: getMinAltitude(),
-		max: getMaxAltitude(),
+		min: getMinElevation(),
+		max: getMaxElevation(),
 		grid: true,
 		onChange: function(data) {
 			const stations = new Set();
@@ -471,7 +471,7 @@ function browser(opts) {
 
 			opts.data.forEach(function(item) {
 				let marker = mapMarkers[item.ID]
-				if (item.Altitude >= data.from && item.Altitude <= data.to) {
+				if (item.Elevation >= data.from && item.Elevation <= data.to) {
 					stations.add(item.ID);
 					landuse.add(item.Landuse);
 					if (Array.isArray(item.Measurements)) {

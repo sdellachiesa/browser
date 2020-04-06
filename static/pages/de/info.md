@@ -13,7 +13,7 @@ Die folgende Tabelle erklärt die Spaltenbeschriftungen und schlüsselt die Mess
 * *time:* Zeitstempel (UTC +1).
 * *station:* Stationsname.
 * *landuse code:* Landnutzung (me = Wiese, pa = Weide, bs = nackt Boden , fo = Wald).
-* *altitude:* altitude of the station in meters.
+* *elevation:* Meereshöhe der Station in Meter.
 * *latitude:* latitude koordinaten in Dezimalgrade.
 * *longitude:* latitude koordinaten in Dezimalgrade.
 * *air_rh_avg:* Relative Luftfeuchte in prozent (15 min Mittelwert).
