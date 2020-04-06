@@ -5,7 +5,7 @@
 
 	<script>
 		$(document).ready(function() {
-			
+
 			{{if $.AnalyticsCode}}
 			new CookiesEuBanner(function () {
 				var newScript = document.createElement("script");
@@ -18,10 +18,10 @@
           		function gtag(){dataLayer.push(arguments);}
           		gtag('js', new Date());
 
-				// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features  
+				// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
 				gtag('set', 'allow_ad_personalization_signals', false);
 				gtag('config', '{{$.AnalyticsCode}}');
-				
+
 
 			}, true, true);
 			{{end}}
