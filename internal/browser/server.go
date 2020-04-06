@@ -286,6 +286,10 @@ func (s *Server) handleSeries(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	b, err := s.db.Series(ctx, req)
+	if errors.Is(err, ErrDataNotFound) {
+		http.Error(w, "no data points found for the selected filters", http.StatusBadRequest)
+		return
+	}
 	if err != nil {
 		err = fmt.Errorf("handleSeries: %v", err)
 		reportError(w, r, err)

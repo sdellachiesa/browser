@@ -4,6 +4,7 @@ package browser
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +18,8 @@ import (
 	"github.com/euracresearch/go-snipeit"
 	client "github.com/influxdata/influxdb1-client/v2"
 )
+
+var ErrDataNotFound = errors.New("no data points")
 
 // Authorizer is an interface for handling authorization to the LTER data.
 type Authorizer interface {
@@ -310,6 +313,10 @@ func (d *Datastore) Series(ctx context.Context, req *request) ([][]string, error
 				table[k] = column
 			}
 		}
+	}
+
+	if len(keys) == 0 {
+		return nil, ErrDataNotFound
 	}
 
 	// Sort by timesstamp.
