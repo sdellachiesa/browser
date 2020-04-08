@@ -527,5 +527,14 @@ function browser(opts) {
 		}
 	});
 
+	// Smooth scrolling using jQuery easing
+	$(document).on('click', 'a'+opts.scrollToTopEl, function(e) {
+		const $anchor = $(this);
+		$('html, body').stop().animate({
+			scrollTop: ($($anchor.attr('href')).offset().top)
+		}, 1000, 'easeInOutExpo');
+		e.preventDefault();
+	});
+
 	loadMap();
 }
