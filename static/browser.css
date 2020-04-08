@@ -44,6 +44,24 @@ body {
 	padding: 20px;
 }
 
+.scroll-to-top {
+	z-index: 99;
+	position: fixed;
+	right: 1rem;
+	bottom: 1.5rem;
+	display: none;
+	text-align: center;
+	color: #000000;
+	background: #fafafa;
+	border-radius: 10px;
+	font-size: 18px;
+	padding: 15px;
+}
+
+.scroll-to-top:focus, .scroll-to-top:hover {
+	color: #000000;
+}
+
 #dlMapArea a {
 	font-weight: bold;
 	color: #333;

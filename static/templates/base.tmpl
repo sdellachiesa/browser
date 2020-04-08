@@ -17,7 +17,7 @@
 		<script src="/static/third_party/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/static/third_party/cookies-eu-banner/js/cookies-eu-banner.js"></script>
 	</head>
-	<body>
+	<body id="page-top">
 
 	<div id="cookies-eu-banner" style="display: none;">
     {{T "Eu banner" .Language}}
@@ -156,7 +156,7 @@
 				</div>
 				<div class="footer"><a href="http://www.eurac.edu" target="_blank"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a></div>
 			</div>
-			<div class="col-lg-7" id="map"></div>
+			<div class="col-lg-7" id="map" style="z-index: 1"></div>
 		</div>
 	</div>
 
@@ -211,7 +211,8 @@
 				'codeEl':			'#codeBtn',
 				'dlMapAreaEl':		'dlMapArea',
 				'mapEl':			'map',
-				'data':			JSON.parse('{{.Data}}'),
+				'scrollToTopEl':	'.scroll-to-top',
+				'data':				JSON.parse('{{.Data}}'),
 			});
 
 
@@ -265,6 +266,12 @@
 
 		});
 	</script>
+
+	<!-- Scroll to Top Button-->
+	<a class="scroll-to-top" href="#page-top">
+    		<i class="glyphicon glyphicon-chevron-up"></i>
+  	</a>
+
 	{{end}}
 
 	<div class="modal fade" tabindex="-1" role="dialog" id="registerModal">

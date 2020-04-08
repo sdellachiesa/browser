@@ -13,6 +13,7 @@
 //	codeEl - code button element
 //	dlMapAreaEl - area for download links on the map
 //	mapEl - map element
+//	scrollToTopEl - element for scrolling back to top
 function browser(opts) {
 	const mapMarkers = {};
 	const maxMeasurement = 30;
@@ -514,6 +515,16 @@ function browser(opts) {
 		$(opts.sDateEl).popover('show');
 	}).on('show', function() {
 		$(opts.dateEl).popover('hide');
+	});
+
+	// Scroll to top button appear
+	$(document).on('scroll', function() {
+		var scrollDistance = $(this).scrollTop();
+		if (scrollDistance > 100) {
+			$(opts.scrollToTopEl).fadeIn();
+		} else {
+			$(opts.scrollToTopEl).fadeOut();
+		}
 	});
 
 	loadMap();
