@@ -46,6 +46,9 @@
 	"Eu banner Reject": "Absprechen",
 	"Eu banner Read more": "Mehr Informationen",
 	"To get full data access please write a short introduction of yourself and your data usage intend to:": "Um vollen Datenzugriff zu erhalten, schreiben Sie bitte eine E-Mail mit einer kurzen Beschreibung und Grund der Datennutzung an:",
-	"Too many measurements selected. Maximum allowed are 30 for now, we are working to support more.": "Zuviele Parameter wurden ausgwählt. Momentan sind maximal 30 Parameter zugelassen.",
-	"Show standard deviations": "Standard deviation anzeigen"
+	"Show standard deviations": "Standard deviation anzeigen",
+	"Notice": "Mitteilung", 
+	"Downloading a large data set may take some time to finish or will even timeout.": "Das Herunterladen eines großen Datensatzes kann einige Zeit in anspruch nehmen oder sogar einen Timeout verursachen.",
+	"We are aware of the issue and are working on it. Tools like R or Python are more appropriate to use for such requests.": "Wir arbeiten an einer Verbesserung des Services. Tools wie R oder Python eignen sich besser für solche Anfragen.",
+	"Continue with the download...": "Mit dem Download fortfahren..."
 }

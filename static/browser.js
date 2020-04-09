@@ -147,6 +147,7 @@ function browser(opts) {
 			return
 		}
 
+
 		if (! isValidDateRange()) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			return
@@ -164,12 +165,7 @@ function browser(opts) {
 			return
 		}
 
-		if (maxMeasurementSelected()) {
-			$(opts.submitEl).attr("disabled", "disabled");
-		} else {
-			$(opts.submitEl).removeAttr("disabled");
-		}
-
+		$(opts.submitEl).removeAttr("disabled");
 		$(opts.codeEl).removeAttr("disabled");
 	}
 
@@ -377,21 +373,9 @@ function browser(opts) {
 		includeSelectAllOption: true,
 		onChange: function() {
 			handleUpdateMeasurement();
-
-			if (maxMeasurementSelected()) {
-				$(opts.measurementEl).popover('show');
-			} else {
-				$(opts.measurementEl).popover('hide');
-			}
 		},
 		onSelectAll: function() {
 			handleUpdateMeasurement();
-
-			if (maxMeasurementSelected()) {
-				$(opts.measurementEl).popover('show');
-			} else {
-				$(opts.measurementEl).popover('hide');
-			}
 		},
 		onDeselectAll: function() {
 			handleUpdateMeasurement();
@@ -516,6 +500,19 @@ function browser(opts) {
 	}).on('show', function() {
 		$(opts.dateEl).popover('hide');
 	});
+
+	$(opts.submitEl).click(function(e){
+		if (maxMeasurementSelected()) {
+			$(opts.infoModalEl).modal();
+			e.preventDefault();
+		}
+	});
+
+	$(opts.infoModalEl).find('.btn-primary').click(function(){
+		$(opts.formEl).submit();
+		$(opts.infoModalEl).modal('hide');
+	});
+
 
 	// Scroll to top button appear
 	$(document).on('scroll', function() {

@@ -39,7 +39,7 @@
 							<div class="col-lg-4">
 								<div class="form-group">
 									<label for="measurements">{{T "Select measurement:" $lang}}</label>
-									<select multiple class="form-control" id="measurements" name="measurements" data-toggle="popover" data-placement="top" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Too many measurements selected. Maximum allowed are 30 for now, we are working to support more." $lang}}</div>" data-container="body">
+									<select multiple class="form-control" id="measurements" name="measurements">
 										{{- range .Data.Measurements -}}
 											{{if eq $.Role "FullAccess" -}}
 												<option value="{{.}}">{{ . }}</option>
@@ -98,7 +98,7 @@
 							<div class="col-lg-12">
 								<br>
 								<div class="tooltip-wrapper nostrike disabled" data-title="{{T "Please select at least one measurement and station." $lang}}">
-									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submit">{{T "Download CSV" $lang}}</button> &nbsp;
+									<button disabled data-html="true" type="submit" class="btn btn-primary" id="submitBtn">{{T "Download CSV" $lang}}</button> &nbsp;
 
 									{{if eq .Role "FullAccess"}}
 														<script>
@@ -193,6 +193,29 @@
 		{{ end -}}
 	</div>
 
+	<div class="modal fade" tabindex="-1" role="dialog" id="infoModal">
+  		<div class="modal-dialog" role="document">
+    			<div class="modal-content">
+      				<div class="modal-header">
+        				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        				<h4 class="modal-title">{{T "Notice" $lang}}</h4>
+      				</div>
+      				<div class="modal-body">
+        				<p>
+							{{T "Downloading a large data set may take some time to finish or will even timeout." $lang}}
+						</p>
+						<p>
+							{{T "We are aware of the issue and are working on it. Tools like R or Python are more appropriate to use for such requests." $lang}}
+						</p>
+      				</div>
+      				<div class="modal-footer">
+        				<button type="button" class="btn btn-default" data-dismiss="modal">Stop</button>
+        				<button type="button" class="btn btn-primary">{{ T "Continue with the download..." $lang}}</button>
+      				</div>
+    			</div><!-- /.modal-content -->
+  		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
 	<script src="/static/third_party/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
 	<script src="/static/third_party/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 	<script src="/static/third_party/ion-rangeslider/ion.rangeSlider.min.js"></script>
@@ -208,7 +231,9 @@
 				'dateEl':			'#datepicker',
 				'sDateEl':			'#startDate',
 				'eDateEl':			'#endDate',
-				'submitEl':			'#submit',
+				'submitEl':			'#submitBtn',
+				'formEl':			'#filters',
+				'infoModalEl':		'#infoModal',
 				'codeEl':			'#codeBtn',
 				'dlMapAreaEl':		'dlMapArea',
 				'mapEl':			'map',
