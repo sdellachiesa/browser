@@ -79,10 +79,7 @@ func NewJWT(key []byte, role Role, w http.ResponseWriter) (string, error) {
 
 func IsAuthenticated(r *http.Request) bool {
 	_, err := r.Cookie(jwtCookieName)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // RoleFromJWT reads an JWT token from a cookie, checks if it is valid
