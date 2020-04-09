@@ -13,20 +13,27 @@ stages:
 
 testing:
   stage: testing
+  tags:
+    - shared
   image: ${DOCKER_TESTER_IMAGE}
   script:
     - export GONOPROXY="gitlab.inf.unibz.it"
     - export GONOSUMDB="gitlab.inf.unibz.it"
+    - go get honnef.co/go/tools/cmd/staticcheck
     - go env
     - cd ${CI_PROJECT_DIR}
     - diff -u <(echo -n) <(gofmt -d -s .)
     - go vet ./...
     - go test -v -race ./...
+    - staticcheck ./...
   only:
     - master
+    - merge_requests
 
 build:
   stage: build
+  tags:
+    - dind
   image: ${DOCKER_BUILDER_IMAGE}
   services:
     - docker:dind
@@ -42,6 +49,8 @@ build:
 
 deploy_staging:
   stage: deploy
+  tags:
+    - dind
   image: ${DOCKER_BUILDER_IMAGE}
   services:
     - docker:dind
@@ -61,6 +70,8 @@ deploy_staging:
 
 deploy_production:
   stage: deploy
+  tags:
+    - dind
   image: ${DOCKER_BUILDER_IMAGE}
   services:
     - docker:dind
