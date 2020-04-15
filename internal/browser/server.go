@@ -438,12 +438,6 @@ func parseForm(r *http.Request) (*request, error) {
 		return nil, errors.New("error: end date is in the future")
 	}
 
-	// Limit download of data to one year
-	limit := time.Date(end.Year()-1, end.Month(), end.Day(), 0, 0, 0, 0, time.UTC)
-	if start.Before(limit) {
-		return nil, errors.New("time range is greater then a year")
-	}
-
 	if r.Form["measurements"] == nil {
 		return nil, errors.New("at least one measurement must be given")
 	}

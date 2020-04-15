@@ -81,7 +81,7 @@
 								<div class="form-group" id="timerange">
 									<label for="dateRange">{{T "Pick a date range:" $lang}}</label>
 									<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Empty dates are not allowed." $lang}}</div>" data-trigger="manual" data-placement="top">
-										<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Selected time range is to big. Maximal allowed range is one year. Please use multiple requests." $lang}}</p>" data-trigger="manual" data-placement="top">
+										<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off">
 										<span class="input-group-addon">to</span>
 										<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
 									</div>

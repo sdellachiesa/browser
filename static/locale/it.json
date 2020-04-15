@@ -8,7 +8,6 @@
 	"Pick a date range:": "Scegli data di inizio e fine:",
 	"Warning": "Notifica",
 	"Empty dates are not allowed.": "La data é obligatorio.",
-	"Selected time range is to big. Maximal allowed range is one year. Please use multiple requests.": "Data di inizio e fine non puó superare più di un anno.",
 	"Select elevation range [m]:": "Seleziona il range altitudinale [m]",
 	"Download CSV": "Scarica CSV",
 	"Please select at least one measurement and station.": "Seleziona almeno una misurazione e una stazione.",

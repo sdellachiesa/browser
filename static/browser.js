@@ -115,22 +115,6 @@ function browser(opts) {
 		});
 	}
 
-	// isValidDateRange checks if the selected date range is valid and
-	// returns true for a valid range otherwise false.
-	function isValidDateRange() {
-		var startDate = new Date($(opts.sDateEl).val());
-		startDate.setHours(0,0,0,0);
-
-		var endDate = new Date($(opts.eDateEl).val());
-		endDate.setFullYear(endDate.getFullYear() - 1);
-		endDate.setHours(0,0,0,0);
-
-		if (startDate < endDate) {
-			return false;
-		}
-
-		return true;
-	}
 
 	function maxMeasurementSelected() {
 		const selectedOptions = $(opts.measurementEl + ' option:selected');
@@ -143,12 +127,6 @@ function browser(opts) {
 	// it will be disable it.
 	function toggleDownload() {
 		if ($(opts.sDateEl).val() == "" || $(opts.eDateEl).val() == "") {
-			$(opts.submitEl).attr("disabled", "disabled");
-			return
-		}
-
-
-		if (! isValidDateRange()) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			return
 		}
@@ -490,19 +468,20 @@ function browser(opts) {
 			return
 		}
 
-		if (isValidDateRange()) {
-			$(opts.sDateEl).popover('hide');
-
-			return
-		}
-
 		$(opts.sDateEl).popover('show');
 	}).on('show', function() {
 		$(opts.dateEl).popover('hide');
 	});
 
 	$(opts.submitEl).click(function(e){
-		if (maxMeasurementSelected()) {
+		var startDate = new Date($(opts.sDateEl).val());
+		startDate.setHours(0,0,0,0);
+
+		var endDate = new Date($(opts.eDateEl).val());
+		endDate.setFullYear(endDate.getFullYear() - 1);
+		endDate.setHours(0,0,0,0);
+
+		if (maxMeasurementSelected() || (startDate < endDate)) {
 			$(opts.infoModalEl).modal();
 			e.preventDefault();
 		}
