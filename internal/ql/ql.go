@@ -223,6 +223,7 @@ type SelectBuilder struct {
 	order    string
 	group    string
 	orderDir string
+	limit    string
 	timezone string
 }
 
@@ -265,6 +266,13 @@ func (sb *SelectBuilder) ASC() *SelectBuilder {
 	return sb
 }
 
+func (sb *SelectBuilder) Limit(l int64) *SelectBuilder {
+	if l > 0 {
+		sb.limit = fmt.Sprintf(" LIMIT %d", l)
+	}
+	return sb
+}
+
 func (sb *SelectBuilder) TZ(tz string) *SelectBuilder {
 	sb.timezone = fmt.Sprintf(" TZ('%s')", tz)
 	return sb
@@ -297,6 +305,10 @@ func (sb *SelectBuilder) Query() (string, []interface{}) {
 
 	if sb.orderDir != "" {
 		sb.b.Append(sb.orderDir)
+	}
+
+	if sb.limit != "" {
+		sb.b.Append(sb.limit)
 	}
 
 	if sb.timezone != "" {
