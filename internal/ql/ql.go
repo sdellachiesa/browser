@@ -1,5 +1,5 @@
 // Copyright 2019 Eurac Research. All rights reserved.
-//
+
 // Package ql provides an API for building InfluxQL queries.
 //
 // Currently it only supports 'SELECT' and and 'SHOW TAG VALUES'

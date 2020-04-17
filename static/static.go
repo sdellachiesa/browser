@@ -1,7 +1,8 @@
-// This file is adapted from augie.upspin.io/cmd/upspin-ui/static/gen.go.
-//
+// Copyright 2019 Eurac Research. All rights reserved.
+
 // Package static provides access to static assets, such as HTML, CSS,
 // JavaScript, and image files.
+// This file is adapted from augie.upspin.io/cmd/upspin-ui/static/gen.go.
 package static
 
 import (
@@ -21,11 +22,11 @@ import (
 	text "text/template"
 )
 
-//go:generate go run gen.go
+//go:generate go run static_gen.go
 
 var (
-	// Exclude defines a slice of file extensions which will not be served
-	// by the ServeContent function.
+	// Exclude defines a slice of file extensions which will
+	// not be served by the ServeContent function.
 	Exclude = []string{".tmpl"}
 
 	files map[string]string
@@ -36,9 +37,9 @@ var static struct {
 	dir  string
 }
 
-// File returns the file rooted at "gitlab.inf.unibz.it/lter/browser/static" either
-// from an in-memory map or, if no map was generated, the contents of the file
-// from disk.
+// File returns the file rooted at "gitlab.inf.unibz.it/lter/browser/static"
+// either from an in-memory map or, if no map was generated,
+// the contents of the file from disk.
 func File(name string) (string, error) {
 	if files != nil {
 		b, ok := files[name]
@@ -67,8 +68,22 @@ func File(name string) (string, error) {
 	return string(b), nil
 }
 
-// ServeContent serves static content for HTTP servers. Files matching
-// any file extension defined in Exclude will be excluded from serving.
+func run(n string, args ...string) (string, error) {
+	c := exec.Command(n, args...)
+	bb := &bytes.Buffer{}
+	c.Stdout = bb
+	c.Stderr = bb
+	err := c.Run()
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", err, bb)
+	}
+
+	return bb.String(), nil
+}
+
+// ServeContent serves static content for HTTP servers.
+// Files matching any file extension defined in Exclude will
+// be excluded from serving.
 func ServeContent(w http.ResponseWriter, r *http.Request) {
 	p := strings.TrimPrefix(r.URL.Path[1:], "static/")
 
@@ -81,7 +96,7 @@ func ServeContent(w http.ResponseWriter, r *http.Request) {
 
 	b, err := File(p)
 	if err != nil {
-		http.Error(w, "static: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "static asset not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -129,7 +144,7 @@ func ParseTemplates(t *template.Template, filenames ...string) (*template.Templa
 	return t, nil
 }
 
-// ParseTextTemplate is equivalent to ParseTemplate only that it
+// ParseTextTemplates is equivalent to ParseTemplate only that it
 // returns parsed "text/template".
 func ParseTextTemplates(t *text.Template, filenames ...string) (*text.Template, error) {
 	if len(filenames) == 0 {
@@ -158,18 +173,4 @@ func ParseTextTemplates(t *text.Template, filenames ...string) (*text.Template, 
 		}
 	}
 	return t, nil
-}
-
-func run(n string, args ...string) (string, error) {
-	c := exec.Command(n, args...)
-
-	bb := &bytes.Buffer{}
-	c.Stdout = bb
-	c.Stderr = bb
-	err := c.Run()
-	if err != nil {
-		return "", fmt.Errorf("%w: %s", err, bb)
-	}
-
-	return bb.String(), nil
 }

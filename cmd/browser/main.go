@@ -1,26 +1,22 @@
-// Copyright 2019 Eurac Research. All rights reserved.
+// Copyright 2020 Eurac Research. All rights reserved.
 package main
 
 import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
-	"net/http"
 	"os"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser/internal/auth"
-	"gitlab.inf.unibz.it/lter/browser/internal/browser"
-
-	"golang.org/x/crypto/acme/autocert"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/microsoft"
-
-	"github.com/euracresearch/go-snipeit"
-	"github.com/peterbourgon/ff"
+	"gitlab.inf.unibz.it/lter/browser"
+	"gitlab.inf.unibz.it/lter/browser/internal/access"
+	"gitlab.inf.unibz.it/lter/browser/internal/http"
+	"gitlab.inf.unibz.it/lter/browser/internal/influx"
+	"gitlab.inf.unibz.it/lter/browser/internal/oauth2"
+	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
 	client "github.com/influxdata/influxdb1-client/v2"
+	"github.com/peterbourgon/ff"
 )
 
 const defaultAddr = "localhost:8888" // default webserver address
@@ -31,9 +27,6 @@ func main() {
 	fs := flag.NewFlagSet("browser", flag.ExitOnError)
 	var (
 		httpAddr       = fs.String("http", defaultAddr, "HTTP service address.")
-		serveTLS       = fs.Bool("tls", false, "Run Browser application as HTTPS.")
-		acmeCacheDir   = fs.String("acme-cache", "letsencrypt", "Directory for storing letsencrypt certificates.")
-		acmeHostname   = fs.String("acme-hostname", "", "Hostname used for getting a letsencrypt certificate.")
 		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
 		influxUser     = fs.String("influx-username", "", "Influx username")
 		influxPass     = fs.String("influx-password", "", "Influx password")
@@ -48,8 +41,8 @@ func main() {
 		jwtAppNonce    = fs.String("jwt-app-nonce", "", "Random string for JWT verification.")
 		xsrfKey        = fs.String("xsrf-key", "d71404b42640716b0050ad187489c128ec3d611179cf14a29ddd6ea0d536a2c1", "Random string used for generating XSRF token.")
 		accessFile     = fs.String("access-file", "access.json", "Access file.")
-		_              = fs.String("config", "", "Config file (optional)")
 		analyticsCode  = fs.String("analytics-code", "", "Google Analytics Code")
+		_              = fs.String("config", "", "Config file (optional)")
 	)
 
 	ff.Parse(fs, os.Args[1:],
@@ -64,7 +57,7 @@ func main() {
 	required("snipeit-token", *snipeitToken)
 	required("jwtKey", *jwtKey)
 
-	// InfluxDB client
+	// Initialize influx v1 client.
 	ic, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     *influxAddr,
 		Username: *influxUser,
@@ -80,70 +73,50 @@ func main() {
 		log.Fatalf("influx: could not contact Influx DB: %v\n", err)
 	}
 
-	// SnipeIT API client
-	sc, err := snipeit.NewClient(*snipeitAddr, *snipeitToken)
-	if err != nil {
-		log.Fatalf("snipeIT: could not create client: %v\n", err)
-	}
-
-	// ScientifcNET OAuth2
-	oauthConfig := &oauth2.Config{
-		ClientID:     *oauthClientID,
-		ClientSecret: *oauthSecret,
-		Scopes:       []string{"openid", "email", "profile"},
-		Endpoint:     microsoft.AzureADEndpoint("scientificnet.onmicrosoft.com"),
-		RedirectURL:  *oauthRedirect,
-	}
-
-	a := browser.ParseAccessFile(*accessFile)
-
-	// Initialize datastore
-	ds, err := browser.NewDatastore(sc, ic, *influxDatabase, a)
+	// Initialize services.
+	db := influx.NewDB(ic, *influxDatabase)
+	metadata, err := snipeit.NewSnipeITService(*snipeitAddr, *snipeitToken, ic, *influxDatabase)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	b, err := browser.NewServer(
-		browser.WithBackend(ds),
-		browser.WithInfluxDB(*influxDatabase),
-		browser.WithAnalyticsCode(*analyticsCode),
-		browser.WithKey(*xsrfKey),
+	// Decorating the Database and Metadata with an ACL service.
+	acl, err := access.New(*accessFile, db, metadata)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Decorating the Metadata service with an in memory cache service.
+	cache := browser.NewInMemCache(acl)
+
+	// Initialize HTTP endpoints.
+	handler := http.NewHandler(
+		http.WithDatabase(acl),
+		http.WithMetadata(cache),
+		http.WithKey(*xsrfKey),
+		http.WithAnalyticsCode(*analyticsCode),
+	)
+
+	// Wrap Azure Oauth2 Middleware Authentication around.
+	az, err := oauth2.NewAzureOAuth2(
+		handler,
+		&oauth2.Cookie{
+			Secret: *jwtKey,
+		},
+		&oauth2.AzureOptions{
+			ClientID:    *oauthClientID,
+			Secret:      *oauthSecret,
+			RedirectURL: *oauthRedirect,
+			State:       *oauthState,
+			Nonce:       *jwtAppNonce,
+		},
 	)
 	if err != nil {
-		log.Fatalf("Error creating server: %v\n", err)
+		log.Fatal(err)
 	}
-
-	handler := auth.Azure(b, oauthConfig, *oauthState, *jwtAppNonce, []byte(*jwtKey))
 
 	log.Printf("Starting server on %s\n", *httpAddr)
-	if !*serveTLS {
-		log.Fatal(http.ListenAndServe(*httpAddr, handler))
-	}
-
-	required("acme-hostname", *acmeHostname)
-	m := &autocert.Manager{
-		Cache:      autocert.DirCache(*acmeCacheDir),
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(*acmeHostname),
-	}
-	srv := &http.Server{
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
-		TLSConfig:    m.TLSConfig(),
-		Handler:      handler,
-	}
-	// Redirect HTTP traffic to HTTPS
-	go func() {
-		host, _, err := net.SplitHostPort(*httpAddr)
-		if err != nil || host == "" {
-			host = "0.0.0.0"
-		}
-		log.Println("Redirecting traffic from HTTP to HTTPS.")
-		log.Fatal(http.ListenAndServe(host+":80", redirectHandler()))
-	}()
-
-	log.Fatal(srv.ListenAndServeTLS("", ""))
+	log.Fatal(http.ListenAndServe(*httpAddr, az))
 }
 
 func required(name, value string) {
@@ -151,12 +124,4 @@ func required(name, value string) {
 		fmt.Fprintf(os.Stderr, "flag needs an argument: -%s\n\n", name)
 		os.Exit(2)
 	}
-}
-
-func redirectHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Connection", "close")
-		url := "https://" + r.Host + r.URL.String()
-		http.Redirect(w, r, url, http.StatusMovedPermanently)
-	})
 }

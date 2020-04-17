@@ -20,22 +20,6 @@
 		}
 	},
 	{
-		"name": "Internal",
-		"acl": {
-			"measurements": ["A", "b"],
-			"stations": ["1"],
-			"landuse": []
-		}
-	},
-	{
-		"name": "External",
-		"acl": {
-			"measurements": ["A"],
-			"stations": ["2"],
-			"landuse": ["me", "ma"]
-		}
-	},
-	{
 		"name": "WrongACLKey",
 		"aacl": {
 			"measurements": ["A", "B"],

@@ -137,7 +137,7 @@ body {
 .navbar-brand>img {
 	margin: 0;
 	padding: 0;
-    	height: 60px;
+    height: 60px;
 }
 
 .navbar-nav>li {
@@ -213,25 +213,7 @@ body {
 }
 
 @media (max-width: 1100){
-	#map, .sidebar-left {
-		min-height: 1000px;
-	}
-
 	.navbar {
 		min-height: 50px;
 	}
 }
-
-@media (max-width: 1200px) {
-	#map, .sidebar-left {
-		min-height: 900px;
-	}
-}
-
-@media (max-width: 600px) {
-	#map, .sidebar-left {
-		min-height: 1100px;
-	}
-}
-
-

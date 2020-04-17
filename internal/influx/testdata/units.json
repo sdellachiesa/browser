@@ -1,0 +1,55 @@
+{
+    "results": [
+        {
+            "series": [
+                {
+                    "name": "air_rh_avg",
+                    "columns": [
+                        "key",
+                        "value"
+                    ],
+                    "values": [
+                        [
+                            "unit",
+                            "%"
+                        ]
+                    ]
+                }
+            ]
+        },
+        {
+            "series": [
+                {
+                    "name": "air_t_avg",
+                    "columns": [
+                        "key",
+                        "value"
+                    ],
+                    "values": [
+                        [
+                            "unit",
+                            "deg c"
+                        ]
+                    ]
+                }
+            ]
+        },
+        {
+            "series": [
+                {
+                    "name": "wind_dir",
+                    "columns": [
+                        "key",
+                        "value"
+                    ],
+                    "values": [
+                        [
+                            "unit",
+                            "degrees"
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}

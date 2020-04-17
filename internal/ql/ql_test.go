@@ -1,3 +1,5 @@
+// Copyright 2019 Eurac Research. All rights reserved.
+
 package ql
 
 import "testing"
