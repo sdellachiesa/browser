@@ -29,7 +29,6 @@ var defaultRule = &Rule{
 			"wind_speed_max",
 			"wind_speed",
 			"nr_up_sw_avg",
-			"sr_avg",
 			"precip_rt_nrt_tot",
 			"snow_height"},
 	},
