@@ -325,7 +325,7 @@ func (wb *WhereBuilder) Query() (string, []interface{}) {
 		q, _ := query.Query()
 
 		if len(wb.b.String()) == 0 {
-			// If the buffer is emtpy and the next query
+			// If the buffer is empty and the next query
 			// is an operator skip it.
 			_, ok := query.(*OperatorBuilder)
 			if ok {
@@ -362,7 +362,7 @@ func (o *OperatorBuilder) Query() (string, []interface{}) {
 }
 
 // Eq returns a query part which compares column to each given value, joining
-// them togheter with the given OperatorBuilder.
+// them together with the given OperatorBuilder.
 //
 //	 Eq(And(), "a", "b", "c") -> a='b' AND a='c'
 func Eq(join *OperatorBuilder, column string, values ...string) Querier {
