@@ -43,7 +43,7 @@ var identifier = regexp.MustCompile(`^\w+$`)
 
 // Access represents a parsed JSON Access file, which is composed of
 // several rules. An access rule has a unique name and an access list
-// for controling the access to sepcific fields of the data. These
+// for controlling the access to sepcific fields of the data. These
 // fields can be measurements, stations and landuse. If a field is
 // empty or missing full access to to it will be granted.
 //

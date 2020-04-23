@@ -243,7 +243,6 @@ func TestRule(t *testing.T) {
 		}},
 		{"WrongNameKey", defaultRule},
 		{"WrongACLKey", defaultRule},
-		{"Empty", defaultRule},
 		{"Missing", defaultRule},
 		{"", defaultRule},
 	}
@@ -261,7 +260,7 @@ func TestRule(t *testing.T) {
 func TestNames(t *testing.T) {
 	a := ParseAccessFile("testdata/access.json")
 
-	want := []string{"Public", "FullAccess", "Internal", "External", "Emtpy"}
+	want := []string{"Public", "FullAccess", "Internal", "External", "Empty"}
 	got := a.Names()
 
 	if !reflect.DeepEqual(got, want) {

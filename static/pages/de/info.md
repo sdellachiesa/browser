@@ -32,4 +32,4 @@ Die Qualität der mit dieser Anwendung heruntergeladenen meteorologischen Daten 
 
 # Danksagungen
 
-Projekt team: Stefano Della Chiesa, Georg Niedrist, Alessandro Zandonai, Chrisitan Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)
+Projekt team: Stefano Della Chiesa, Georg Niedrist, Alessandro Zandonai, Christian Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)

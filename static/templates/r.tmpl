@@ -28,7 +28,7 @@ con <- influx_connection(scheme = c("https"),
 # Get timeseries results as tibbles.
 #
 # INFO: All data inside InfluxDB is in UTC, but the data of the LTSER IT25 Matsch Mazia
-#       side is recorded in UTC+1. By adding the 'tc' clause at the end we can specifiy
+#       side is recorded in UTC+1. By adding the 'tc' clause at the end we can specify
 #       a timezone. For LTER use 'Etc/GMT-1' to avoid problems daylight saving time
 #       problems.
 result <- influx_query(con,
@@ -60,7 +60,7 @@ measurements = names(result)[!names(result)%in% possible_tags]
 if(length(measurements)> 1){
   
   # subset_data: a function that splits the dowloaded table in 1 table per measurement
-  # (this is needed for the merge funciton)
+  # (this is needed for the merge function)
   subset_data =  function (measurement,result){
     
     result <- result[!is.na(result[measurement]),]

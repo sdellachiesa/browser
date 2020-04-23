@@ -4,7 +4,7 @@ Welcome to the Data Browser of the long-term socio-ecological research site Mats
 This app provides a user-friendly interface to download meteorological data from the [long-term socio-ecological research site Matschertal / Val di Mazia](http://lter.eurac.edu/en/)
 
 Once selected the measurements and the stations and you have chosen a date range, you are ready to download the data.
-Avaiable table format are CSV (comma separted values) or excel spreadsheet.
+Available table format are CSV (comma separted values) or excel spreadsheet.
 
 # Legend of the downloaded table
 
@@ -31,4 +31,4 @@ Meteorological data downloaded from this app comes with no warranty and has not 
 
 # Acknowledgements
 
-Project team: Stefano Della Chiesa, Georg Niedrist, Alessandro Zandonai, Chrisitan Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)
+Project team: Stefano Della Chiesa, Georg Niedrist, Alessandro Zandonai, Christian Brida, Martin Palma, Luca Cattani, Norbert Andreatta, [Eurac research.](http://www.eurac.edu/en/Pages/default.aspx)

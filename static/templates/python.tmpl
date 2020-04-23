@@ -26,7 +26,7 @@ client = DataFrameClient(host='ts.eurac.net',
 # Get timeseries data.
 #
 # INFO: All data inside InfluxDB is in UTC, but the data of the LTSER IT25 Matsch Mazia
-#       side is recorded in UTC+1. By adding the 'tc' clause at the end we can specifiy
+#       side is recorded in UTC+1. By adding the 'tc' clause at the end we can specify
 #       a timezone. For LTER use 'Etc/GMT-1' to avoid problems daylight saving time
 #       problems.
 result = client.query("{{.Query}}")

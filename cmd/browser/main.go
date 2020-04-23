@@ -32,7 +32,7 @@ func main() {
 	var (
 		httpAddr       = fs.String("http", defaultAddr, "HTTP service address.")
 		serveTLS       = fs.Bool("tls", false, "Run Browser application as HTTPS.")
-		acmeCacheDir   = fs.String("acme-cache", "letsencrypt", "Direcotry for storing letsencrypt certificates.")
+		acmeCacheDir   = fs.String("acme-cache", "letsencrypt", "Directory for storing letsencrypt certificates.")
 		acmeHostname   = fs.String("acme-hostname", "", "Hostname used for getting a letsencrypt certificate.")
 		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
 		influxUser     = fs.String("influx-username", "", "Influx username")

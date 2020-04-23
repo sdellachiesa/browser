@@ -24,7 +24,7 @@ import (
 //go:generate go run gen.go
 
 var (
-	// Exclude defines a slice of file extentions which will not be served
+	// Exclude defines a slice of file extensions which will not be served
 	// by the ServeContent function.
 	Exclude = []string{".tmpl"}
 
@@ -68,7 +68,7 @@ func File(name string) (string, error) {
 }
 
 // ServeContent serves static content for HTTP servers. Files matching
-// any file extention defined in Exclude will be exculded from serving.
+// any file extension defined in Exclude will be excluded from serving.
 func ServeContent(w http.ResponseWriter, r *http.Request) {
 	p := strings.TrimPrefix(r.URL.Path[1:], "static/")
 
