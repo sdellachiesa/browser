@@ -30,17 +30,11 @@ func main() {
 }
 
 func makestatic() error {
-	f, err := os.Create("files.go")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "%v\n\n%v\n\npackage static\n\n", license, warning)
 	fmt.Fprintf(buf, "func init() { files = map[string]string{\n")
 
-	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
