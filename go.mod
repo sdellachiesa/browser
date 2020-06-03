@@ -1,6 +1,6 @@
 module gitlab.inf.unibz.it/lter/browser
 
-go 1.12
+go 1.14
 
 require (
 	github.com/coreos/go-oidc v2.1.0+incompatible
