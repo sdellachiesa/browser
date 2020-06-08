@@ -14,7 +14,7 @@ var (
 
 	// CacheRefreshInterval is the interval in which the cache
 	// will be refeshed.
-	CacheRefreshInterval = 2 * time.Minute
+	CacheRefreshInterval = 8 * time.Hour
 )
 
 // InMemCache represents an in memory cache currently for
