@@ -60,7 +60,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 			languageFromCookie(r),
 			r.URL.Path,
 			h.analytics,
-			xsrftoken.Generate(h.key, user.Username, ""),
+			xsrftoken.Generate(h.key, "", ""),
 			time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 			time.Now().Format("2006-01-02"),
 		})
