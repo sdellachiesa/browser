@@ -17,7 +17,6 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/static"
 
 	"golang.org/x/net/xsrftoken"
-	"gopkg.in/russross/blackfriday.v2"
 )
 
 func (h *Handler) handleIndex() http.HandlerFunc {
@@ -70,7 +69,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 	}
 }
 
-func (h *Handler) handleMarkdownPage() http.HandlerFunc {
+func (h *Handler) handleStaticPage() http.HandlerFunc {
 	funcMap := template.FuncMap{
 		"T":  translate,
 		"Is": isRole,
@@ -82,16 +81,12 @@ func (h *Handler) handleMarkdownPage() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if filepath.Ext(r.URL.Path) != ".md" {
-			http.Redirect(w, r, "/", http.StatusMovedPermanently)
-			return
-		}
-
 		lang := languageFromCookie(r)
-		// TODO(m): should we preload parsed pages?
-		p, err := static.File(filepath.Join("pages", lang, filepath.Base(r.URL.Path)))
+		name := filepath.Base(r.URL.Path)
+
+		p, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
 		if err != nil {
-			http.NotFound(w, r)
+			Error(w, err, http.StatusNotFound)
 			return
 		}
 
@@ -104,9 +99,9 @@ func (h *Handler) handleMarkdownPage() http.HandlerFunc {
 		}{
 			browser.UserFromContext(r.Context()),
 			lang,
-			r.URL.Path,
+			name,
 			h.analytics,
-			template.HTML(blackfriday.Run([]byte(p))),
+			template.HTML(p),
 		})
 		if err != nil {
 			Error(w, err, http.StatusInternalServerError)

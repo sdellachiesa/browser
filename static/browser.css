@@ -41,6 +41,10 @@ footer {
 	padding: 20px;
 }
 
+.center {
+	text-align: center;
+}
+
 .scroll-to-top {
 	z-index: 99;
 	position: fixed;

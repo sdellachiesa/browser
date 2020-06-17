@@ -18,23 +18,21 @@ func ListenAndServe(addr string, handler http.Handler) error {
 }
 
 // Error writes an error message to the response.
-// TODO: add logger *log.Logger to func parameters
 func Error(w http.ResponseWriter, err error, code int) {
 	// Log error.
 	log.Printf("http error: %s (code=%d)", err, code)
 
-	// Hide error message from client if it is internal.
-	if code == http.StatusInternalServerError {
+	// Hide error message from client if it is internal or not found.
+	if code == http.StatusInternalServerError || code == http.StatusNotFound {
 		err = browser.ErrInternal
 	}
 
 	http.Error(w, err.Error(), code)
 }
 
-// grantAccess is a HTTP middlware function which grants access to
-// the given handler
-// that the requesting user is allowed to call the provided
-// handler function. If not a http.NotFound will be returned.
+// grantAccess is a HTTP middlware function which grants access to the given
+// handler that the requesting user is allowed to call the provided handler
+// function. If not a http.NotFound will be returned.
 func grantAccess(h http.HandlerFunc, roles ...browser.Role) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isAllowed(r, roles...) {
@@ -46,8 +44,7 @@ func grantAccess(h http.HandlerFunc, roles ...browser.Role) http.HandlerFunc {
 	}
 }
 
-// isAllowed checks if the current user makes part of the allowed
-// roles.
+// isAllowed checks if the current user makes part of the allowed roles.
 func isAllowed(r *http.Request, roles ...browser.Role) bool {
 	u := browser.UserFromContext(r.Context())
 

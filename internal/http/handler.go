@@ -32,7 +32,11 @@ func NewHandler(options ...Option) *Handler {
 
 	h.mux = http.NewServeMux()
 	h.mux.HandleFunc("/", h.handleIndex())
-	h.mux.HandleFunc("/p/", h.handleMarkdownPage())
+
+	h.mux.HandleFunc("/en/", h.handleStaticPage())
+	h.mux.HandleFunc("/it/", h.handleStaticPage())
+	h.mux.HandleFunc("/de/", h.handleStaticPage())
+
 	h.mux.HandleFunc("/l/", handleLanguage())
 	h.mux.HandleFunc("/static/", static.ServeContent)
 
