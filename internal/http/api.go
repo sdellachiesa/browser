@@ -62,12 +62,12 @@ func (h *Handler) handleCodeTemplate() http.HandlerFunc {
 		err error
 	)
 
-	tmpl.python, err = static.ParseTextTemplates(nil, "python.tmpl")
+	tmpl.python, err = static.ParseTextTemplates(nil, "templates/python.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tmpl.rlang, err = static.ParseTextTemplates(nil, "r.tmpl")
+	tmpl.rlang, err = static.ParseTextTemplates(nil, "templates/r.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}

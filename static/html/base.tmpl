@@ -27,8 +27,50 @@
 		<button id="cookies-eu-accept">{{T "Eu banner Accept" .Language}}</button>
 	</div>
 
+	<header>
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/"><img src="/static/images/logo.gif" alt="LTER Data Browser"></a>
+					<h1>Data Browser</h1>
+				</div>
+
+				<div class="collapse navbar-collapse" id="navbar-collapse">
+					<ul class="nav navbar-nav navbar-left">
+						<li {{ if eq .Path "/"}}class="active"{{end}}><a href="/">Home</a></li>
+						{{- if Is .User.Role "Public" -}}<li {{ if eq .Path "/p/info.md"}}class="active"{{end}}><a href="/p/info.md">Info</a></li>{{ end }}
+					</ul>
+
+					<ul class="nav navbar-nav navbar-right">
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{T "Language" .Language}} <span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								{{ if ne .Language "en"}}<li><a href="/l/en">English</a></li>{{end}}
+								{{ if ne .Language "it"}}<li><a href="/l/it">Italiano</a></li>{{end}}
+								{{ if ne .Language "de"}}<li><a href="/l/de">Deutsch</a></li>{{end}}
+							</ul>
+						</li>
+						{{- if Is .User.Role "Public" -}}
+						<li><a href="#" data-toggle="modal" data-target="#registerModal">{{ T "Register" .Language}}</a></li>
+						<li><a href="/auth/azure/login">{{T "Login" .Language}}</a></li>
+						{{- else -}}
+						<li><a href="/auth/azure/logout">{{T "Logout" .Language}}</a></li>
+						{{- end -}}
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</header>
+
 	{{block "content" . }}{{end}}
-	
+
 	<div class="modal fade" tabindex="-1" role="dialog" id="registerModal">
   		<div class="modal-dialog" role="document">
     			<div class="modal-content">

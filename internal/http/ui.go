@@ -30,7 +30,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 		},
 	}
 
-	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "base.tmpl", "index.tmpl", "nav.tmpl")
+	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/index.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func (h *Handler) handleMarkdownPage() http.HandlerFunc {
 		"Is": isRole,
 	}
 
-	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "base.tmpl", "page.tmpl", "nav.tmpl")
+	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/page.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}

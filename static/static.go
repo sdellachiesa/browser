@@ -115,7 +115,7 @@ func ParseTemplates(t *template.Template, filenames ...string) (*template.Templa
 	}
 
 	for _, filename := range filenames {
-		s, err := File(filepath.Join("templates", filename))
+		s, err := File(filename)
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +152,7 @@ func ParseTextTemplates(t *text.Template, filenames ...string) (*text.Template, 
 	}
 
 	for _, filename := range filenames {
-		s, err := File(filepath.Join("templates", filename))
+		s, err := File(filename)
 		if err != nil {
 			return nil, err
 		}

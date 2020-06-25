@@ -135,12 +135,12 @@ func TestHandleTemplate(t *testing.T) {
 	})
 	token := xsrftoken.Generate(h.key, "", "")
 
-	tmplPython, err := static.ParseTextTemplates(nil, "python.tmpl")
+	tmplPython, err := static.ParseTextTemplates(nil, "templates/python.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tmplRlang, err := static.ParseTextTemplates(nil, "r.tmpl")
+	tmplRlang, err := static.ParseTextTemplates(nil, "templates/r.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
