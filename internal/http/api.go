@@ -3,7 +3,6 @@
 package http
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser"
+	"gitlab.inf.unibz.it/lter/browser/internal/encoding/csv"
 	"gitlab.inf.unibz.it/lter/browser/static"
 	"golang.org/x/net/xsrftoken"
 )
@@ -35,7 +35,7 @@ func (h *Handler) handleSeries() http.HandlerFunc {
 		}
 
 		ctx := r.Context()
-		b, err := h.db.SeriesV1(ctx, m)
+		ts, err := h.db.Series(ctx, m)
 		if errors.Is(err, browser.ErrDataNotFound) {
 			Error(w, err, http.StatusBadRequest)
 			return
@@ -50,7 +50,10 @@ func (h *Handler) handleSeries() http.HandlerFunc {
 		w.Header().Set("Content-Description", "File Transfer")
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-		csv.NewWriter(w).WriteAll(b)
+		writer := csv.NewWriter(w)
+		if err := writer.Write(ts); err != nil {
+			Error(w, err, http.StatusInternalServerError)
+		}
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -105,11 +106,8 @@ type TimeSeries []*Measurement
 
 // Measurement represents a single measurements.
 type Measurement struct {
-	Name    string
-	Station struct {
-		Name string
-		ID   int
-	}
+	Label       string
+	Station     string
 	Aggregation string
 	Unit        string
 	Landuse     string
@@ -117,6 +115,11 @@ type Measurement struct {
 	Latitude    float64
 	Longitude   float64
 	Points      []*Point
+}
+
+// Name returns the label removing the aggregation function from it.
+func (m *Measurement) Name() string {
+	return strings.ReplaceAll(m.Label, "_"+m.Aggregation, "")
 }
 
 // Point represents a single measured point.
@@ -151,12 +154,7 @@ type Metadata interface {
 
 // Database represents a backend for retrieving timeseries data.
 type Database interface {
-	// TODO(m): This is the current version for getting a timeseries
-	// as CSV. It is slow on big data queries and not flexible
-	// enough to support multiple types of CSV formats.
-	SeriesV1(ctx context.Context, m *Message) ([][]string, error)
-
-	// TODO(m): This is the new API for getting a timeseries.
+	// Series returns a TimeSeries from the given message.
 	Series(ctx context.Context, m *Message) (TimeSeries, error)
 
 	// Query returns the query as Stmt.

@@ -117,11 +117,6 @@ func New(file string, db browser.Database, m browser.Metadata) (*Access, error) 
 
 }
 
-func (a *Access) SeriesV1(ctx context.Context, m *browser.Message) ([][]string, error) {
-	a.redact(ctx, m)
-	return a.db.SeriesV1(ctx, m)
-}
-
 func (a *Access) Series(ctx context.Context, m *browser.Message) (browser.TimeSeries, error) {
 	a.redact(ctx, m)
 	return a.db.Series(ctx, m)

@@ -4,20 +4,12 @@ package influx
 
 import (
 	"context"
-	"encoding/csv"
-	"encoding/json"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/mock"
 
 	"github.com/google/go-cmp/cmp"
-	client "github.com/influxdata/influxdb1-client/v2"
 )
 
 func TestQuery(t *testing.T) {
@@ -96,87 +88,4 @@ func TestQuery(t *testing.T) {
 		})
 	}
 
-}
-
-func TestSeriesV1(t *testing.T) {
-	ctx := context.Background()
-
-	location, err := time.LoadLocation("Europe/Rome")
-	if err != nil {
-		t.Fatal(err)
-	}
-	c := &mock.InfluxClient{}
-	db := &DB{
-		Client:   c,
-		Database: "testdb",
-	}
-
-	testCases := map[string]struct {
-		in          *browser.Message
-		queryFn     func(q client.Query) (*client.Response, error)
-		wantCSVFile string
-	}{
-		"empty": {
-			&browser.Message{},
-			queryTestHelper(""),
-			"",
-		},
-		"day": {
-			&browser.Message{
-				Measurements: []string{"air_rh_avg", "air_t_avg", "snow_height"},
-				Stations:     []string{"39", "4"},
-				Start:        time.Date(2020, 5, 4, 0, 0, 0, 0, location),
-				End:          time.Date(2020, 5, 4, 0, 0, 0, 0, location),
-			},
-			queryTestHelper("day.json"),
-			"day.csv",
-		},
-		"days": {
-			&browser.Message{
-				Measurements: []string{"air_rh_avg", "air_t_avg", "snow_height"},
-				Stations:     []string{"39", "4"},
-				Start:        time.Date(2020, 5, 2, 0, 0, 0, 0, location),
-				End:          time.Date(2020, 5, 4, 0, 0, 0, 0, location),
-			},
-			queryTestHelper("days.json"),
-			"days.csv",
-		},
-	}
-
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			c.QueryFn = tc.queryFn
-
-			got, _ := db.SeriesV1(ctx, tc.in)
-
-			f, _ := os.Open(filepath.Join("testdata", tc.wantCSVFile))
-			r := csv.NewReader(f)
-			want, _ := r.ReadAll()
-
-			diff := cmp.Diff(want, got)
-			if diff != "" {
-				t.Fatalf("SeriesV!1() mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
-func queryTestHelper(filename string) func(q client.Query) (*client.Response, error) {
-	return func(q client.Query) (*client.Response, error) {
-		if strings.HasPrefix(q.Command, "SHOW TAG") {
-			filename = "units.json"
-		}
-
-		b, err := ioutil.ReadFile(filepath.Join("testdata", filename))
-		if err != nil {
-			return nil, err
-		}
-
-		var resp *client.Response
-		if err := json.Unmarshal(b, &resp); err != nil {
-			return nil, err
-		}
-
-		return resp, nil
-	}
 }
