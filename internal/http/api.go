@@ -134,12 +134,12 @@ func parseMessage(r *http.Request) (*browser.Message, error) {
 		return nil, err
 	}
 
-	start, err := time.Parse("2006-01-02", r.FormValue("startDate"))
+	start, err := time.ParseInLocation("2006-01-02", r.FormValue("startDate"), browser.Location)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse start date %v", err)
 	}
 
-	end, err := time.Parse("2006-01-02", r.FormValue("endDate"))
+	end, err := time.ParseInLocation("2006-01-02", r.FormValue("endDate"), browser.Location)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse end date %v", err)
 	}

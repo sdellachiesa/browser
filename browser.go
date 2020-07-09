@@ -14,11 +14,19 @@ import (
 	"time"
 )
 
+// DefaultCollectionInterval is the default interval with which LTER stations
+// aggregate measured points.
+const DefaultCollectionInterval = 15 * time.Minute
+
 var (
 	ErrAuthentication = errors.New("user not authenticated")
 	ErrDataNotFound   = errors.New("no data points")
 	ErrInternal       = errors.New("internal error")
 	ErrInvalidToken   = errors.New("invalid token")
+
+	// Location denotes the time location of the LTER stations, which is
+	// UTC+1.
+	Location = time.FixedZone("+0100", 60*60)
 )
 
 // Station represents a meteorological station of the LTER
@@ -154,10 +162,12 @@ type Metadata interface {
 
 // Database represents a backend for retrieving timeseries data.
 type Database interface {
-	// Series returns a TimeSeries from the given message.
+	// Series returns a TimeSeries from the given Message. Points in a
+	// TimeSeries should always have a continuous timerange as for
+	// https://gitlab.inf.unibz.it/lter/browser/issues/10
 	Series(ctx context.Context, m *Message) (TimeSeries, error)
 
-	// Query returns the query as Stmt.
+	// Query returns a query Stmt for the given Message.
 	Query(ctx context.Context, m *Message) *Stmt
 }
 
