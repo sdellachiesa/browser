@@ -5,7 +5,6 @@ package http
 import (
 	"bytes"
 	"context"
-	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,50 +12,38 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"gitlab.inf.unibz.it/lter/browser"
 	"gitlab.inf.unibz.it/lter/browser/static"
 	"golang.org/x/net/xsrftoken"
 )
 
-// func TestHandleSeries(t *testing.T) {
-// 	testCases := map[string]struct {
-// 		method          string
-// 		statusCode      int
-// 		respContentType string
-// 		reqBody         string
-// 		respBody        []byte
-// 	}{
-// 		"MethodGet":          {http.MethodGet, http.StatusForbidden, "text/plain; charset=utf-8", "", nil},
-// 		"MethodGetWithToken": {http.MethodGet, http.StatusForbidden, "text/plain; charset=utf-8", "" nil},
-// 	}
-
-// 	for k, tc := range testCases {
-// 		t.Run(k, func(t *testing.T) {
-// 			req := httptest.NewRequest(tc.method, "/api/v1/series", strings.NewReader(tc.reqBody))
-// 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-// 			w := httptest.NewRecorder()
-// 			api.ServeHTTP(w, req)
-// 			resp := w.Result()
-
-// 			if got, want := resp.StatusCode, tc.statusCode; got != want {
-// 				t.Errorf("got unexpected status code: %d, want %d", got, want)
-// 			}
-// 		})
-// 	}
-// }
-
 type testBackend struct{}
 
-func (tb *testBackend) SeriesV1(ctx context.Context, m *browser.Message) ([][]string, error) {
-	var r [][]string
-	v := []string{"test,series"}
-	return append(r, v), nil
-}
-
 func (tb *testBackend) Series(ctx context.Context, m *browser.Message) (browser.TimeSeries, error) {
-	return nil, errors.New("not yet implemented")
+	var ts browser.TimeSeries
+
+	measure := &browser.Measurement{
+		Label:     "test",
+		Station:   "station",
+		Landuse:   "me",
+		Unit:      "%",
+		Elevation: 1000,
+		Latitude:  3.14159,
+		Longitude: 2.71828,
+	}
+
+	t := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
+	for i := 0; i < 5; i++ {
+		t = t.Add(15 * time.Minute)
+		measure.Points = append(measure.Points, &browser.Point{
+			Timestamp: t,
+			Value:     float64(i),
+		})
+	}
+
+	return append(ts, measure), nil
 }
 
 func (tb *testBackend) Query(ctx context.Context, m *browser.Message) *browser.Stmt {
@@ -92,8 +79,8 @@ func TestHandleSeries(t *testing.T) {
 		"MissingMeasurements":            {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&stations=1&token=" + token, nil},
 		"MissingStations":                {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&measurements=a&token=" + token, nil},
 		"MissingMeasurementsAndStations": {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&landuse=a&token=" + token, nil},
-		"OK":                             {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&token=" + token, []byte("\"test,series\"\n")},
-		"OKWithLanduse":                  {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&token=" + token, []byte("\"test,series\"\n")},
+		"OK":                             {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&token=" + token, []byte("time,station,landuse,elevation,latitude,longitude,test\n,,,,,,%\n2020-01-01 00:15:00,station,me,1000,3.14159,2.71828,0\n2020-01-01 00:30:00,station,me,1000,3.14159,2.71828,1\n2020-01-01 00:45:00,station,me,1000,3.14159,2.71828,2\n2020-01-01 01:00:00,station,me,1000,3.14159,2.71828,3\n2020-01-01 01:15:00,station,me,1000,3.14159,2.71828,4\n")},
+		"OKWithLanduse":                  {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&token=" + token, []byte("time,station,landuse,elevation,latitude,longitude,test\n,,,,,,%\n2020-01-01 00:15:00,station,me,1000,3.14159,2.71828,0\n2020-01-01 00:30:00,station,me,1000,3.14159,2.71828,1\n2020-01-01 00:45:00,station,me,1000,3.14159,2.71828,2\n2020-01-01 01:00:00,station,me,1000,3.14159,2.71828,3\n2020-01-01 01:15:00,station,me,1000,3.14159,2.71828,4\n")},
 	}
 
 	for k, tc := range testCases {
