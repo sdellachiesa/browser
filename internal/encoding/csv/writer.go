@@ -51,7 +51,7 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 	// stationPosMap is map which stores the starting line number of a station in
 	// the line buffer.
 	stationPosMap := make(map[string]int, len(ts))
-	length := w.lines[0]
+
 	for _, m := range ts {
 		spos, stationIsPresent := stationPosMap[m.Station]
 
@@ -65,32 +65,21 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 					continue
 				}
 
-				w.lines[spos+i][pos] = fmt.Sprint(p.Value)
+				// If spos+i is out of range due to the fact that one
+				// measurement has less points then an other a new line must be
+				// added instead of writing only the value on to an existing
+				// line.
+				if (spos + i) >= len(w.lines) {
+					w.lines = append(w.lines, w.newLine(m, p))
+				} else {
+					w.lines[spos+i][pos] = fmt.Sprint(p.Value)
+				}
 				continue
 			}
 
-			// No station is present means we need to append a new line to the
-			// buffered lines.
-			line := make([]string, len(length))
-
-			// fill line with NaN's
-			for i := 0; i < len(length); i++ {
-				line[i] = "NaN"
-			}
-
-			line[0] = p.Timestamp.Format(DefaultTimeFormat)
-			line[1] = m.Station
-			line[2] = m.Landuse
-			line[3] = fmt.Sprint(m.Elevation)
-			line[4] = fmt.Sprint(m.Latitude)
-			line[5] = fmt.Sprint(m.Longitude)
-
-			pos, ok := w.pos[m.Label]
-			if ok {
-				line[pos] = fmt.Sprint(p.Value)
-			}
-
-			w.lines = append(w.lines, line)
+			// No station is present therefore a new line must be appended to
+			// the buffered lines.
+			w.lines = append(w.lines, w.newLine(m, p))
 
 			// On the first written line record the line number. This is
 			// the starting line for the station.
@@ -103,13 +92,28 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 	return w.w.WriteAll(w.lines)
 }
 
-// append appens the given line at the given line number.
-func (w *Writer) append(n int, line []string) {
-	if n >= len(w.lines) {
-		w.lines = append(w.lines, line)
-		return
+func (w *Writer) newLine(m *browser.Measurement, p *browser.Point) []string {
+	length := w.lines[0]
+
+	line := make([]string, len(length))
+	// fill line with NaN's
+	for i := 0; i < len(length); i++ {
+		line[i] = "NaN"
 	}
-	w.lines[n] = line
+
+	line[0] = p.Timestamp.Format(DefaultTimeFormat)
+	line[1] = m.Station
+	line[2] = m.Landuse
+	line[3] = fmt.Sprint(m.Elevation)
+	line[4] = fmt.Sprint(m.Latitude)
+	line[5] = fmt.Sprint(m.Longitude)
+
+	pos, ok := w.pos[m.Label]
+	if ok {
+		line[pos] = fmt.Sprint(p.Value)
+	}
+
+	return line
 }
 
 func (w *Writer) writeHeaderAndUnits(ts browser.TimeSeries) {

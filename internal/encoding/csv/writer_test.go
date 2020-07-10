@@ -141,6 +141,28 @@ func TestWriter(t *testing.T) {
 2020-01-01 00:45:00,s3,me_s3,1000,3.14159,2.71828,NaN,NaN,2,NaN
 `,
 		},
+		"three_station_more_measure_with_missing_not_equal": {
+			browser.TimeSeries{
+				genMeasurement("a_avg", "s1", "c", 2),
+				genMeasurement("wind_speed", "s1", "km/h", 3),
+				genMeasurement("air_rh_avg", "s1", "%", 3),
+				genMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
+				genMeasurement("a_avg", "s2", "c", 3),
+				genMeasurement("wind_speed", "s2", "km/h", 3),
+				genMeasurement("air_rh_avg", "s3", "%", 1),
+				genMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
+			},
+			`time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
+,,,,,,c,km/h,%,mm
+2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,0,0,0
+2020-01-01 00:30:00,s1,me_s1,1000,3.14159,2.71828,1,1,1,1
+2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,NaN,2,2,2
+2020-01-01 00:15:00,s2,me_s2,1000,3.14159,2.71828,0,0,NaN,0
+2020-01-01 00:30:00,s2,me_s2,1000,3.14159,2.71828,1,1,NaN,1
+2020-01-01 00:45:00,s2,me_s2,1000,3.14159,2.71828,2,2,NaN,2
+2020-01-01 00:15:00,s3,me_s3,1000,3.14159,2.71828,NaN,NaN,0,NaN
+`,
+		},
 	}
 
 	for k, tc := range testCases {
