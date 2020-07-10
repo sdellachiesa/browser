@@ -12,6 +12,7 @@ import (
 
 	"gitlab.inf.unibz.it/lter/browser"
 	"gitlab.inf.unibz.it/lter/browser/internal/encoding/csv"
+	"gitlab.inf.unibz.it/lter/browser/internal/encoding/csvf"
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
 
@@ -44,9 +45,18 @@ func (h *Handler) handleSeries() http.HandlerFunc {
 		w.Header().Set("Content-Description", "File Transfer")
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-		writer := csv.NewWriter(w)
-		if err := writer.Write(ts); err != nil {
-			Error(w, err, http.StatusInternalServerError)
+		switch r.FormValue("submit") {
+		default:
+			writer := csv.NewWriter(w)
+			if err := writer.Write(ts); err != nil {
+				Error(w, err, http.StatusInternalServerError)
+			}
+
+		case "friendly":
+			writer := csvf.NewWriter(w)
+			if err := writer.Write(ts); err != nil {
+				Error(w, err, http.StatusInternalServerError)
+			}
 		}
 	}
 }

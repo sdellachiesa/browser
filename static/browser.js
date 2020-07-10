@@ -128,23 +128,27 @@ function browser(opts) {
 	function toggleDownload() {
 		if ($(opts.sDateEl).val() == "" || $(opts.eDateEl).val() == "") {
 			$(opts.submitEl).attr("disabled", "disabled");
+			$(opts.friendlyEl).attr("disabled", "disabled");
 			return
 		}
 
 		if ($(opts.stationEl).val() == null) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			$(opts.codeEl).attr("disabled", "disabled");
+			$(opts.friendlyEl).attr("disabled", "disabled");
 			return
 		}
 
 		if ($(opts.measurementEl).val() == null) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			$(opts.codeEl).attr("disabled", "disabled");
+			$(opts.friendlyEl).attr("disabled", "disabled");
 			return
 		}
 
 		$(opts.submitEl).removeAttr("disabled");
 		$(opts.codeEl).removeAttr("disabled");
+		$(opts.friendlyEl).removeAttr("disabled");
 	}
 
 	// ToggleOptions enables or disables an option.
