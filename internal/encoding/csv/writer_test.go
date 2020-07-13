@@ -7,11 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"gitlab.inf.unibz.it/lter/browser"
+
+	"github.com/google/go-cmp/cmp"
 )
 
-func TestWriter(t *testing.T) {
+func TestWrite(t *testing.T) {
 	testCases := map[string]struct {
 		in   browser.TimeSeries
 		want string
@@ -22,7 +23,7 @@ func TestWriter(t *testing.T) {
 		},
 		"one_station_one_measure": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 5),
+				testMeasurement("a_avg", "s1", "c", 5),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg
 ,,,,,,c
@@ -33,26 +34,12 @@ func TestWriter(t *testing.T) {
 2020-01-01 01:15:00,s1,me_s1,1000,3.14159,2.71828,4
 `,
 		},
-		"one_station_two_measure": {
+		"one_station_more_measurements": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 5),
-				genMeasurement("wind_speed", "s1", "km/h", 5),
-			},
-			`time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed
-,,,,,,c,km/h
-2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,0
-2020-01-01 00:30:00,s1,me_s1,1000,3.14159,2.71828,1,1
-2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2
-2020-01-01 01:00:00,s1,me_s1,1000,3.14159,2.71828,3,3
-2020-01-01 01:15:00,s1,me_s1,1000,3.14159,2.71828,4,4
-`,
-		},
-		"one_station_more_measure": {
-			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 3),
-				genMeasurement("wind_speed", "s1", "km/h", 3),
-				genMeasurement("air_rh_avg", "s1", "%", 3),
-				genMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
+				testMeasurement("a_avg", "s1", "c", 3),
+				testMeasurement("wind_speed", "s1", "km/h", 3),
+				testMeasurement("air_rh_avg", "s1", "%", 3),
+				testMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
 ,,,,,,c,km/h,%,mm
@@ -61,10 +48,10 @@ func TestWriter(t *testing.T) {
 2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2,2,2
 `,
 		},
-		"two_station_one_measure": {
+		"two_station_same_measurement": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 5),
-				genMeasurement("a_avg", "s2", "c", 5),
+				testMeasurement("a_avg", "s1", "c", 5),
+				testMeasurement("a_avg", "s2", "c", 5),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg
 ,,,,,,c
@@ -80,16 +67,16 @@ func TestWriter(t *testing.T) {
 2020-01-01 01:15:00,s2,me_s2,1000,3.14159,2.71828,4
 `,
 		},
-		"two_station_more_measure": {
+		"two_station_more_measurements": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 3),
-				genMeasurement("wind_speed", "s1", "km/h", 3),
-				genMeasurement("air_rh_avg", "s1", "%", 3),
-				genMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
-				genMeasurement("a_avg", "s2", "c", 3),
-				genMeasurement("wind_speed", "s2", "km/h", 3),
-				genMeasurement("air_rh_avg", "s2", "%", 3),
-				genMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
+				testMeasurement("a_avg", "s1", "c", 3),
+				testMeasurement("wind_speed", "s1", "km/h", 3),
+				testMeasurement("air_rh_avg", "s1", "%", 3),
+				testMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
+				testMeasurement("a_avg", "s2", "c", 3),
+				testMeasurement("wind_speed", "s2", "km/h", 3),
+				testMeasurement("air_rh_avg", "s2", "%", 3),
+				testMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
 ,,,,,,c,km/h,%,mm
@@ -101,11 +88,11 @@ func TestWriter(t *testing.T) {
 2020-01-01 00:45:00,s2,me_s2,1000,3.14159,2.71828,2,2,2,2
 `,
 		},
-		"two_station_three_measure_one_missing": {
+		"two_station_three_measurements": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 3),
-				genMeasurement("a_avg", "s2", "c", 3),
-				genMeasurement("air_rh_avg", "s2", "mm", 3),
+				testMeasurement("a_avg", "s1", "c", 3),
+				testMeasurement("a_avg", "s2", "c", 3),
+				testMeasurement("air_rh_avg", "s2", "mm", 3),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg,air_rh_avg
 ,,,,,,c,mm
@@ -117,16 +104,16 @@ func TestWriter(t *testing.T) {
 2020-01-01 00:45:00,s2,me_s2,1000,3.14159,2.71828,2,2
 `,
 		},
-		"three_station_more_measure_with_missing": {
+		"three_station_more_measurements_with_missing": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 3),
-				genMeasurement("wind_speed", "s1", "km/h", 3),
-				genMeasurement("air_rh_avg", "s1", "%", 3),
-				genMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
-				genMeasurement("a_avg", "s2", "c", 3),
-				genMeasurement("wind_speed", "s2", "km/h", 3),
-				genMeasurement("air_rh_avg", "s3", "%", 3),
-				genMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
+				testMeasurement("a_avg", "s1", "c", 3),
+				testMeasurement("wind_speed", "s1", "km/h", 3),
+				testMeasurement("air_rh_avg", "s1", "%", 3),
+				testMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
+				testMeasurement("a_avg", "s2", "c", 3),
+				testMeasurement("wind_speed", "s2", "km/h", 3),
+				testMeasurement("air_rh_avg", "s3", "%", 3),
+				testMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
 ,,,,,,c,km/h,%,mm
@@ -141,16 +128,16 @@ func TestWriter(t *testing.T) {
 2020-01-01 00:45:00,s3,me_s3,1000,3.14159,2.71828,NaN,NaN,2,NaN
 `,
 		},
-		"three_station_more_measure_with_missing_not_equal": {
+		"three_station_more_measurements_with_missing_not_equal": {
 			browser.TimeSeries{
-				genMeasurement("a_avg", "s1", "c", 2),
-				genMeasurement("wind_speed", "s1", "km/h", 3),
-				genMeasurement("air_rh_avg", "s1", "%", 3),
-				genMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
-				genMeasurement("a_avg", "s2", "c", 3),
-				genMeasurement("wind_speed", "s2", "km/h", 3),
-				genMeasurement("air_rh_avg", "s3", "%", 1),
-				genMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
+				testMeasurement("a_avg", "s1", "c", 2),
+				testMeasurement("a_avg", "s2", "c", 3),
+				testMeasurement("air_rh_avg", "s1", "%", 3),
+				testMeasurement("wind_speed", "s2", "km/h", 3),
+				testMeasurement("air_rh_avg", "s3", "%", 1),
+				testMeasurement("precip_rt_nrt_tot", "s1", "mm", 3),
+				testMeasurement("precip_rt_nrt_tot", "s2", "mm", 3),
+				testMeasurement("wind_speed", "s1", "km/h", 3),
 			},
 			`time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
 ,,,,,,c,km/h,%,mm
@@ -161,6 +148,199 @@ func TestWriter(t *testing.T) {
 2020-01-01 00:30:00,s2,me_s2,1000,3.14159,2.71828,1,1,NaN,1
 2020-01-01 00:45:00,s2,me_s2,1000,3.14159,2.71828,2,2,NaN,2
 2020-01-01 00:15:00,s3,me_s3,1000,3.14159,2.71828,NaN,NaN,0,NaN
+`,
+		},
+		"not_continuous_time_between_measurements": {
+			browser.TimeSeries{
+				&browser.Measurement{
+					Label:     "a_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "c",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:15:00+01:00", 0),
+						testPoint("2020-01-01T01:00:00+01:00", 3),
+					},
+				},
+				&browser.Measurement{
+					Label:     "b_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "mm",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:15:00+01:00", 0),
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:30:00+01:00", 1),
+					},
+				},
+			},
+			`time,station,landuse,elevation,latitude,longitude,a_avg,b_avg
+,,,,,,c,mm
+2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,0
+2020-01-01 00:30:00,s1,me_s1,1000,3.14159,2.71828,NaN,1
+2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2
+2020-01-01 01:00:00,s1,me_s1,1000,3.14159,2.71828,3,NaN
+`,
+		},
+		"one_station_two_measurements_different_starttime_not_sorted": {
+			browser.TimeSeries{
+				&browser.Measurement{
+					Label:     "a_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "c",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:15:00+01:00", 0),
+						testPoint("2020-01-01T01:00:00+01:00", 3),
+					},
+				},
+				&browser.Measurement{
+					Label:     "c_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "mm",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:00:00+01:00", 0),
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:30:00+01:00", 6),
+					},
+				},
+			},
+			`time,station,landuse,elevation,latitude,longitude,a_avg,c_avg
+,,,,,,c,mm
+2020-01-01 00:00:00,s1,me_s1,1000,3.14159,2.71828,NaN,0
+2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,NaN
+2020-01-01 00:30:00,s1,me_s1,1000,3.14159,2.71828,NaN,6
+2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2
+2020-01-01 01:00:00,s1,me_s1,1000,3.14159,2.71828,3,NaN
+`,
+		},
+		"one_station_more_measurements_different_time_intervals_not_sorted": {
+			browser.TimeSeries{
+				&browser.Measurement{
+					Label:     "a_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "c",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:15:00+01:00", 0),
+						testPoint("2020-01-01T01:00:00+01:00", 3),
+					},
+				},
+				&browser.Measurement{
+					Label:     "c_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "mm",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:02:00+01:00", 0),
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:46:00+01:00", 6),
+					},
+				},
+			},
+			`time,station,landuse,elevation,latitude,longitude,a_avg,c_avg
+,,,,,,c,mm
+2020-01-01 00:02:00,s1,me_s1,1000,3.14159,2.71828,NaN,0
+2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,NaN
+2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2
+2020-01-01 00:46:00,s1,me_s1,1000,3.14159,2.71828,NaN,6
+2020-01-01 01:00:00,s1,me_s1,1000,3.14159,2.71828,3,NaN
+`,
+		},
+		"more_station_more_measurements_different_time_intervals_not_sorted": {
+			browser.TimeSeries{
+				&browser.Measurement{
+					Label:     "a_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "c",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:15:00+01:00", 0),
+						testPoint("2020-01-01T01:00:00+01:00", 3),
+					},
+				},
+				&browser.Measurement{
+					Label:     "c_avg",
+					Station:   "s1",
+					Landuse:   "me_s1",
+					Unit:      "mm",
+					Elevation: 1000,
+					Latitude:  3.14159,
+					Longitude: 2.71828,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:02:00+01:00", 0),
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:46:00+01:00", 6),
+					},
+				},
+				&browser.Measurement{
+					Label:     "c_avg",
+					Station:   "s2",
+					Landuse:   "me_s2",
+					Unit:      "mm",
+					Elevation: 50,
+					Latitude:  3,
+					Longitude: 2,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:30:00+01:00", 10),
+						testPoint("2020-01-01T00:45:00+01:00", 22),
+						testPoint("2020-01-01T01:00:00+01:00", 66),
+					},
+				},
+				&browser.Measurement{
+					Label:     "x_avg",
+					Station:   "s0",
+					Landuse:   "me_s0",
+					Unit:      "cm",
+					Elevation: 900,
+					Latitude:  3.141,
+					Longitude: 2.71,
+					Points: []*browser.Point{
+						testPoint("2020-01-01T00:45:00+01:00", 2),
+						testPoint("2020-01-01T00:15:00+01:00", 0),
+						testPoint("2020-01-01T01:00:00+01:00", 3),
+					},
+				},
+			},
+			`time,station,landuse,elevation,latitude,longitude,x_avg,a_avg,c_avg
+,,,,,,cm,c,mm
+2020-01-01 00:15:00,s0,me_s0,900,3.141,2.71,0,NaN,NaN
+2020-01-01 00:45:00,s0,me_s0,900,3.141,2.71,2,NaN,NaN
+2020-01-01 01:00:00,s0,me_s0,900,3.141,2.71,3,NaN,NaN
+2020-01-01 00:02:00,s1,me_s1,1000,3.14159,2.71828,NaN,NaN,0
+2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,NaN,0,NaN
+2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,NaN,2,2
+2020-01-01 00:46:00,s1,me_s1,1000,3.14159,2.71828,NaN,NaN,6
+2020-01-01 01:00:00,s1,me_s1,1000,3.14159,2.71828,NaN,3,NaN
+2020-01-01 00:30:00,s2,me_s2,50,3,2,NaN,NaN,10
+2020-01-01 00:45:00,s2,me_s2,50,3,2,NaN,NaN,22
+2020-01-01 01:00:00,s2,me_s2,50,3,2,NaN,NaN,66
 `,
 		},
 	}
@@ -179,7 +359,7 @@ func TestWriter(t *testing.T) {
 	}
 }
 
-func genMeasurement(label, station, unit string, n int) *browser.Measurement {
+func testMeasurement(label, station, unit string, n int) *browser.Measurement {
 	m := &browser.Measurement{
 		Label:     label,
 		Station:   station,
@@ -190,7 +370,7 @@ func genMeasurement(label, station, unit string, n int) *browser.Measurement {
 		Longitude: 2.71828,
 	}
 
-	ts := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
+	ts := time.Date(2020, time.January, 1, 0, 0, 0, 0, browser.Location)
 
 	for i := 0; i < n; i++ {
 		ts = ts.Add(15 * time.Minute)
@@ -201,4 +381,12 @@ func genMeasurement(label, station, unit string, n int) *browser.Measurement {
 	}
 
 	return m
+}
+
+func testPoint(t string, value float64) *browser.Point {
+	ts, _ := time.ParseInLocation(time.RFC3339, t, browser.Location)
+	return &browser.Point{
+		Timestamp: ts,
+		Value:     value,
+	}
 }
