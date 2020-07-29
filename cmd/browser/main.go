@@ -115,8 +115,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	mw := http.Chain(
+		http.Robots("robots.txt"),
+	)
+
 	log.Printf("Starting server on %s\n", *httpAddr)
-	log.Fatal(http.ListenAndServe(*httpAddr, az))
+	log.Fatal(http.ListenAndServe(*httpAddr, mw(az)))
 }
 
 func required(name, value string) {

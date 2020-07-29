@@ -4,8 +4,11 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Filter and download data of the long term socio-ecological research area LT(S)ER IT25 - Matsch/Mazia - Italy.">
+		<meta property="og:title" content="LTER Matsch / Mazia Data Browser"/>
+		<meta property="og:description" content="Filter and download data of the long term socio-ecological research area LT(S)ER IT25 - Matsch/Mazia - Italy."/>
+		<meta property="og:url" content="https://browser.lter.eurac.edu"/>
 		<title>LTER Matsch / Mazia Data Browser</title>
-		<link rel="icon" href="/static/favicon.ico">
 		<link rel="stylesheet" href="/static/third_party/bootstrap/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/static/third_party/bootstrap-datepicker/bootstrap-datepicker3.min.css">
 		<link rel="stylesheet" href="/static/third_party/bootstrap-multiselect/bootstrap-multiselect.css">
@@ -17,12 +20,15 @@
 		<script src="/static/third_party/jquery/jquery-ui.min.js"></script>
 		<script src="/static/third_party/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/static/third_party/cookies-eu-banner/js/cookies-eu-banner.js"></script>
+		<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  		<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  		<link rel="apple-touch-icon" href="/static/favicon-196x196.png">
 	</head>
 	<body id="page-top">
 
 	<div id="cookies-eu-banner" style="display: none;">
 		{{T "Eu banner" .Language}}
-		<a href="http://privacy.eurac.edu" id="cookies-eu-more">{{T "Eu banner Read more" .Language}}</a>
+		<a href="https://browser-stage.lter.eurac.edu/{{ .Language }}/privacy/" id="cookies-eu-more" >{{T "Eu banner Read more" .Language}}</a>
 		<button id="cookies-eu-reject">{{T "Eu banner Reject" .Language}}</button>
 		<button id="cookies-eu-accept">{{T "Eu banner Accept" .Language}}</button>
 	</div>

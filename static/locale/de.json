@@ -43,10 +43,10 @@
 	"Eu banner": "Diese Webseite nutzt Cookies, um Ihr Weberlebnis zu verbessern und zusätzliche Funktionalitäten zu ermöglichen.",
 	"Eu banner Accept": "Akzeptieren",
 	"Eu banner Reject": "Absprechen",
-	"Eu banner Read more": "Mehr Informationen",
+	"Eu banner Read more": "Datenschutzaufklärung lesen",
 	"To get full data access please write a short introduction of yourself and your data usage intend to:": "Um vollen Datenzugriff zu erhalten, schreiben Sie bitte eine E-Mail mit einer kurzen Beschreibung und Grund der Datennutzung an:",
 	"Show standard deviations": "Standard deviation anzeigen",
-	"Notice": "Mitteilung", 
+	"Notice": "Mitteilung",
 	"Downloading a large data set may take some time to finish or will even timeout.": "Das Herunterladen eines großen Datensatzes kann einige Zeit in anspruch nehmen oder sogar einen Timeout verursachen.",
 	"We are aware of the issue and are working on it. Tools like R or Python are more appropriate to use for such requests.": "Wir arbeiten an einer Verbesserung des Services. Tools wie R oder Python eignen sich besser für solche Anfragen.",
 	"Continue with the download...": "Mit dem Download fortfahren..."
