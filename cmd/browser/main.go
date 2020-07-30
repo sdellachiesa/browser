@@ -93,7 +93,6 @@ func main() {
 	handler := http.NewHandler(
 		http.WithDatabase(acl),
 		http.WithMetadata(cache),
-		http.WithKey(*xsrfKey),
 		http.WithAnalyticsCode(*analyticsCode),
 	)
 
@@ -116,6 +115,8 @@ func main() {
 	}
 
 	mw := http.Chain(
+		http.SecureHeaders(),
+		http.XSRFProtect(*xsrfKey),
 		http.Robots("robots.txt"),
 	)
 

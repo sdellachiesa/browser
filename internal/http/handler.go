@@ -13,9 +13,6 @@ import (
 type Handler struct {
 	mux *http.ServeMux
 
-	// key to prevent request forgery.
-	key string
-
 	// analytics is a Google Analytics code.
 	analytics string
 
@@ -62,13 +59,6 @@ func WithDatabase(db browser.Database) Option {
 func WithMetadata(m browser.Metadata) Option {
 	return func(h *Handler) {
 		h.metadata = m
-	}
-}
-
-// WithKey sets the key for generating an xsrf token.
-func WithKey(key string) Option {
-	return func(h *Handler) {
-		h.key = key
 	}
 }
 

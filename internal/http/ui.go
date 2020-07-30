@@ -15,8 +15,6 @@ import (
 
 	"gitlab.inf.unibz.it/lter/browser"
 	"gitlab.inf.unibz.it/lter/browser/static"
-
-	"golang.org/x/net/xsrftoken"
 )
 
 func (h *Handler) handleIndex() http.HandlerFunc {
@@ -59,7 +57,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 			languageFromCookie(r),
 			r.URL.Path,
 			h.analytics,
-			xsrftoken.Generate(h.key, "", ""),
+			XSRFTokenPlaceholder,
 			time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 			time.Now().Format("2006-01-02"),
 		})

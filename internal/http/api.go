@@ -13,18 +13,12 @@ import (
 	"gitlab.inf.unibz.it/lter/browser"
 	"gitlab.inf.unibz.it/lter/browser/internal/encoding/csv"
 	"gitlab.inf.unibz.it/lter/browser/static"
-	"golang.org/x/net/xsrftoken"
 )
 
 func (h *Handler) handleSeries() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
-			return
-		}
-
-		if !xsrftoken.Valid(r.FormValue("token"), h.key, "", "") {
-			Error(w, browser.ErrInvalidToken, http.StatusForbidden)
 			return
 		}
 
@@ -78,11 +72,6 @@ func (h *Handler) handleCodeTemplate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Expected POST request", http.StatusMethodNotAllowed)
-			return
-		}
-
-		if !xsrftoken.Valid(r.FormValue("token"), h.key, "", "") {
-			Error(w, browser.ErrInvalidToken, http.StatusForbidden)
 			return
 		}
 

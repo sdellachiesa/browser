@@ -16,7 +16,6 @@ import (
 
 	"gitlab.inf.unibz.it/lter/browser"
 	"gitlab.inf.unibz.it/lter/browser/static"
-	"golang.org/x/net/xsrftoken"
 )
 
 type testBackend struct{}
@@ -56,9 +55,7 @@ func (tb *testBackend) Query(ctx context.Context, m *browser.Message) *browser.S
 func TestHandleSeries(t *testing.T) {
 	h := NewHandler(func(h *Handler) {
 		h.db = new(testBackend)
-		h.key = "testing"
 	})
-	token := xsrftoken.Generate(h.key, "", "")
 
 	testCases := map[string]struct {
 		method          string
@@ -73,14 +70,12 @@ func TestHandleSeries(t *testing.T) {
 		"PATCH":                          {http.MethodPatch, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
 		"DELETE":                         {http.MethodDelete, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
 		"OPTIONS":                        {http.MethodOptions, http.StatusMethodNotAllowed, "text/plain; charset=utf-8", "", nil},
-		"NoToken":                        {http.MethodPost, http.StatusForbidden, "text/plain; charset=utf-8", "", nil},
-		"EmptyToken":                     {http.MethodPost, http.StatusForbidden, "text/plain; charset=utf-8", "token=bla", nil},
-		"Incomplete":                     {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&token=" + token, nil},
-		"MissingMeasurements":            {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&stations=1&token=" + token, nil},
-		"MissingStations":                {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&measurements=a&token=" + token, nil},
-		"MissingMeasurementsAndStations": {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&landuse=a&token=" + token, nil},
-		"OK":                             {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&token=" + token, []byte("time,station,landuse,elevation,latitude,longitude,test\n,,,,,,%\n2020-01-01 00:15:00,station,me,1000,3.14159,2.71828,0\n2020-01-01 00:30:00,station,me,1000,3.14159,2.71828,1\n2020-01-01 00:45:00,station,me,1000,3.14159,2.71828,2\n2020-01-01 01:00:00,station,me,1000,3.14159,2.71828,3\n2020-01-01 01:15:00,station,me,1000,3.14159,2.71828,4\n")},
-		"OKWithLanduse":                  {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&token=" + token, []byte("time,station,landuse,elevation,latitude,longitude,test\n,,,,,,%\n2020-01-01 00:15:00,station,me,1000,3.14159,2.71828,0\n2020-01-01 00:30:00,station,me,1000,3.14159,2.71828,1\n2020-01-01 00:45:00,station,me,1000,3.14159,2.71828,2\n2020-01-01 01:00:00,station,me,1000,3.14159,2.71828,3\n2020-01-01 01:15:00,station,me,1000,3.14159,2.71828,4\n")},
+		"Incomplete":                     {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23", nil},
+		"MissingMeasurements":            {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&stations=1", nil},
+		"MissingStations":                {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&measurements=a", nil},
+		"MissingMeasurementsAndStations": {http.MethodPost, http.StatusInternalServerError, "text/plain; charset=utf-8", "startDate=2019-07-23&endDate=2020-01-23&landuse=a", nil},
+		"OK":                             {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a", []byte("time,station,landuse,elevation,latitude,longitude,test\n,,,,,,%\n2020-01-01 00:15:00,station,me,1000,3.14159,2.71828,0\n2020-01-01 00:30:00,station,me,1000,3.14159,2.71828,1\n2020-01-01 00:45:00,station,me,1000,3.14159,2.71828,2\n2020-01-01 01:00:00,station,me,1000,3.14159,2.71828,3\n2020-01-01 01:15:00,station,me,1000,3.14159,2.71828,4\n")},
+		"OKWithLanduse":                  {http.MethodPost, http.StatusOK, "text/csv", "startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me", []byte("time,station,landuse,elevation,latitude,longitude,test\n,,,,,,%\n2020-01-01 00:15:00,station,me,1000,3.14159,2.71828,0\n2020-01-01 00:30:00,station,me,1000,3.14159,2.71828,1\n2020-01-01 00:45:00,station,me,1000,3.14159,2.71828,2\n2020-01-01 01:00:00,station,me,1000,3.14159,2.71828,3\n2020-01-01 01:15:00,station,me,1000,3.14159,2.71828,4\n")},
 	}
 
 	for k, tc := range testCases {
@@ -118,9 +113,7 @@ func TestHandleSeries(t *testing.T) {
 func TestHandleTemplate(t *testing.T) {
 	h := NewHandler(func(h *Handler) {
 		h.db = new(testBackend)
-		h.key = "testing"
 	})
-	token := xsrftoken.Generate(h.key, "", "")
 
 	tmplPython, err := static.ParseTextTemplates(nil, "templates/python.tmpl")
 	if err != nil {
@@ -145,15 +138,13 @@ func TestHandleTemplate(t *testing.T) {
 		"PATCH":           {http.MethodPatch, withCTX(browser.FullAccess), http.StatusMethodNotAllowed, nil, nil},
 		"DELETE":          {http.MethodDelete, withCTX(browser.FullAccess), http.StatusMethodNotAllowed, nil, nil},
 		"OPTIONS":         {http.MethodOptions, withCTX(browser.FullAccess), http.StatusMethodNotAllowed, nil, nil},
-		"NIL":             {http.MethodPost, withCTX(browser.FullAccess), http.StatusForbidden, nil, nil},
-		"EMPTY":           {http.MethodPost, withCTX(browser.FullAccess), http.StatusForbidden, []byte(``), nil},
-		"EmptyToken":      {http.MethodPost, withCTX(browser.FullAccess), http.StatusForbidden, []byte(`token=`), nil},
-		"WrongToken":      {http.MethodPost, withCTX(browser.FullAccess), http.StatusForbidden, []byte(`token=bla`), nil},
-		"Incomplete":      {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(`startDate=2019-07-23&endDate=2020-01-23&measurements=a&token=` + token), nil},
-		"MissingLanguage": {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&token=` + token), nil},
-		"EmtpyLanguage":   {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&language=&token=` + token), nil},
-		"R":               {http.MethodPost, withCTX(browser.FullAccess), http.StatusOK, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&language=r&token=` + token), tmplRlang},
-		"Python":          {http.MethodPost, withCTX(browser.FullAccess), http.StatusOK, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&language=python&token=` + token), tmplPython},
+		"NIL":             {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, nil, nil},
+		"EMPTY":           {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(``), nil},
+		"Incomplete":      {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(`startDate=2019-07-23&endDate=2020-01-23&measurements=a`), nil},
+		"MissingLanguage": {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a`), nil},
+		"EmtpyLanguage":   {http.MethodPost, withCTX(browser.FullAccess), http.StatusInternalServerError, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&language=`), nil},
+		"R":               {http.MethodPost, withCTX(browser.FullAccess), http.StatusOK, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&language=r`), tmplRlang},
+		"Python":          {http.MethodPost, withCTX(browser.FullAccess), http.StatusOK, []byte(`startDate=2019-07-23&endDate=2020-01-23&stations=1&measurements=a&landuse=me&language=python`), tmplPython},
 	}
 
 	for k, tc := range testCases {
