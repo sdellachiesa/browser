@@ -29,10 +29,10 @@ landuse,me_s1
 latitude,3.14159
 longitude,2.71828
 elevation,1000
+parameter,a
+depth,
 aggregation,avg
 unit,c
-
-time,a
 2020-01-01 00:15:00,0
 2020-01-01 00:30:00,1
 2020-01-01 00:45:00,2
@@ -50,15 +50,79 @@ landuse,me_s1,me_s2
 latitude,3.14159,3.14159
 longitude,2.71828,2.71828
 elevation,1000,1000
+parameter,a,a
+depth,,
 aggregation,avg,avg
 unit,c,c
-
-time,a,a
 2020-01-01 00:15:00,0,0
 2020-01-01 00:30:00,1,1
 2020-01-01 00:45:00,2,2
 2020-01-01 01:00:00,3,3
 2020-01-01 01:15:00,4,4
+`,
+		},
+		"two_with_first_less_points": {
+			browser.TimeSeries{
+				testMeasurement("a_avg", "s1", "c", 3),
+				testMeasurement("a_avg", "s2", "c", 5),
+			},
+			`station,s1,s2
+landuse,me_s1,me_s2
+latitude,3.14159,3.14159
+longitude,2.71828,2.71828
+elevation,1000,1000
+parameter,a,a
+depth,,
+aggregation,avg,avg
+unit,c,c
+2020-01-01 00:15:00,0,0
+2020-01-01 00:30:00,1,1
+2020-01-01 00:45:00,2,2
+2020-01-01 01:00:00,NaN,3
+2020-01-01 01:15:00,NaN,4
+`,
+		},
+		"two_with_last_less_points": {
+			browser.TimeSeries{
+				testMeasurement("a_avg", "s1", "c", 5),
+				testMeasurement("a_avg", "s2", "c", 2),
+			},
+			`station,s1,s2
+landuse,me_s1,me_s2
+latitude,3.14159,3.14159
+longitude,2.71828,2.71828
+elevation,1000,1000
+parameter,a,a
+depth,,
+aggregation,avg,avg
+unit,c,c
+2020-01-01 00:15:00,0,0
+2020-01-01 00:30:00,1,1
+2020-01-01 00:45:00,2,NaN
+2020-01-01 01:00:00,3,NaN
+2020-01-01 01:15:00,4,NaN
+`,
+		},
+		"three_with_middle_less_points": {
+			browser.TimeSeries{
+				testMeasurement("c_avg", "s1", "c", 5),
+				testMeasurement("b_avg", "s4", "b", 3),
+				testMeasurement("a_avg", "s5", "a", 4),
+			},
+			`station,s1,s4,s5
+landuse,me_s1,me_s4,me_s5
+latitude,3.14159,3.14159,3.14159
+longitude,2.71828,2.71828,2.71828
+elevation,1000,1000,1000
+parameter,c,b,a
+depth,,,
+aggregation,avg,avg,avg
+unit,c,b,a
+2020-01-01 00:15:00,0,0,0
+2020-01-01 00:30:00,1,1,1
+2020-01-01 00:45:00,2,2,2
+2020-01-01 01:00:00,3,NaN,3
+2020-01-01 01:15:00,4,NaN,NaN
 `,
 		},
 		//		"not_continuous_time_between_measurements": {

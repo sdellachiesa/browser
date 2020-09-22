@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -120,6 +121,7 @@ type Measurement struct {
 	Unit        string
 	Landuse     string
 	Elevation   int64
+	Depth       int64
 	Latitude    float64
 	Longitude   float64
 	Points      []*Point
@@ -127,7 +129,20 @@ type Measurement struct {
 
 // Name returns the label removing the aggregation function from it.
 func (m *Measurement) Name() string {
+	// Remove depth from the label if the measurment has a depth.
+	if m.Depth > 0 {
+		return strings.ReplaceAll(m.Label, fmt.Sprintf("_%02d_%s", m.Depth, m.Aggregation), "")
+	}
 	return strings.ReplaceAll(m.Label, "_"+m.Aggregation, "")
+}
+
+// DepthToString will return the depth as string.
+func (m *Measurement) DepthToString() string {
+	if m.Depth == 0 {
+		return ""
+	}
+
+	return fmt.Sprint(m.Depth)
 }
 
 // Point represents a single measured point.
@@ -154,16 +169,16 @@ type Stmt struct {
 	Database string
 }
 
-// Metadata represents a backend for retriving Metadata.
+// Metadata represents a backend for retrieving Metadata.
 type Metadata interface {
 	// Stations retrieves metadata about all stations.
 	Stations(ctx context.Context, m *Message) (Stations, error)
 }
 
-// Database represents a backend for retrieving timeseries data.
+// Database represents a backend for retrieving time series data.
 type Database interface {
 	// Series returns a TimeSeries from the given Message. Points in a
-	// TimeSeries should always have a continuous timerange as for
+	// TimeSeries should always have a continuous time range as for
 	// https://gitlab.inf.unibz.it/lter/browser/issues/10
 	Series(ctx context.Context, m *Message) (TimeSeries, error)
 
@@ -236,13 +251,13 @@ func UserFromContext(ctx context.Context) *User {
 
 // Authenticator represents a service for authenticating users.
 type Authenticator interface {
-	// Validate returns an authenitcated User if a valid user
+	// Validate returns an authenticated User if a valid user
 	// session is found.
 	Validate(context.Context, *http.Request) (*User, error)
 
-	// Authorize will create a new user session for authenicated users.
+	// Authorize will create a new user session for authenticated users.
 	Authorize(ctx context.Context, w http.ResponseWriter, u *User) error
 
-	// Expire will logout the autenticated User.
+	// Expire will logout the authenticated User.
 	Expire(http.ResponseWriter)
 }

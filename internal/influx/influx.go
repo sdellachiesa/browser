@@ -68,7 +68,7 @@ func (db *DB) Series(ctx context.Context, m *browser.Message) (browser.TimeSerie
 				}
 
 				// Fill missing timestamps with NaN values, to return a
-				// timeseries with a continuous time range. The interval of raw
+				// time series with a continuous time range. The interval of raw
 				// data in LTER is 15 minutes.
 				// See: https://gitlab.inf.unibz.it/lter/browser/issues/10
 				for !t.Equal(nTime) {
@@ -102,6 +102,14 @@ func (db *DB) Series(ctx context.Context, m *browser.Message) (browser.TimeSerie
 					m.Longitude = -1.0
 				}
 
+				if value[5] == nil {
+					m.Depth = 0
+				} else {
+					m.Depth, err = value[5].(json.Number).Int64()
+					if err != nil {
+						m.Depth = -1
+					}
+				}
 				p := &browser.Point{
 					Timestamp: t,
 					Value:     f,
@@ -131,7 +139,7 @@ func seriesQuery(m *browser.Message) ql.Querier {
 		end := time.Date(m.End.Year(), m.End.Month(), m.End.Day(), 22, 59, 59, 59, time.UTC)
 
 		for _, measure := range m.Measurements {
-			columns := []string{measure, "altitude as elevation", "latitude", "longitude"}
+			columns := []string{measure, "altitude as elevation", "latitude", "longitude", "depth"}
 
 			sb := ql.Select(columns...)
 			sb.From(measure)
