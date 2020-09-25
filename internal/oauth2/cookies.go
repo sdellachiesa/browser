@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/securecookie"
 	"gitlab.inf.unibz.it/lter/browser"
 )
 
@@ -26,8 +27,8 @@ const (
 )
 
 var (
-	// Guarantee we implement browser.Authenticator.
-	_ browser.Authenticator = &Cookie{}
+	// Guarantee we implement Authenticator.
+	_ Authenticator = &Cookie{}
 
 	// ErrTokenInvalid denotes that a could not be validated.
 	ErrTokenInvalid = errors.New("token is invalid")
@@ -35,7 +36,10 @@ var (
 
 // Cookie is an browser.Autenticator using HTTP cookies and JWT tokens.
 type Cookie struct {
+	// Secret used for JWT generation/validation.
 	Secret string
+	// Cookie used for storing JWT token in a secure manner.
+	Cookie *securecookie.SecureCookie
 }
 
 func (c *Cookie) Authorize(ctx context.Context, w http.ResponseWriter, u *browser.User) error {
@@ -48,11 +52,17 @@ func (c *Cookie) Authorize(ctx context.Context, w http.ResponseWriter, u *browse
 		return err
 	}
 
+	encoded, err := c.Cookie.Encode(DefaultCookieName, token)
+	if err != nil {
+		return err
+	}
+
 	http.SetCookie(w, &http.Cookie{
-		Name:    DefaultCookieName,
-		Value:   token,
-		Path:    "/",
-		Expires: time.Now().Add(DefaultLifespan),
+		Name:     DefaultCookieName,
+		Value:    encoded,
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  time.Now().Add(DefaultLifespan),
 	})
 
 	return nil
@@ -69,13 +79,20 @@ func (c *Cookie) Expire(w http.ResponseWriter) {
 	http.SetCookie(w, cookie)
 }
 
+// Validate validates the JWT token stored in the cookie and return the user
+// information. It will not validate the user againtst the user service.
 func (c *Cookie) Validate(ctx context.Context, r *http.Request) (*browser.User, error) {
 	cookie, err := r.Cookie(DefaultCookieName)
 	if err != nil {
 		return nil, err
 	}
 
-	u, err := c.validateJWT(cookie.Value)
+	var value string
+	if err := c.Cookie.Decode(DefaultCookieName, cookie.Value, &value); err != nil {
+		return nil, err
+	}
+
+	u, err := c.validateJWT(value)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +101,7 @@ func (c *Cookie) Validate(ctx context.Context, r *http.Request) (*browser.User, 
 }
 
 type claims struct {
-	Username string       `json:"preferred_username"`
-	Name     string       `json:"name"`
-	Role     browser.Role `json:"grp"`
+	User *browser.User
 	jwt.StandardClaims
 }
 
@@ -106,9 +121,7 @@ func (c *Cookie) newJWT(u *browser.User) (string, error) {
 	exp := date.Add(DefaultLifespan)
 
 	cl := claims{
-		u.Username,
-		u.Name,
-		u.Role,
+		u,
 		jwt.StandardClaims{
 			Issuer:    DefaultJWTIssuer,
 			IssuedAt:  date.Unix(),
@@ -150,11 +163,7 @@ func (c *Cookie) validateJWT(token string) (*browser.User, error) {
 		return nil, ErrTokenInvalid
 	}
 
-	return &browser.User{
-		Username: cl.Username,
-		Name:     cl.Name,
-		Role:     cl.Role,
-	}, nil
+	return cl.User, nil
 }
 
 func generateKey() (string, error) {

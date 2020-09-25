@@ -1,0 +1,30 @@
+{
+	"results": [
+		{
+			"statement_id": 0,
+			"series": [
+				{
+					"name": "testing",
+					"tags": {
+						"email": "jane@example.com",
+						"fullname": "Jane Doe",
+						"license": "true",
+						"picture": "/static/images/jane.png",
+						"provider": "test",
+						"role": "External"
+					},
+					"columns": [
+						"time",
+						"updated"
+					],
+					"values": [
+						[
+							"2020-10-19T14:08:29.454279Z",
+							1603116612
+						]
+					]
+				}
+			]
+		}
+	]
+}

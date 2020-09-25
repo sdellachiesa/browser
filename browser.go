@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -20,10 +19,13 @@ import (
 const DefaultCollectionInterval = 15 * time.Minute
 
 var (
-	ErrAuthentication = errors.New("user not authenticated")
-	ErrDataNotFound   = errors.New("no data points")
-	ErrInternal       = errors.New("internal error")
-	ErrInvalidToken   = errors.New("invalid token")
+	ErrAuthentication    = errors.New("user not authenticated")
+	ErrDataNotFound      = errors.New("no data points")
+	ErrInternal          = errors.New("internal error")
+	ErrInvalidToken      = errors.New("invalid token")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserNotValid      = errors.New("user is not valid")
+	ErrUserAlreadyExists = errors.New("user already exists")
 
 	// Location denotes the time location of the LTER stations, which is
 	// UTC+1.
@@ -192,11 +194,12 @@ type Role string
 const (
 	Public      Role = "Public"
 	FullAccess  Role = "FullAccess"
+	External    Role = "External"
 	DefaultRole Role = Public
 )
 
 // Roles is a list of all supported Roles.
-var Roles = []Role{Public, FullAccess}
+var Roles = []Role{Public, External, FullAccess}
 
 func (r *Role) UnmarshalJSON(b []byte) error {
 	var s string
@@ -215,49 +218,61 @@ func NewRole(s string) Role {
 	default:
 		return DefaultRole
 
+	case "External":
+		return External
+
 	case "FullAccess":
 		return FullAccess
 	}
 }
 
-// User represents a specific user.
+// User represents an authenticated user.
 type User struct {
-	Username string
 	Name     string
+	Email    string
+	Picture  string
+	Provider string
+	License  bool
 	Role     Role
 }
 
-// contextKey is a custom type to be used as key type for context.Context
+// Valid determinse if a user is a valid one. A valid user must have a username,
+// name and email.
+func (u *User) Valid() bool {
+	if u.Name != "" && u.Email != "" && u.Provider != "" {
+		return true
+	}
+	return false
+}
+
+// UserService is the Storage and retrivial of authentication information.
+type UserService interface {
+	// Get retrives a user if it exists
+	Get(context.Context, *User) (*User, error)
+	// Create a new User in the UsersStore
+	Create(context.Context, *User) error
+	// Delete the user from the UsersStore
+	Delete(context.Context, *User) error
+	// Update updates the given user
+	Update(context.Context, *User) error
+}
+
+// userContextKey is a custom type to be used as key type for context.Context
 // values.
-type contextKey string
+type userContextKey string
 
-// BrowserContextKey holds the key used to store in the current context.
-const BrowserContextKey contextKey = "BrowserLTER"
+// UserContextKey is the context key for retrieving the user off of context.
+const UserContextKey userContextKey = "BrowserLTER"
 
-// UserFromContext reads user information from the given context. If
-// the context has no user information a default user will be
-// returned.
+// UserFromContext reads user information from the given context. If the context
+// has no user information a default user will be returned.
 func UserFromContext(ctx context.Context) *User {
-	user, ok := ctx.Value(BrowserContextKey).(*User)
+	user, ok := ctx.Value(UserContextKey).(*User)
 	if !ok {
 		return &User{
-			Username: "",
-			Name:     "",
-			Role:     DefaultRole,
+			Role:    DefaultRole,
+			License: false,
 		}
 	}
 	return user
-}
-
-// Authenticator represents a service for authenticating users.
-type Authenticator interface {
-	// Validate returns an authenticated User if a valid user
-	// session is found.
-	Validate(context.Context, *http.Request) (*User, error)
-
-	// Authorize will create a new user session for authenticated users.
-	Authorize(ctx context.Context, w http.ResponseWriter, u *User) error
-
-	// Expire will logout the authenticated User.
-	Expire(http.ResponseWriter)
 }

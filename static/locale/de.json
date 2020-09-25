@@ -40,10 +40,21 @@
 	"Eu banner Accept": "Akzeptieren",
 	"Eu banner Reject": "Absprechen",
 	"Eu banner Read more": "Datenschutzaufklärung lesen",
-	"To get full data access please write a short introduction of yourself and your data usage intend to:": "Um vollen Datenzugriff zu erhalten, schreiben Sie bitte eine E-Mail mit einer kurzen Beschreibung und Grund der Datennutzung an:",
+	"To get full data access please sign in using on of the supported providers:": "Um vollen Datenzugriff zu erhalten, melden Sie sich bitte bei einem der unterstützten Anbieter an:",
 	"Show standard deviations": "Standard deviation anzeigen",
 	"Notice": "Mitteilung",
 	"Downloading a large data set may take some time to finish or will even timeout.": "Das Herunterladen eines großen Datensatzes kann einige Zeit in anspruch nehmen oder sogar einen Timeout verursachen.",
 	"We are aware of the issue and are working on it. Tools like R or Python are more appropriate to use for such requests.": "Wir arbeiten an einer Verbesserung des Services. Tools wie R oder Python eignen sich besser für solche Anfragen.",
-	"Continue with the download...": "Mit dem Download fortfahren..."
+	"Continue with the download...": "Mit dem Download fortfahren...",
+	"Are you sure to delete your registration?": "Sicher?",
+	"Dear": "Liebe/r",
+	"welcome to the Data Portal of the long-term socio-ecological research site Matschertal/Val di Mazia!": "willkommen auf dem Datenportal des sozio-ökologischen Langzeitforschungs-Standorts Matschertal!",
+	"In order to complete your registration please agree to the": "Bitte akzeptiere die",
+	"Data usage agreement": "Datennutzungsvereinbarung", 
+	"I agree": "Ich akzeptiere",
+	"I decline": "Ich akzeptiere nicht",
+	"Submit": "Sende",
+	"Cancel registration": "Registrierung löschen",
+	"Hello": "Hallo",
+	"you are signed from": "du bist abgemelded mit"
 }

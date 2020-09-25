@@ -12,9 +12,11 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/access"
 	"gitlab.inf.unibz.it/lter/browser/internal/http"
 	"gitlab.inf.unibz.it/lter/browser/internal/influx"
+	"gitlab.inf.unibz.it/lter/browser/internal/middleware"
 	"gitlab.inf.unibz.it/lter/browser/internal/oauth2"
 	"gitlab.inf.unibz.it/lter/browser/internal/snipeit"
 
+	"github.com/gorilla/securecookie"
 	client "github.com/influxdata/influxdb1-client/v2"
 	"github.com/peterbourgon/ff"
 )
@@ -26,23 +28,32 @@ func main() {
 
 	fs := flag.NewFlagSet("browser", flag.ExitOnError)
 	var (
-		httpAddr       = fs.String("http", defaultAddr, "HTTP service address.")
-		influxAddr     = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
-		influxUser     = fs.String("influx-username", "", "Influx username")
-		influxPass     = fs.String("influx-password", "", "Influx password")
-		influxDatabase = fs.String("influx-database", "", "Influx database name")
-		snipeitAddr    = fs.String("snipeit-addr", "", "SnipeIT API URL")
-		snipeitToken   = fs.String("snipeit-token", "", "SnipeIT API Token")
-		oauthClientID  = fs.String("oauth-clientid", "", "")
-		oauthSecret    = fs.String("oauth-secret", "", "")
-		oauthRedirect  = fs.String("oauth-redirect", "", "")
-		oauthState     = fs.String("oauth-state", "", "Random string for OAuth2 state code.")
-		jwtKey         = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
-		jwtAppNonce    = fs.String("jwt-app-nonce", "", "Random string for JWT verification.")
-		xsrfKey        = fs.String("xsrf-key", "d71404b42640716b0050ad187489c128ec3d611179cf14a29ddd6ea0d536a2c1", "Random string used for generating XSRF token.")
-		accessFile     = fs.String("access-file", "/etc/browser/access.json", "Access file.")
-		analyticsCode  = fs.String("analytics-code", "", "Google Analytics Code")
-		_              = fs.String("config", "", "Config file (optional)")
+		httpAddr         = fs.String("http", defaultAddr, "HTTP service address.")
+		influxAddr       = fs.String("influx-addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
+		influxUser       = fs.String("influx-username", "", "Influx username")
+		influxPass       = fs.String("influx-password", "", "Influx password")
+		influxDatabase   = fs.String("influx-database", "", "Influx database name")
+		usersDatabase    = fs.String("users.database", "", "Database name for storing user information.")
+		usersEnvironment = fs.String("users.env", "testing", "The enviroment the app is running.")
+		snipeitAddr      = fs.String("snipeit-addr", "", "SnipeIT API URL")
+		snipeitToken     = fs.String("snipeit-token", "", "SnipeIT API Token")
+		jwtKey           = fs.String("jwt-key", "", "Secret key used to create a JWT. Don't share it.")
+		xsrfKey          = fs.String("xsrf-key", "d71404b42640716b0050ad187489c128ec3d611179cf14a29ddd6ea0d536a2c1", "Random string used for generating XSRF token.")
+		accessFile       = fs.String("access-file", "/etc/browser/access.json", "Access file.")
+		analyticsCode    = fs.String("analytics-code", "", "Google Analytics Code")
+		cookieHashKey    = fs.String("cookie.hash", "3998130314e70d9037e05bf872881156da20e07f344f6d9ae58f92e4be85a07dbdb8949c2eee7e0498247176df3d7785200e586c1b52b7f87210119297f77552", "Hash key used for securing the HTTP cookie. Should be at least 32 bytes long.")
+		cookieBlockKey   = fs.String("cookie.block", "e48f59d35c3871586f68d788bcff6c45", "Block keys should be 16 bytes (AES-128) or 32 bytes (AES-256) long. Shorter keys may weaken the encryption used.")
+		oauthState       = fs.String("oauth2.state", "", "Random string used for OAuth2 state code.")
+		oauthNonce       = fs.String("oauth2.nonce", "", "Random string for ID token verification.")
+		azureClientID    = fs.String("azure.clientid", "", "ScientificNet OAuth2 client ID.")
+		azureSecret      = fs.String("azure.secret", "", "ScientificNet OAuth2 secret.")
+		azureRedirect    = fs.String("azure.redirect", "", "ScientificNet OAuth2 redirect URL.")
+		githubClientID   = fs.String("github.clientid", "", "Github OAuth2 client ID.")
+		githubSecret     = fs.String("github.secret", "", "Github OAuth2 secret.")
+		googleClientID   = fs.String("google.clientid", "", "Google OAuth2 client ID.")
+		googleSecret     = fs.String("google.secret", "", "Google OAuth2 secret.")
+		googleRedirect   = fs.String("google.redirect", "", "Google OAuth2 redirect URL.")
+		_                = fs.String("config", "", "Config file (optional)")
 	)
 
 	ff.Parse(fs, os.Args[1:],
@@ -53,6 +64,7 @@ func main() {
 
 	required("influx-addr", *influxAddr)
 	required("influx-database", *influxDatabase)
+	required("users.database", *usersDatabase)
 	required("snipeit-addr", *snipeitAddr)
 	required("snipeit-token", *snipeitToken)
 	required("jwtKey", *jwtKey)
@@ -90,38 +102,57 @@ func main() {
 	cache := browser.NewInMemCache(acl)
 
 	// Initialize HTTP endpoints.
-	handler := http.NewHandler(
+	frontend := http.NewHandler(
 		http.WithDatabase(acl),
 		http.WithMetadata(cache),
 		http.WithAnalyticsCode(*analyticsCode),
 	)
 
-	// Wrap Azure Oauth2 Middleware Authentication around.
-	az, err := oauth2.NewAzureOAuth2(
-		handler,
-		&oauth2.Cookie{
+	// Initialze authentication handler.
+	handler := &oauth2.Handler{
+		Next:  frontend,
+		State: *oauthState,
+		Nonce: *oauthNonce,
+		Auth: &oauth2.Cookie{
 			Secret: *jwtKey,
+			Cookie: securecookie.New([]byte(*cookieHashKey), []byte(*cookieBlockKey)),
 		},
-		&oauth2.AzureOptions{
-			ClientID:    *oauthClientID,
-			Secret:      *oauthSecret,
-			RedirectURL: *oauthRedirect,
-			State:       *oauthState,
-			Nonce:       *jwtAppNonce,
+		Users: &influx.UserService{
+			Client:   ic,
+			Database: *usersDatabase,
+			Env:      *usersEnvironment,
 		},
-	)
-	if err != nil {
-		log.Fatal(err)
 	}
 
-	mw := http.Chain(
-		http.SecureHeaders(),
-		http.XSRFProtect(*xsrfKey),
-		http.Robots("robots.txt"),
+	// Initialze OAuth2 providers.
+	handler.Register(&oauth2.Azure{
+		ClientID:    *azureClientID,
+		Secret:      *azureSecret,
+		RedirectURL: *azureRedirect,
+		Nonce:       *oauthNonce,
+	})
+
+	handler.Register(&oauth2.Github{
+		ClientID: *githubClientID,
+		Secret:   *githubSecret,
+	})
+
+	handler.Register(&oauth2.Google{
+		ClientID:    *googleClientID,
+		Secret:      *googleSecret,
+		RedirectURL: *googleRedirect,
+		Nonce:       *oauthNonce,
+	})
+
+	// Add some common middleware.
+	mw := middleware.Chain(
+		middleware.SecureHeaders(),
+		middleware.XSRFProtect(*xsrfKey),
+		middleware.Robots("robots.txt"),
 	)
 
 	log.Printf("Starting server on %s\n", *httpAddr)
-	log.Fatal(http.ListenAndServe(*httpAddr, mw(az)))
+	log.Fatal(http.ListenAndServe(*httpAddr, mw(handler)))
 }
 
 func required(name, value string) {

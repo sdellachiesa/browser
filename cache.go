@@ -48,7 +48,7 @@ func (c *InMemCache) loadCache() {
 	for _, r := range Roles {
 		log.Printf("loading cache for %s\n", r)
 
-		ctx := context.WithValue(context.Background(), BrowserContextKey, &User{Role: r})
+		ctx := context.WithValue(context.Background(), UserContextKey, &User{Role: r, License: true})
 		s, err := c.metadata.Stations(ctx, &Message{})
 		if err != nil {
 			log.Printf("error: cache loading failed for %q: %v", r, err)

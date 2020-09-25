@@ -4,10 +4,13 @@ package oauth2
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
-	"net/http"
-	"time"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"gitlab.inf.unibz.it/lter/browser"
 
@@ -20,154 +23,106 @@ const (
 	// Tenant is the Azure AD tenant.
 	Tenant = "scientificnet.onmicrosoft.com"
 
-	// Issuer is used for verifing the ID token.
+	// Issuer is used for verifying the ID token.
 	Issuer = "https://login.microsoftonline.com/92513267-03e3-401a-80d4-c58ed6674e3b/v2.0"
 )
 
-// Azure is a HTTP middleware for handling OAuth2 authentiction against
-// Microsoft Azure AD.
+// Guarantee we implement Provider.
+var _ Provider = &Azure{}
+
+// Azure is an OAuth2 provider for signing in using azure AD.
 type Azure struct {
-	next     http.Handler
-	config   *oauth2.Config
-	state    string
-	nonce    string
-	verifier *oidc.IDTokenVerifier
-
-	auth browser.Authenticator
-}
-
-// AzureOptions holds several options for the Azure OAuth2 autentication
-// middleware.
-type AzureOptions struct {
 	ClientID    string
 	Secret      string
 	RedirectURL string
-	State       string
 	Nonce       string
 }
 
-// NewAzureOAuth2 returns a new Azure OAuth2 autentication middleware.
-func NewAzureOAuth2(next http.Handler, auth browser.Authenticator, opts *AzureOptions) (*Azure, error) {
-	ctx := context.Background()
+// Name returns the name of provider.
+func (s *Azure) Name() string {
+	return "azure"
+}
+
+// Config is the Azure OAuth2 configuration.
+func (a *Azure) Config() *oauth2.Config {
+	return &oauth2.Config{
+		ClientID:     a.ClientID,
+		ClientSecret: a.Secret,
+		Scopes:       []string{"openid", "email", "profile"},
+		Endpoint:     microsoft.AzureADEndpoint(Tenant),
+		RedirectURL:  a.RedirectURL,
+	}
+}
+
+// User returns an browser.User with information from Azure AD.
+func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, error) {
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return nil, errors.New("no id_token field in oauth2 token")
+	}
+
 	provider, err := oidc.NewProvider(ctx, Issuer)
 	if err != nil {
-		return nil, fmt.Errorf("error creating oidc provider: %v", err)
+		return nil, fmt.Errorf("oauth2(azure): error creating oidc provider: %v", err)
+	}
+	verifier := provider.Verifier(&oidc.Config{
+		ClientID: a.ClientID,
+	})
+
+	// Verify the ID Token signature and nonce.
+	idToken, err := verifier.Verify(ctx, rawIDToken)
+	if err != nil {
+		return nil, err
+	}
+	if idToken.Nonce != a.Nonce {
+		return nil, errors.New("nonce in id token is not right")
 	}
 
-	a := &Azure{
-		next: next,
-		config: &oauth2.Config{
-			ClientID:     opts.ClientID,
-			ClientSecret: opts.Secret,
-			Scopes:       []string{"openid", "email", "profile"},
-			Endpoint:     microsoft.AzureADEndpoint(Tenant),
-			RedirectURL:  opts.RedirectURL,
-		},
-		state: opts.State,
-		nonce: opts.Nonce,
-		verifier: provider.Verifier(&oidc.Config{
-			ClientID: opts.ClientID,
-		}),
-		auth: auth,
+	// Extract the roles claim.
+	var claims struct {
+		Name  string   `json:"name"`
+		Email string   `json:"email"`
+		Roles []string `json:"roles"`
+	}
+	if err := idToken.Claims(&claims); err != nil {
+		return nil, err
 	}
 
-	return a, nil
+	profile := filepath.Join("static", "images", strings.ToLower(claims.Email))
+	if err := a.writeProfilePicture(profile, token); err != nil {
+		log.Println(err)
+	}
+
+	u := &browser.User{
+		Name:     claims.Name,
+		Email:    claims.Email,
+		Picture:  profile,
+		Provider: a.Name(),
+		Role:     browser.Public,
+	}
+
+	if len(claims.Roles) >= 1 {
+		u.Role = browser.NewRole(claims.Roles[0])
+	}
+
+	return u, nil
 }
 
-func (a *Azure) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (a *Azure) writeProfilePicture(filename string, token *oauth2.Token) error {
+	ctx := context.Background()
+	client := a.Config().Client(ctx, token)
 
-	switch r.URL.Path {
-	default:
-		u, err := a.auth.Validate(ctx, r)
-		if err != nil {
-			a.next.ServeHTTP(w, r)
-			return
-		}
+	resp, err := client.Get("https://graph.microsoft.com/v1.0/users/mpalma@eurac.edu/photo/$value")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-		// Attach user information to the context of the request
-		ctx := context.WithValue(ctx, browser.BrowserContextKey, u)
-		a.next.ServeHTTP(w, r.WithContext(ctx))
-
-	case "/auth/azure/logout":
-		a.auth.Expire(w)
-
-		redirect(w, r, "/", http.StatusSeeOther)
-
-	case "/auth/azure/login":
-		redirect(w, r, a.config.AuthCodeURL(a.state, oidc.Nonce(a.nonce)), http.StatusMovedPermanently)
-
-	case "/auth/azure/callback":
-		if r.URL.Query().Get("state") != a.state {
-			msg := fmt.Sprintf("invalid state token, got %q, want %q.", r.FormValue("state"), a.state)
-			http.Error(w, msg, http.StatusInternalServerError)
-			return
-		}
-
-		token, err := a.config.Exchange(ctx, r.URL.Query().Get("code"))
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rawIDToken, ok := token.Extra("id_token").(string)
-		if !ok {
-			log.Println(err)
-			http.Error(w, "No id_token field in oauth2 token.", http.StatusInternalServerError)
-			return
-		}
-
-		// Verify the ID Token signature and nonce.
-		idToken, err := a.verifier.Verify(ctx, rawIDToken)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "failed to verify ID Token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if idToken.Nonce != a.nonce {
-			log.Println(err)
-			http.Error(w, "invalid ID Token nonce", http.StatusInternalServerError)
-			return
-		}
-
-		// Extract the roles claim.
-		var claims struct {
-			Username string   `json:"preferred_username"`
-			Name     string   `json:"name"`
-			Roles    []string `json:"roles"`
-		}
-		if err := idToken.Claims(&claims); err != nil {
-			log.Println(err)
-			http.Error(w, "error extracting claim from ID Token", http.StatusInternalServerError)
-			return
-		}
-
-		u := &browser.User{
-			Username: claims.Username,
-			Name:     claims.Name,
-			Role:     browser.Public,
-		}
-
-		if len(claims.Roles) >= 1 {
-			u.Role = browser.NewRole(claims.Roles[0])
-		}
-
-		if err := a.auth.Authorize(ctx, w, u); err != nil {
-			log.Println(err)
-		}
-
-		redirect(w, r, "/", http.StatusSeeOther)
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
 	}
 
-}
-
-// redirect is a wrapper for http.Redirect
-func redirect(w http.ResponseWriter, r *http.Request, url string, code int) {
-	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
-	w.Header().Set("Expires", time.Unix(0, 0).Format(http.TimeFormat))
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("X-Accel-Expires", "0")
-
-	http.Redirect(w, r, url, code)
+	_, err = io.Copy(f, resp.Body)
+	return err
 }

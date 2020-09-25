@@ -117,7 +117,7 @@ func TestSeries(t *testing.T) {
 		},
 		"missing points": {
 			in:      testMessage,
-			queryFn: queryTestHelper("missing.json"),
+			queryFn: queryTestHelper(t, "missing.json"),
 			want: browser.TimeSeries{
 				&browser.Measurement{
 					Label:       "air_rh_avg",
@@ -129,27 +129,27 @@ func TestSeries(t *testing.T) {
 					Latitude:    46.6612188656,
 					Longitude:   10.5902491243,
 					Points: []*browser.Point{
-						testPoint("2020-05-04T00:00:00+01:00", math.NaN()),
-						testPoint("2020-05-04T00:15:00+01:00", math.NaN()),
-						testPoint("2020-05-04T00:30:00+01:00", math.NaN()),
-						testPoint("2020-05-04T00:45:00+01:00", math.NaN()),
-						testPoint("2020-05-04T01:00:00+01:00", 48.98),
-						testPoint("2020-05-04T01:15:00+01:00", 52.53),
-						testPoint("2020-05-04T01:30:00+01:00", 53.07),
-						testPoint("2020-05-04T01:45:00+01:00", math.NaN()),
-						testPoint("2020-05-04T02:00:00+01:00", 54.25),
-						testPoint("2020-05-04T02:15:00+01:00", 57.86),
-						testPoint("2020-05-04T02:30:00+01:00", math.NaN()),
-						testPoint("2020-05-04T02:45:00+01:00", math.NaN()),
-						testPoint("2020-05-04T03:00:00+01:00", 59.52),
-						testPoint("2020-05-04T03:15:00+01:00", 59.41),
+						testPoint(t, "2020-05-04T00:00:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T00:15:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T00:30:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T00:45:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T01:00:00+01:00", 48.98),
+						testPoint(t, "2020-05-04T01:15:00+01:00", 52.53),
+						testPoint(t, "2020-05-04T01:30:00+01:00", 53.07),
+						testPoint(t, "2020-05-04T01:45:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T02:00:00+01:00", 54.25),
+						testPoint(t, "2020-05-04T02:15:00+01:00", 57.86),
+						testPoint(t, "2020-05-04T02:30:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T02:45:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T03:00:00+01:00", 59.52),
+						testPoint(t, "2020-05-04T03:15:00+01:00", 59.41),
 					},
 				},
 			},
 		},
 		"multiple measurements": {
 			in:      testMessage,
-			queryFn: queryTestHelper("multiple.json"),
+			queryFn: queryTestHelper(t, "multiple.json"),
 			want: browser.TimeSeries{
 				&browser.Measurement{
 					Label:       "air_rh_avg",
@@ -161,11 +161,11 @@ func TestSeries(t *testing.T) {
 					Latitude:    46.6612188656,
 					Longitude:   10.5902491243,
 					Points: []*browser.Point{
-						testPoint("2020-05-04T00:00:00+01:00", math.NaN()),
-						testPoint("2020-05-04T00:15:00+01:00", 48.1),
-						testPoint("2020-05-04T00:30:00+01:00", 45.6),
-						testPoint("2020-05-04T00:45:00+01:00", 46.93),
-						testPoint("2020-05-04T01:00:00+01:00", 48.98),
+						testPoint(t, "2020-05-04T00:00:00+01:00", math.NaN()),
+						testPoint(t, "2020-05-04T00:15:00+01:00", 48.1),
+						testPoint(t, "2020-05-04T00:30:00+01:00", 45.6),
+						testPoint(t, "2020-05-04T00:45:00+01:00", 46.93),
+						testPoint(t, "2020-05-04T01:00:00+01:00", 48.98),
 					},
 				},
 				&browser.Measurement{
@@ -178,11 +178,11 @@ func TestSeries(t *testing.T) {
 					Latitude:    46.6862577024,
 					Longitude:   10.5798451965,
 					Points: []*browser.Point{
-						testPoint("2020-05-04T00:00:00+01:00", 44.91),
-						testPoint("2020-05-04T00:15:00+01:00", 44.54),
-						testPoint("2020-05-04T00:30:00+01:00", 45.43),
-						testPoint("2020-05-04T00:45:00+01:00", 47.45),
-						testPoint("2020-05-04T01:00:00+01:00", 49.49),
+						testPoint(t, "2020-05-04T00:00:00+01:00", 44.91),
+						testPoint(t, "2020-05-04T00:15:00+01:00", 44.54),
+						testPoint(t, "2020-05-04T00:30:00+01:00", 45.43),
+						testPoint(t, "2020-05-04T00:45:00+01:00", 47.45),
+						testPoint(t, "2020-05-04T01:00:00+01:00", 49.49),
 					},
 				},
 				&browser.Measurement{
@@ -195,11 +195,11 @@ func TestSeries(t *testing.T) {
 					Latitude:    46.6612188656,
 					Longitude:   10.5902491243,
 					Points: []*browser.Point{
-						testPoint("2020-05-04T00:00:00+01:00", 10.05),
-						testPoint("2020-05-04T00:15:00+01:00", 9.46),
-						testPoint("2020-05-04T00:30:00+01:00", 9.61),
-						testPoint("2020-05-04T00:45:00+01:00", 9.72),
-						testPoint("2020-05-04T01:00:00+01:00", 9.02),
+						testPoint(t, "2020-05-04T00:00:00+01:00", 10.05),
+						testPoint(t, "2020-05-04T00:15:00+01:00", 9.46),
+						testPoint(t, "2020-05-04T00:30:00+01:00", 9.61),
+						testPoint(t, "2020-05-04T00:45:00+01:00", 9.72),
+						testPoint(t, "2020-05-04T01:00:00+01:00", 9.02),
 					},
 				},
 				&browser.Measurement{
@@ -212,10 +212,10 @@ func TestSeries(t *testing.T) {
 					Latitude:    46.6862577024,
 					Longitude:   10.5798451965,
 					Points: []*browser.Point{
-						testPoint("2020-05-04T00:00:00+01:00", 7.379),
-						testPoint("2020-05-04T00:15:00+01:00", 6.933),
-						testPoint("2020-05-04T00:30:00+01:00", 6.783),
-						testPoint("2020-05-04T00:45:00+01:00", 6.53),
+						testPoint(t, "2020-05-04T00:00:00+01:00", 7.379),
+						testPoint(t, "2020-05-04T00:15:00+01:00", 6.933),
+						testPoint(t, "2020-05-04T00:30:00+01:00", 6.783),
+						testPoint(t, "2020-05-04T00:45:00+01:00", 6.53),
 					},
 				},
 				&browser.Measurement{
@@ -228,11 +228,11 @@ func TestSeries(t *testing.T) {
 					Latitude:    46.6612188656,
 					Longitude:   10.5902491243,
 					Points: []*browser.Point{
-						testPoint("2020-05-04T00:00:00+01:00", 0.723),
-						testPoint("2020-05-04T00:15:00+01:00", 0.716),
-						testPoint("2020-05-04T00:30:00+01:00", 0.717),
-						testPoint("2020-05-04T00:45:00+01:00", 0.72),
-						testPoint("2020-05-04T01:00:00+01:00", 0.724),
+						testPoint(t, "2020-05-04T00:00:00+01:00", 0.723),
+						testPoint(t, "2020-05-04T00:15:00+01:00", 0.716),
+						testPoint(t, "2020-05-04T00:30:00+01:00", 0.717),
+						testPoint(t, "2020-05-04T00:45:00+01:00", 0.72),
+						testPoint(t, "2020-05-04T01:00:00+01:00", 0.724),
 					},
 				},
 			},
@@ -254,15 +254,22 @@ func TestSeries(t *testing.T) {
 	}
 }
 
-func testPoint(t string, value float64) *browser.Point {
-	ts, _ := time.ParseInLocation(time.RFC3339, t, browser.Location)
+func testPoint(t *testing.T, s string, value float64) *browser.Point {
+	t.Helper()
+
+	ts, err := time.ParseInLocation(time.RFC3339, s, browser.Location)
+	if err != nil {
+		t.Fatal(err)
+	}
 	return &browser.Point{
 		Timestamp: ts,
 		Value:     value,
 	}
 }
 
-func queryTestHelper(filename string) func(q client.Query) (*client.Response, error) {
+func queryTestHelper(t *testing.T, filename string) func(q client.Query) (*client.Response, error) {
+	t.Helper()
+
 	return func(q client.Query) (*client.Response, error) {
 		f, err := os.Open(filepath.Join("testdata", filename))
 		if err != nil {

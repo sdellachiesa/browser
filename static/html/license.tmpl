@@ -1,7 +1,29 @@
 {{define "content"}}
 <main class="page">
 	<article>
+		<h1>{{ T "Dear" .Language }} {{ .User.Name }},</h1>
+		<p>{{ T "welcome to the Data Portal of the long-term socio-ecological research site Matschertal/Val di Mazia!" .Language }}
+		<br>{{ T "In order to complete your registration please agree to the" .Language }} <strong>{{ T "Data usage agreement" .Language }}</strong>:</p>	
+	</article>
+
+	<article class="license">
 		{{.Content}}
+	</article>
+
+	<article>
+	<form action="/auth/account/license" method="post">
+		<input type="hidden" name="token" value="{{.Token}}">
+  		<label class="radio-inline">
+    			<input type="radio" name="agreement" value="1" checked>
+			{{ T "I agree" .Language }}
+  		</label>
+  		<label class="radio-inline">
+    			<input type="radio" name="agreement" value="0">
+			<small>{{ T "I decline" .Language }}</small>
+  		</label>
+		<br><br>
+		<button type="submit" class="btn btn-primary">{{ T "Submit" .Language }}</button>
+	</form>
 	</article>
 </main>
 

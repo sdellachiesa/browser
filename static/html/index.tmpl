@@ -1,5 +1,13 @@
-{{define "content"}}
-    {{ $lang := .Language}}
+{{define "content"}} 
+{{ $lang := .Language}}
+
+{{ if  and (not (Is .User.Role "Public")) (not .User.License) }}
+<div class="alert alert-warning license-warning">
+	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+	<strong>Limited data access!</strong> You have not agreed to the <a href="{{ .Language }}/license/">data usage agreement</a>.
+</div>
+{{ end }}
+
 <main>
 	<div class="container-fluid layout">
 		<div class="row">
@@ -16,12 +24,14 @@
 											{{- range .Data.Measurements -}}
 												{{if Is $.User.Role "Public" -}}
 													<option value="{{ . }}">{{ T . $lang}}</option>
+												{{else if not $.User.License }}
+													<option value="{{ . }}">{{ T . $lang}}</option>
 												{{else -}}
 													<option value="{{.}}">{{ . }}</option>
 												{{end -}}
 											{{- end -}}
 										</select>
-										{{if Is $.User.Role "FullAccess" -}}
+										{{if not (Is $.User.Role "Public") -}}
 										<div class="showHide">
 											<input type="checkbox" name="showStd" id="showStd"> {{T "Show standard deviations" $lang}}
 										</div>

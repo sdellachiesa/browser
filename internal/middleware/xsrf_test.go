@@ -1,6 +1,6 @@
 // Copyright 2020 Eurac Research. All rights reserved.
 
-package http
+package middleware
 
 import (
 	"fmt"

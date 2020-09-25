@@ -1,6 +1,6 @@
 // Copyright 2020 Eurac Research. All rights reserved.
 
-package http
+package middleware
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"gitlab.inf.unibz.it/lter/browser"
-
 	"golang.org/x/net/xsrftoken"
 )
 
@@ -22,7 +21,7 @@ func XSRFProtect(key string) Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !isSafeMethod(r.Method) {
 				if !xsrftoken.Valid(r.FormValue("token"), key, "", "") {
-					Error(w, browser.ErrInvalidToken, http.StatusForbidden)
+					http.Error(w, browser.ErrInvalidToken.Error(), http.StatusForbidden)
 					return
 				}
 			}

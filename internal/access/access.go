@@ -107,11 +107,15 @@ func New(file string, db browser.Database, m browser.Metadata) (*Access, error) 
 		metadata: m,
 	}
 
-	// append build in default rules
+	// Create build-in default rules.
 	a.rules = append(a.rules,
 		defaultRule,
 		&Rule{
 			Name: browser.FullAccess,
+			ACL:  &AccessControlList{},
+		},
+		&Rule{
+			Name: browser.External,
 			ACL:  &AccessControlList{},
 		},
 	)
@@ -127,27 +131,34 @@ func New(file string, db browser.Database, m browser.Metadata) (*Access, error) 
 }
 
 func (a *Access) Series(ctx context.Context, m *browser.Message) (browser.TimeSeries, error) {
-	a.redact(ctx, m)
-	return a.db.Series(ctx, m)
+	return a.db.Series(ctx, a.redact(ctx, m))
 }
 
 func (a *Access) Query(ctx context.Context, m *browser.Message) *browser.Stmt {
-	a.redact(ctx, m)
-	return a.db.Query(ctx, m)
+	return a.db.Query(ctx, a.redact(ctx, m))
 }
 
 func (a *Access) Stations(ctx context.Context, m *browser.Message) (browser.Stations, error) {
-	a.redact(ctx, m)
-	return a.metadata.Stations(ctx, m)
+	return a.metadata.Stations(ctx, a.redact(ctx, m))
 }
 
-func (a *Access) redact(ctx context.Context, m *browser.Message) {
+func (a *Access) redact(ctx context.Context, m *browser.Message) *browser.Message {
 	u := browser.UserFromContext(ctx)
-	rule := a.rule(u.Role)
+	rule := a.rule(u)
 
-	m.Landuse = a.clear(m.Landuse, rule.ACL.Landuse)
-	m.Measurements = a.clear(m.Measurements, rule.ACL.Measurements)
-	m.Stations = a.clear(m.Stations, rule.ACL.Stations)
+	if m == nil {
+		return &browser.Message{
+			Measurements: rule.ACL.Measurements,
+			Stations:     rule.ACL.Stations,
+			Landuse:      rule.ACL.Landuse,
+		}
+	}
+
+	return &browser.Message{
+		Measurements: a.clear(m.Measurements, rule.ACL.Measurements),
+		Stations:     a.clear(m.Stations, rule.ACL.Stations),
+		Landuse:      a.clear(m.Landuse, rule.ACL.Landuse),
+	}
 }
 
 // clear clears not allowed fields and returns a new slice.
@@ -182,20 +193,32 @@ func (a *Access) clear(input, allowed []string) []string {
 	return c
 }
 
-// rule returns a rule form the given role. If no rule is
-// found or it's ACL is nil a default hardcoded rule will be
-// returned.
-func (a *Access) rule(role browser.Role) *Rule {
-	if role == "" {
-		return defaultRule
+// rule returns a rule depending on the user roles and licence agreement.
+func (a *Access) rule(user *browser.User) *Rule {
+	p := a.ruleByName(browser.Public)
+	if user == nil || user.Role == "" || !user.License {
+		return p
 	}
 
+	r := a.ruleByName(user.Role)
+	// If r is the default rule return the public rule. Which also could
+	// be the default rule.
+	if r == defaultRule {
+		return p
+	}
+
+	return r
+}
+
+// ruleByName will return the rule by the given name. If no rule is found the build-in
+// default rule will be returned.
+func (a *Access) ruleByName(name browser.Role) *Rule {
 	a.mu.RLock()
 	rules := a.rules
 	a.mu.RUnlock()
 
 	for _, r := range rules {
-		if r.Name == role && r.ACL != nil {
+		if r.Name == name && r.ACL != nil {
 			return r
 		}
 	}

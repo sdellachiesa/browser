@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"gitlab.inf.unibz.it/lter/browser"
+	"gitlab.inf.unibz.it/lter/browser/internal/middleware"
 	"gitlab.inf.unibz.it/lter/browser/static"
 )
 
@@ -36,6 +37,13 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 		ctx := r.Context()
 		user := browser.UserFromContext(ctx)
 
+		// If the user is not public and has not signed the data usage
+		// agreement, redirect it to sign it.
+		if user.Role != browser.Public && !user.License {
+			http.Redirect(w, r, "/agreement", http.StatusTemporaryRedirect)
+			return
+		}
+
 		data, err := h.metadata.Stations(ctx, &browser.Message{})
 		if err != nil {
 			Error(w, err, http.StatusInternalServerError)
@@ -57,7 +65,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 			languageFromCookie(r),
 			r.URL.Path,
 			h.analytics,
-			XSRFTokenPlaceholder,
+			middleware.XSRFTokenPlaceholder,
 			time.Now().AddDate(0, -6, 0).Format("2006-01-02"),
 			time.Now().Format("2006-01-02"),
 		})
@@ -67,6 +75,48 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 	}
 }
 
+func (h *Handler) handleDataLicenseAgreement() http.HandlerFunc {
+	funcMap := template.FuncMap{
+		"T":  translate,
+		"Is": isRole,
+	}
+
+	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/license.tmpl")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		lang := languageFromCookie(r)
+		const name = "license"
+
+		p, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
+		if err != nil {
+			Error(w, err, http.StatusNotFound)
+			return
+		}
+
+		err = tmpl.Execute(w, struct {
+			User          *browser.User
+			Language      string
+			Path          string
+			AnalyticsCode string
+			Token         string
+			Content       template.HTML
+		}{
+			browser.UserFromContext(r.Context()),
+			lang,
+			name,
+			h.analytics,
+			middleware.XSRFTokenPlaceholder,
+			template.HTML(p),
+		})
+		if err != nil {
+			Error(w, err, http.StatusInternalServerError)
+		}
+
+	}
+}
 func (h *Handler) handleStaticPage() http.HandlerFunc {
 	funcMap := template.FuncMap{
 		"T":  translate,

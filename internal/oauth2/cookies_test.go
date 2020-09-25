@@ -14,6 +14,7 @@ import (
 	"gitlab.inf.unibz.it/lter/browser"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/gorilla/securecookie"
 )
 
 func TestAuthorize(t *testing.T) {
@@ -25,9 +26,8 @@ func TestAuthorize(t *testing.T) {
 		"empty": {&browser.User{}, nil},
 		"public": {
 			&browser.User{
-				Name:     "test",
-				Username: "testusername",
-				Role:     browser.DefaultRole,
+				Name: "test",
+				Role: browser.DefaultRole,
 			},
 			nil,
 		},
@@ -35,7 +35,10 @@ func TestAuthorize(t *testing.T) {
 
 	for k, tc := range testCases {
 		t.Run(k, func(t *testing.T) {
-			c := &Cookie{"testsecret"}
+			c := &Cookie{
+				Secret: "testsecret",
+				Cookie: securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
+			}
 			w := httptest.NewRecorder()
 
 			err := c.Authorize(context.Background(), w, tc.in)
@@ -59,89 +62,145 @@ func TestAuthorize(t *testing.T) {
 	}
 }
 
-func TestValidate(t *testing.T) {
-	testCases := map[string]struct {
-		name       string
-		signingKey string
-		in         *browser.User
-		want       *browser.User
-		err        error
-	}{
-		"nil": {
-			DefaultCookieName,
-			"testkey",
-			nil,
-			nil,
-			ErrTokenInvalid,
-		},
-		"empty": {
-			DefaultCookieName,
-			"testkey",
-			&browser.User{},
-			&browser.User{Role: browser.DefaultRole},
-			nil,
-		},
-		"name": {
-			"testcookie",
-			"testkey",
-			&browser.User{},
-			nil,
-			http.ErrNoCookie,
-		},
-		"full": {
-			DefaultCookieName,
-			"testkey",
-			&browser.User{
-				Name:     "test",
-				Username: "testusername",
-				Role:     browser.FullAccess,
-			},
-			&browser.User{
-				Name:     "test",
-				Username: "testusername",
-				Role:     browser.FullAccess,
-			},
-			nil,
-		},
-		"partial": {
-			DefaultCookieName,
-			"testkey",
-			&browser.User{
-				Name:     "A",
-				Username: "a@b.com",
-			},
-			&browser.User{
-				Name:     "A",
-				Username: "a@b.com",
-				Role:     browser.DefaultRole,
-			},
-			nil,
-		},
+func TestValidateNilUser(t *testing.T) {
+	c := &Cookie{
+		Secret: "testsecret",
+		Cookie: securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
 	}
 
-	for k, tc := range testCases {
-		t.Run(k, func(t *testing.T) {
-			c := &Cookie{"testkey"}
-			token, _ := c.newJWT(tc.in)
+	req, _ := http.NewRequest("", "https://browser.lter.eurac.edu", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  DefaultCookieName,
+		Value: "test",
+	})
 
-			req, _ := http.NewRequest("", "https://browser.lter.eurac.edu", nil)
-			req.AddCookie(&http.Cookie{
-				Name:  tc.name,
-				Value: token,
-			})
+	_, err := c.Validate(context.Background(), req)
+	if err == nil {
+		t.Errorf("expected an error")
+	}
+}
 
-			got, err := c.Validate(context.Background(), req)
-			if err != nil {
-				if !errors.Is(err, tc.err) {
-					t.Fatal(err)
-				}
-			}
+func TestValidateEmptyUser(t *testing.T) {
+	in := &browser.User{}
+	want := &browser.User{Role: browser.DefaultRole}
 
-			diff := cmp.Diff(tc.want, got)
-			if diff != "" {
-				t.Fatalf("Validate() mismatch (-want +got):\n%s", diff)
-			}
-		})
+	c := &Cookie{
+		Secret: "testsecret",
+		Cookie: securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
 	}
 
+	token, _ := c.newJWT(in)
+	encoded, err := c.Cookie.Encode(DefaultCookieName, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest("", "https://browser.lter.eurac.edu", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  DefaultCookieName,
+		Value: encoded,
+	})
+
+	got, _ := c.Validate(context.Background(), req)
+
+	diff := cmp.Diff(want, got)
+	if diff != "" {
+		t.Fatalf("Validate() mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestValidateWrongCookieName(t *testing.T) {
+	in := &browser.User{}
+	want := http.ErrNoCookie
+
+	c := &Cookie{
+		Secret: "testsecret",
+		Cookie: securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
+	}
+
+	token, _ := c.newJWT(in)
+	encoded, err := c.Cookie.Encode("no", token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest("", "https://browser.lter.eurac.edu", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  "no",
+		Value: encoded,
+	})
+
+	_, err = c.Validate(context.Background(), req)
+	if !errors.Is(err, want) {
+		t.Fatalf("expected error %v, got %v", want, err)
+	}
+}
+
+func TestValidateOK(t *testing.T) {
+	in := &browser.User{
+		Name: "test",
+		Role: browser.FullAccess,
+	}
+	want := &browser.User{
+		Name: "test",
+		Role: browser.FullAccess,
+	}
+
+	c := &Cookie{
+		Secret: "testsecret",
+		Cookie: securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
+	}
+
+	token, _ := c.newJWT(in)
+	encoded, err := c.Cookie.Encode(DefaultCookieName, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest("", "https://browser.lter.eurac.edu", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  DefaultCookieName,
+		Value: encoded,
+	})
+
+	got, _ := c.Validate(context.Background(), req)
+
+	diff := cmp.Diff(want, got)
+	if diff != "" {
+		t.Fatalf("Validate() mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestValidatePartialUser(t *testing.T) {
+	in := &browser.User{
+		Name: "test",
+	}
+	want := &browser.User{
+		Name: "test",
+		Role: browser.Public,
+	}
+
+	c := &Cookie{
+		Secret: "testsecret",
+		Cookie: securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
+	}
+
+	token, _ := c.newJWT(in)
+	encoded, err := c.Cookie.Encode(DefaultCookieName, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest("", "https://browser.lter.eurac.edu", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  DefaultCookieName,
+		Value: encoded,
+	})
+
+	got, _ := c.Validate(context.Background(), req)
+
+	diff := cmp.Diff(want, got)
+	if diff != "" {
+		t.Fatalf("Validate() mismatch (-want +got):\n%s", diff)
+	}
 }

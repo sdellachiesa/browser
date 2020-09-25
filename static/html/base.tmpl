@@ -26,7 +26,7 @@
 	</head>
 	<body id="page-top">
 
-	<div id="cookies-eu-banner" style="display: none;">
+	<div id="cookies-eu-banner" class="hide">
 		{{T "Eu banner" .Language}}
 		<a href="https://browser-stage.lter.eurac.edu/{{ .Language }}/privacy/" id="cookies-eu-more" >{{T "Eu banner Read more" .Language}}</a>
 		<button id="cookies-eu-reject">{{T "Eu banner Reject" .Language}}</button>
@@ -66,9 +66,28 @@
 						</li>
 						{{- if Is .User.Role "Public" -}}
 						<li><a href="#" data-toggle="modal" data-target="#registerModal">{{ T "Register" .Language}}</a></li>
-						<li><a href="/auth/azure/login">{{T "Login" .Language}}</a></li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login with...<span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li><a href="/auth/azure/login">ScientificNetwork</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="/auth/github/login"><img src="/static/images/github.png" width="18" height="18"> Github</a></li>
+								<li><a href="/auth/google/login"><img src="/static/images/google.png" width="18" height="18"> Google</a></li>
+							</ul>
+						</li>
 						{{- else -}}
-						<li><a href="/auth/azure/logout">{{T "Logout" .Language}}</a></li>
+						<li class="dropdown"> 
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Me {{ if .User.Picture }}<img src="{{ .User.Picture }}" width="25" height="25" class="img-circle">{{ end }}<span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li class="dropdown-header">
+									{{ T "Hello" .Language }} <b>{{ .User.Name }}</b>, {{ T "you are signed from" .Language }} <b>{{ .User.Provider }}</b>
+								</li>
+								<li role="separator" class="divider"></li>
+								<li><a href="/auth/account/cancel" onclick="return confirm('{{ T "Are you sure to delete your registration?" .Language }}')">{{ T "Cancel registration" .Language }}</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="/auth/{{ .User.Provider }}/logout">{{T "Logout" .Language}}</a></li>
+							</ul>
+						</li>
 						{{- end -}}
 					</ul>
 				</div>
@@ -76,24 +95,30 @@
 		</nav>
 	</header>
 
-	{{block "content" . }}{{end}}
+	{{block "content" . }}{{end}} 
 
-	<div class="modal fade" tabindex="-1" role="dialog" id="registerModal">
-  		<div class="modal-dialog" role="document">
-    			<div class="modal-content">
-      				<div class="modal-header">
-        					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        					<h4 class="modal-title">{{ T "Register" .Language}}</h4>
-      				</div>
-      				<div class="modal-body">
-        					<p class="page">{{ T "To get full data access please write a short introduction of yourself and your data usage intend to:" .Language}} <a href="mailto:alpine.environment@eurac.edu">alpine.environment@eurac.edu</a></p>
-      				</div>
-      				<div class="modal-footer">
-        					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      				</div>
-    			</div><!-- /.modal-content -->
- 	 	</div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->
+	{{- if Is .User.Role "Public" -}}
+		<div class="modal fade" tabindex="-1" role="dialog" id="registerModal">
+			<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title">{{ T "Register" .Language}}</h4>
+						</div>
+						<div class="modal-body">
+								<p class="page">{{ T "To get full data access please sign in using on of the supported providers:" .Language}} </p>
+								<a href="/auth/azure/login" class="btn btn-default">ScientificNetwork</a>
+								<a href="/auth/github/login" class="btn btn-default"><img src="/static/images/github.png" width="18" height="18"> Github</a>
+								<a href="/auth/google/login" class="btn btn-default"><img src="/static/images/google.png" width="18" height="18"> Google</a>
+						</div>
+						<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+	{{ end }}
 
 	</body>
 </html>
+

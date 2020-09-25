@@ -195,5 +195,5 @@ func TestHandleTemplate(t *testing.T) {
 
 func withCTX(role browser.Role) context.Context {
 	u := &browser.User{Role: role}
-	return context.WithValue(context.Background(), browser.BrowserContextKey, u)
+	return context.WithValue(context.Background(), browser.UserContextKey, u)
 }
