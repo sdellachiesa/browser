@@ -107,6 +107,15 @@ func New(file string, db browser.Database, m browser.Metadata) (*Access, error) 
 		metadata: m,
 	}
 
+	// append build in default rules
+	a.rules = append(a.rules,
+		defaultRule,
+		&Rule{
+			Name: browser.FullAccess,
+			ACL:  &AccessControlList{},
+		},
+	)
+
 	if err := a.loadRules(file); err != nil {
 		return nil, err
 	}
@@ -197,9 +206,14 @@ func (a *Access) rule(role browser.Role) *Rule {
 // loadRules loads rules from the given file.
 func (a *Access) loadRules(file string) error {
 	fi, err := os.Stat(file)
+	if os.IsNotExist(err) {
+		log.Printf("access: no access file %q found, use build in rules.\n", file)
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("access: %v", err)
 	}
+
 	mtime := fi.ModTime()
 	if !mtime.After(a.last) && a.rules != nil {
 		return nil // no changes to rules file
@@ -219,16 +233,21 @@ func (a *Access) loadRules(file string) error {
 	a.last = mtime
 	a.rules = r
 	a.mu.Unlock()
+
+	log.Printf("access: update access rules from file %q\n", file)
+
 	return nil
 }
 
 // refreshRules refreshes the rules from the given file by
 // the DefautlRefreshInterval.
 func (a *Access) refreshRules(file string) {
-	for {
+	ticker := time.NewTicker(DefautlRefreshInterval)
+	defer ticker.Stop()
+
+	for range ticker.C {
 		if err := a.loadRules(file); err != nil {
 			log.Println(err)
 		}
-		time.Sleep(DefautlRefreshInterval)
 	}
 }
