@@ -4,130 +4,113 @@
 	<div class="container-fluid layout">
 		<div class="row">
 			<div class="col-lg-5 border sidebar-left">
-				<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
-					<input type="hidden" name="token" value="{{.Token}}">
-					<div class="container-fluid filter">
-						<div class="row">
-							<div class="col-lg-4">
-								<div class="form-group">
-									<label for="measurements">{{T "Select measurement:" $lang}}</label>
-									<select multiple class="form-control" id="measurements" name="measurements">
-										{{- range .Data.Measurements -}}
-											{{if Is $.User.Role "Public" -}}
-												<option value="{{ . }}">{{ T . $lang}}</option>
-											{{else -}}
-												<option value="{{.}}">{{ . }}</option>
-											{{end -}}
-										{{- end -}}
-									</select>
-									{{if Is $.User.Role "FullAccess" -}}
-									<div class="showHide">
-										<input type="checkbox" name="showStd" id="showStd"> {{T "Show standard deviations" $lang}}
-									</div>
-									{{end}}
-								</div>
-							</div>
-							<div class="col-lg-4">
-								<div class="form-group">
-									<label for="stations">{{T "Select station:" $lang}}</label>
-									<select multiple class="form-control" id="stations" name="stations">
-										{{- range .Data}}
-										<option value="{{ .ID }}">{{ .Name }}</option>
-				 						{{- end -}}
-									</select>
-								</div>
-							</div>
-							<div class="col-lg-4">
-								<div class="form-group">
-									<label for="landuse">{{T "Select land use:" $lang}}</label>
-										<select multiple class="form-control" id="landuse" name="landuse">
-											{{- range .Data.Landuse }}
-											<option value="{{.}}">{{ T . $lang}}</option>
+				<div class="form">
+					<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
+						<input type="hidden" name="token" value="{{.Token}}">
+						<div class="container-fluid filter">
+							<div class="row">
+								<div class="col-lg-4">
+									<div class="form-group">
+										<label for="measurements">{{T "Select measurement:" $lang}}</label>
+										<select multiple class="form-control" id="measurements" name="measurements">
+											{{- range .Data.Measurements -}}
+												{{if Is $.User.Role "Public" -}}
+													<option value="{{ . }}">{{ T . $lang}}</option>
+												{{else -}}
+													<option value="{{.}}">{{ . }}</option>
+												{{end -}}
 											{{- end -}}
 										</select>
+										{{if Is $.User.Role "FullAccess" -}}
+										<div class="showHide">
+											<input type="checkbox" name="showStd" id="showStd"> {{T "Show standard deviations" $lang}}
+										</div>
+										{{end}}
+									</div>
 								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-lg-6">
-								<div class="form-group" id="timerange">
-									<label for="dateRange">{{T "Pick a date range:" $lang}}</label>
-									<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Empty dates are not allowed." $lang}}</div>" data-trigger="manual" data-placement="top">
-										<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off">
-										<span class="input-group-addon">to</span>
-										<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
+								<div class="col-lg-4">
+									<div class="form-group">
+										<label for="stations">{{T "Select station:" $lang}}</label>
+										<select multiple class="form-control" id="stations" name="stations">
+											{{- range .Data}}
+											<option value="{{ .ID }}">{{ .Name }}</option>
+											{{- end -}}
+										</select>
+									</div>
+								</div>
+								<div class="col-lg-4">
+									<div class="form-group">
+										<label for="landuse">{{T "Select land use:" $lang}}</label>
+											<select multiple class="form-control" id="landuse" name="landuse">
+												{{- range .Data.Landuse }}
+												<option value="{{.}}">{{ T . $lang}}</option>
+												{{- end -}}
+											</select>
 									</div>
 								</div>
 							</div>
-							<div class="col-lg-6">
-								<div class="form-group">
-									<label for="elevation">{{T "Select elevation range [m]:" $lang}}</label>
-									<input type="text" class="js-range-slider" name="elevation" id="elevation" value="" >
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-lg-12">
-								<br>
-								<div class="tooltip-wrapper nostrike disabled" data-title="{{T "Please select at least one measurement and station." $lang}}">
-									<button disabled data-html="true" type="submit" name="submit" class="btn btn-primary" id="submitBtn">{{T "Download CSV" $lang}}</button> &nbsp;
-									<button disabled data-html="true" type="submit" name="submit" value="friendly" class="btn btn-info" id="friendlyBtn" >{{T "Download friendly CSV" $lang}}</button> &nbsp;
-									{{if Is .User.Role "FullAccess"}}
-									<script>
-										$(document).ready(function() {
-											function DownloadCodeTemplate(language) {
-												var action = $('#filters').attr('action');
-												$('#language').val(language)
-												$('#filters').attr('action', '/api/v1/templates');
-												$('#submitBtn').click();
-												$('#filters').attr('action', action);
-											}
-											$("#downloadPY").click(function() {
-												DownloadCodeTemplate("python");
-											});
-											$("#downloadR").click(function() {
-												DownloadCodeTemplate("r");
-											});
-										});
-									</script>
-									<input type="hidden" name="language" value="" id="language">
-									<div class="btn-group">
-										<button typemustmatchpe="button" disabled id="codeBtn" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											Code Templates <span class="caret"></span>
-										</button>
-										<ul class="dropdown-menu">
-											<li><a href="#" id="downloadPY">Python</a></li>
-											<li><a href="#" id="downloadR">R</a></li>
-										</ul>
+							<div class="row">
+								<div class="col-lg-6">
+									<div class="form-group" id="timerange">
+										<label for="dateRange">{{T "Pick a date range:" $lang}}</label>
+										<div class="input-daterange input-group" id="datepicker" data-html="true" data-content="<p class='text-warning'><b>{{T "Warning" $lang}}</b>: {{T "Empty dates are not allowed." $lang}}</div>" data-trigger="manual" data-placement="top">
+											<input type="text" class="input-sm form-control" name="startDate" id="startDate" value="{{.StartDate}}" autocomplete="off">
+											<span class="input-group-addon">to</span>
+											<input type="text" class="input-sm form-control" name="endDate"  id="endDate" value="{{.EndDate}}" autocomplete="off">
+										</div>
 									</div>
-									{{end}}
+								</div>
+								<div class="col-lg-6">
+									<div class="form-group">
+										<label for="elevation">{{T "Select elevation range [m]:" $lang}}</label>
+										<input type="text" class="js-range-slider" name="elevation" id="elevation" value="" >
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-12">
+									<br>
+									<div class="tooltip-wrapper nostrike disabled" data-title="{{T "Please select at least one measurement and station." $lang}}">
+										<button disabled data-html="true" type="submit" name="submit" class="btn btn-primary" id="submitBtn">{{T "Download CSV" $lang}}</button> &nbsp;
+										<button disabled data-html="true" type="submit" name="submit" value="friendly" class="btn btn-info" id="friendlyBtn" >{{T "Download friendly CSV" $lang}}</button> &nbsp;
+										{{if Is .User.Role "FullAccess"}}
+										<script>
+											$(document).ready(function() {
+												function DownloadCodeTemplate(language) {
+													var action = $('#filters').attr('action');
+													$('#language').val(language)
+													$('#filters').attr('action', '/api/v1/templates');
+													$('#submitBtn').click();
+													$('#filters').attr('action', action);
+												}
+												$("#downloadPY").click(function() {
+													DownloadCodeTemplate("python");
+												});
+												$("#downloadR").click(function() {
+													DownloadCodeTemplate("r");
+												});
+											});
+										</script>
+										<input type="hidden" name="language" value="" id="language">
+										<div class="btn-group">
+											<button typemustmatchpe="button" disabled id="codeBtn" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+												Code Templates <span class="caret"></span>
+											</button>
+											<ul class="dropdown-menu">
+												<li><a href="#" id="downloadPY">Python</a></li>
+												<li><a href="#" id="downloadR">R</a></li>
+											</ul>
+										</div>
+										{{end}}
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</form>
-				<div class="license">
-					{{if Is .User.Role "Public"}}
-					<div class="bs-callout bs-callout-warning">
-						<h4>{{T "Data license" $lang}}</h4>
-						<p>
-							{{T "Data is released with CC BY 4.0" $lang}} <a href="https://creativecommons.org/licenses/by/4.0/deed.{{$lang}}">https://creativecommons.org/licenses/by/4.0/</a>
-						</p>
-						<p>
-						{{T "This license lets others distribute, remix, adapt, and build upon your work, even commercially, as long as they credit you for the original creation." $lang}}
-						</p>
-						<p>
-						{{T "Please give appropriate credit of the data provider as follow:" $lang}} <em>"{{T "We thank Eurac Research's long term socio-ecological research area LT(S)ER IT25 - Matsch/Mazia - Italy, for providing the data," $lang}} DEIMS.iD: <a href="https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964">https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964</a>"</em>
-						</p>
-					</div>
-					{{end}}
-
-					<div class="bs-callout">
-						<h5>{{T "Disclaimer" $lang}}</h5>
-							<p>{{T "Meteorological data downloaded from this app comes with no warranty and has not been validated by the data provider." $lang}}</p>
-					</div>
+					</form>
 				</div>
-				<div class="footer"><a href="http://www.eurac.edu" target="_blank" rel="noreferrer"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a></div>
+				<footer>
+                	<a href="http://www.eurac.edu" target="_blank" rel="noreferrer"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a>
+                </footer>
 			</div>
 			<div class="col-lg-7" id="map" style="z-index: 1"></div>
 		</div>
