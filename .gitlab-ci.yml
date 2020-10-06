@@ -1,6 +1,6 @@
 variables:
   CONTAINER_IMAGE: "gitlab.inf.unibz.it:4567/lter/browser"
-  DOCKER_TESTER_IMAGE: "golang:1.13.5"
+  DOCKER_TESTER_IMAGE: "golang:1.15.2"
   DOCKER_BUILDER_IMAGE: "docker:19.03.1"
   DOCKER_TLS_CERTDIR: "" # See https://gitlab.com/gitlab-org/gitlab-runner/issues/4501
   KUBECTL: "https://storage.googleapis.com/kubernetes-release/release/v1.8.10/bin/linux/amd64/kubectl"

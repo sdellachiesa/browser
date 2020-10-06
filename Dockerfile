@@ -1,4 +1,4 @@
-FROM golang:1.14.4 as builder
+FROM golang:1.15.2 as builder
 
 ENV BUILD_DIR /tmp/browser
 
