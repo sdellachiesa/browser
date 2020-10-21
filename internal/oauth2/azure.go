@@ -80,19 +80,20 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 
 	// Extract the roles claim.
 	var claims struct {
-		Name  string   `json:"name"`
-		Email string   `json:"email"`
-		Roles []string `json:"roles"`
+		Username string   `json:"preferred_username"`
+		Name     string   `json:"name"`
+		Email    string   `json:"email"`
+		Roles    []string `json:"roles"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
 		return nil, err
 	}
 
 	path := filepath.Join("static", "images")
-	filename := strings.ToLower(claims.Email)
+	filename := strings.ToLower(claims.Username)
 	profile := filepath.Join(path, filename)
 	if err := a.writeProfilePicture(path, filename, token); err != nil {
-		log.Printf("oauth2(azure): error in writing profile picture: %v\n", err)
+		log.Printf("oauth2(azure): profile picture: %v\n", err)
 		profile = defaultProfilePicture
 	}
 
@@ -115,9 +116,10 @@ func (a *Azure) writeProfilePicture(path, name string, token *oauth2.Token) erro
 	ctx := context.Background()
 	client := a.Config().Client(ctx, token)
 
-	resp, err := client.Get("https://graph.microsoft.com/v1.0/users/mpalma@eurac.edu/photo/$value")
+	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/photo/$value", name)
+	resp, err := client.Get(u)
 	if err != nil {
-		return err
+		return fmt.Errorf("error in getting %q: %v", u, err)
 	}
 	defer resp.Body.Close()
 
@@ -127,9 +129,9 @@ func (a *Azure) writeProfilePicture(path, name string, token *oauth2.Token) erro
 		err = os.MkdirAll(path, 0755)
 	}
 	if err != nil {
-		return err
+		return fmt.Errorf("error in writing: %v", err)
 	}
 
 	_, err = io.Copy(f, resp.Body)
-	return err
+	return fmt.Errorf("error in copying data: %v", err)
 }
