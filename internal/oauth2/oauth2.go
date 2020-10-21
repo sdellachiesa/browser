@@ -114,11 +114,13 @@ func (h *Handler) callback(p Provider) http.HandlerFunc {
 			user = u
 		}
 		if err != nil {
+			log.Printf("oauth2(%s): error getting user: %v\n", p.Name(), err)
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
 
 		if err := h.Auth.Authorize(ctx, w, user); err != nil {
+			log.Printf("oauth2(%s): error in authorizing user: %v\n", p.Name(), err)
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
