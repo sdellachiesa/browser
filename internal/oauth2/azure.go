@@ -88,7 +88,7 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 		return nil, err
 	}
 
-	profile := filepath.Join("static", "images", strings.ToLower(claims.Email))
+	profile := filepath.Join(os.TempDir(), strings.ToLower(claims.Email))
 	if err := a.writeProfilePicture(profile, token); err != nil {
 		log.Println(err)
 	}
@@ -98,7 +98,7 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 		Email:    claims.Email,
 		Picture:  profile,
 		Provider: a.Name(),
-		Role:     browser.Public,
+		Role:     browser.External,
 	}
 
 	if len(claims.Roles) >= 1 {
