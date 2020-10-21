@@ -126,7 +126,10 @@ func (a *Azure) writeProfilePicture(path, name string, token *oauth2.Token) erro
 	filename := filepath.Join(path, name)
 	f, err := os.Create(filename)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0755)
+		if err = os.MkdirAll(path, 0755); err != nil {
+			return fmt.Errorf("error in creating path %q: %v", path, err)
+		}
+		f, err = os.Create(filename)
 	}
 	if err != nil {
 		return fmt.Errorf("error in writing: %v", err)
