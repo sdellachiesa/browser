@@ -88,11 +88,11 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 		return nil, err
 	}
 
-	path := filepath.Join("static", "profile", "azure")
+	path := filepath.Join("static", "images")
 	filename := strings.ToLower(claims.Email)
 	profile := filepath.Join(path, filename)
 	if err := a.writeProfilePicture(path, filename, token); err != nil {
-		log.Println(err)
+		log.Printf("oauth2(azure): error in writing profile picture: %v\n", err)
 		profile = defaultProfilePicture
 	}
 
@@ -124,7 +124,7 @@ func (a *Azure) writeProfilePicture(path, name string, token *oauth2.Token) erro
 	filename := filepath.Join(path, name)
 	f, err := os.Create(filename)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(filename, os.ModePerm)
+		err = os.MkdirAll(path, 0755)
 	}
 	if err != nil {
 		return err
