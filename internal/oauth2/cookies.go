@@ -58,11 +58,10 @@ func (c *Cookie) Authorize(ctx context.Context, w http.ResponseWriter, u *browse
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     DefaultCookieName,
-		Value:    encoded,
-		Path:     "/",
-		HttpOnly: true,
-		Expires:  time.Now().Add(DefaultLifespan),
+		Name:    DefaultCookieName,
+		Value:   encoded,
+		Path:    "/",
+		Expires: time.Now().Add(DefaultLifespan),
 	})
 
 	return nil
