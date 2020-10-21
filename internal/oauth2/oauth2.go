@@ -16,6 +16,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const defaultProfilePicture = "/static/images/default.png"
+
 // Provider are the common parameters all OAuth2 providers should implement.
 type Provider interface {
 	// Name returns the name of the provider.
