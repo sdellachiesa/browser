@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os/exec"
 	"path"
@@ -44,7 +45,14 @@ func File(name string) (string, error) {
 	if files != nil {
 		b, ok := files[name]
 		if !ok {
-			return "", fmt.Errorf("file not found '%v'", name)
+			// If the asset is not found in the in memory structure try to look
+			// at the file system.
+			log.Println(name)
+			data, err := ioutil.ReadFile(filepath.Join("static", name))
+			if err != nil {
+				return "", fmt.Errorf("file not found '%v'", name)
+			}
+			b = string(data)
 		}
 		return b, nil
 	}

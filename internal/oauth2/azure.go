@@ -90,17 +90,18 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 	}
 
 	path := filepath.Join("static", "images")
-	filename := strings.ToLower(claims.Username)
-	profile := filepath.Join(path, filename)
-	if err := a.writeProfilePicture(path, filename, token); err != nil {
+	filename := strings.ReplaceAll(strings.ToLower(claims.Username), "@", "_")
+	picture := filepath.Join(path, filename)
+
+	if err := a.writeProfilePicture(claims.Username, path, filename, token); err != nil {
 		log.Printf("oauth2(azure): profile picture: %v\n", err)
-		profile = defaultProfilePicture
+		picture = defaultProfilePicture
 	}
 
 	u := &browser.User{
 		Name:     claims.Name,
 		Email:    claims.Email,
-		Picture:  profile,
+		Picture:  picture,
 		Provider: a.Name(),
 		Role:     browser.External,
 	}
@@ -112,11 +113,12 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 	return u, nil
 }
 
-func (a *Azure) writeProfilePicture(path, name string, token *oauth2.Token) error {
+func (a *Azure) writeProfilePicture(id, path, name string, token *oauth2.Token) error {
 	ctx := context.Background()
 	client := a.Config().Client(ctx, token)
 
-	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/photo/$value", name)
+	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/users/%s/photo/$value", id)
+
 	resp, err := client.Get(u)
 	if err != nil {
 		return fmt.Errorf("error in getting %q: %v", u, err)
@@ -136,5 +138,5 @@ func (a *Azure) writeProfilePicture(path, name string, token *oauth2.Token) erro
 	}
 
 	_, err = io.Copy(f, resp.Body)
-	return fmt.Errorf("error in copying data: %v", err)
+	return err
 }
