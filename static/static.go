@@ -44,13 +44,7 @@ func File(name string) (string, error) {
 	if files != nil {
 		b, ok := files[name]
 		if !ok {
-			// If the asset is not found in the in memory structure try to look
-			// at file system level.
-			data, err := ioutil.ReadFile(filepath.Join("static", name))
-			if err != nil {
-				return "", fmt.Errorf("file not found '%v'", name)
-			}
-			b = string(data)
+			return "", fmt.Errorf("file not found '%v'", name)
 		}
 		return b, nil
 	}
