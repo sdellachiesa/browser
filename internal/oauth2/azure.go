@@ -91,7 +91,7 @@ func (a *Azure) User(ctx context.Context, token *oauth2.Token) (*browser.User, e
 
 	path := filepath.Join("static", "images")
 	filename := strings.ReplaceAll(strings.ToLower(claims.Username), "@", "_")
-	picture := filepath.Join(path, filename)
+	picture := filepath.Join("/", path, filename)
 
 	if err := a.writeProfilePicture(claims.Username, path, filename, token); err != nil {
 		log.Printf("oauth2(azure): profile picture: %v\n", err)
