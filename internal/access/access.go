@@ -142,23 +142,24 @@ func (a *Access) Stations(ctx context.Context, m *browser.Message) (browser.Stat
 	return a.metadata.Stations(ctx, a.redact(ctx, m))
 }
 
+// redact clear every not allowed field and returns a new browser.Message
 func (a *Access) redact(ctx context.Context, m *browser.Message) *browser.Message {
 	u := browser.UserFromContext(ctx)
 	rule := a.rule(u)
 
 	if m == nil {
-		return &browser.Message{
-			Measurements: rule.ACL.Measurements,
-			Stations:     rule.ACL.Stations,
-			Landuse:      rule.ACL.Landuse,
+		log.Println("message is nil")
+		m = &browser.Message{
+			Start: time.Now().Add(-4383 * time.Hour),
+			End:   time.Now(),
 		}
 	}
 
-	return &browser.Message{
-		Measurements: a.clear(m.Measurements, rule.ACL.Measurements),
-		Stations:     a.clear(m.Stations, rule.ACL.Stations),
-		Landuse:      a.clear(m.Landuse, rule.ACL.Landuse),
-	}
+	m.Landuse = a.clear(m.Landuse, rule.ACL.Landuse)
+	m.Measurements = a.clear(m.Measurements, rule.ACL.Measurements)
+	m.Stations = a.clear(m.Stations, rule.ACL.Stations)
+
+	return m
 }
 
 // clear clears not allowed fields and returns a new slice.

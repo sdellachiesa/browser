@@ -272,13 +272,13 @@ func messageString(t *testing.T, m *browser.Message) string {
 	t.Helper()
 
 	var s []string
-	if len(m.Measurements) > 0 {
+	if m != nil && len(m.Measurements) > 0 {
 		s = append(s, strings.Join(m.Measurements, "-"))
 	}
-	if len(m.Stations) > 0 {
+	if m != nil && len(m.Stations) > 0 {
 		s = append(s, strings.Join(m.Stations, "-"))
 	}
-	if len(m.Landuse) > 0 {
+	if m != nil && len(m.Landuse) > 0 {
 		s = append(s, strings.Join(m.Landuse, "-"))
 	}
 
