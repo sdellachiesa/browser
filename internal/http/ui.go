@@ -23,6 +23,10 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 		"T":         translate,
 		"Is":        isRole,
 		"HasSuffix": strings.HasSuffix,
+		"Mod": func(i int) bool {
+			i++
+			return (i % 2) == 0
+		},
 		"Last": func(i, l int) bool {
 			return i == (l - 1)
 		},

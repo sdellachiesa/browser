@@ -74,15 +74,12 @@ function browser(opts) {
 			let item = opts.data[k];
 
 			let marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
-			let c = document.getElementById("s"+item.ID)
 
-			marker.bindPopup(c, {
-			autoPan: true,
-			keepInView: true,
-			maxWidth: 400});
+			marker.on('click', function() {
+				$("#s"+item.ID).modal('toggle');
+			});
 
-			marker.bindTooltip(c.getAttribute("data-name"))
-
+			marker.bindTooltip(document.getElementById("s"+item.ID).getAttribute("data-name"))
 			mapMarkers[item.ID] = marker
 		});
 
@@ -106,15 +103,7 @@ function browser(opts) {
 		//L.control.attribution({position: 'topright'}).addTo(map);
 		L.control.zoom({position: "topright"}).addTo(map);
 		L.control.scale({position: "topright"}).addTo(map);
-
-		map.on('popupopen', function(e) {
-			$(".leaflet-control").hide();
-		});
-		map.on('popupclose', function(e) {
-			$(".leaflet-control").show();
-		});
 	}
-
 
 	function maxMeasurementSelected() {
 		const selectedOptions = $(opts.measurementEl + ' option:selected');

@@ -131,34 +131,65 @@
 			<a href="/static/dl/LTER_IT25_Mazia_Matsch_Station_Coordinates.zip">{{T "Download Station Coordinates" $lang}}</a><br>
 			<a href="/static/dl/LTER_IT25_Mazia_Matsch_Catchment.zip">{{T "Download Catchment" $lang}}</a>
 		</div>
-
-		{{ range .Data -}}
-		<div id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Elevation}} m" class="mapPopup">
-			<h5>{{.Name}}</h5>
-			<p><img src="{{.Image}}" width="200"></p>
-			<ul>
-				<li><strong>{{T "Elevation" $lang}}:</strong> {{.Elevation}}m</li>
-				<li><strong>{{T "Landuse" $lang}}:</strong> {{ T .Landuse $lang}}</li>
-				<li><strong>{{T "Latitude" $lang}}:</strong> {{.Latitude}}</li>
-				<li><strong>{{T "Longitude" $lang}}:</strong> {{.Longitude}}</li>
-				<li>
-					<strong>{{T "Measurements" $lang}}:</strong>
-					{{$c := len .Measurements}}
-					{{- range $i, $el  := .Measurements -}}
-						{{if Is $.User.Role "FullAccess" -}}
-							{{- $el -}}
-						{{else}}
-							{{- T $el $lang -}}
-						{{end -}}
-						{{- if not (Last $i $c)}}, {{end}}
-					{{- end -}}
-				</li>
-			</ul>
-		</div>
-		{{ end -}}
 	</div>
 </main>
 
+	{{ range .Data -}}
+	<div class="modal fade" tabindex="-1" role="dialog" id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Elevation}} m">
+	<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+ 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">Station: {{.Name}}</h4>
+					</div>
+					<div class="modal-body station">
+						<div class="row">
+							<div class="col-md-7">
+								<img src="{{.Image}}" width="100%">
+							</div>
+							<div class="col-md-5">
+								<dl>
+									<dt>{{T "Elevation" $lang}}</dt>
+									<dd>{{.Elevation}}m</dd>
+									<dt>{{T "Landuse" $lang}}</dt>
+									<dd>{{ T .Landuse $lang}}</dd>
+									<dt>{{T "Latitude" $lang}}</dt>
+									<dd>{{.Latitude}}</dd>
+									<dt>{{T "Longitude" $lang}}</dt>
+									<dd>{{.Longitude}}</dd>
+								</dl>
+							</div>
+						</div>
+						<div>
+						<h4>{{T "Measurements" $lang}}:</h4>
+						{{ if Is $.User.Role "Public" -}}
+							{{$c := len .Measurements}}
+							{{- range $i, $el := .Measurements -}}
+								{{- T $el $lang -}}
+								{{- if not (Last $i $c)}}, {{end}}
+							{{- end -}}
+						{{ else }}
+							<div class="list">
+							<div class="row">
+							{{- range $i, $el := .Measurements -}}
+								<div class="col-md-6">{{ $el }}</div>
+								{{ if Mod $i }}
+								</div>
+								<div class="row">
+								{{ end }}
+							{{- end -}}
+							</div>
+							</div>
+						{{ end }}							
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+	</div>
+	{{ end -}}
 	<div class="modal fade" tabindex="-1" role="dialog" id="infoModal">
   		<div class="modal-dialog" role="document">
     			<div class="modal-content">
