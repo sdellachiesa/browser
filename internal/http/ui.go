@@ -40,7 +40,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 		// If the user is not public and has not signed the data usage
 		// agreement, redirect it to sign it.
 		if user.Role != browser.Public && !user.License {
-			http.Redirect(w, r, "/agreement", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/hello", http.StatusTemporaryRedirect)
 			return
 		}
 
@@ -75,22 +75,22 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 	}
 }
 
-func (h *Handler) handleDataLicenseAgreement() http.HandlerFunc {
+func (h *Handler) handleHello() http.HandlerFunc {
 	funcMap := template.FuncMap{
 		"T":  translate,
 		"Is": isRole,
 	}
 
-	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/license.tmpl")
+	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/hello.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		lang := languageFromCookie(r)
-		const name = "license"
 
-		p, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
+		const name = "license"
+		license, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
 		if err != nil {
 			Error(w, err, http.StatusNotFound)
 			return
@@ -109,14 +109,14 @@ func (h *Handler) handleDataLicenseAgreement() http.HandlerFunc {
 			name,
 			h.analytics,
 			middleware.XSRFTokenPlaceholder,
-			template.HTML(p),
+			template.HTML(license),
 		})
 		if err != nil {
 			Error(w, err, http.StatusInternalServerError)
 		}
-
 	}
 }
+
 func (h *Handler) handleStaticPage() http.HandlerFunc {
 	funcMap := template.FuncMap{
 		"T":  translate,

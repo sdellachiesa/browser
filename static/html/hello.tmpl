@@ -1,0 +1,74 @@
+{{define "content"}}
+<main class="page">
+	<article class="hello">
+		<h1>{{ T "Dear" .Language }} {{ .User.Name }},</h1>
+		<p class="lead">{{ T "welcome to the Data Portal of the long-term socio-ecological research site Matschertal/Val di Mazia!" .Language }}</p>
+		
+		<p>{{ T "In order to complete your registration please agree to the" .Language }} <strong>{{ T "Data usage agreement" .Language }}</strong>. In short:</p>	
+
+		<div class="bs-callout bs-callout-warning">
+			<ul>
+				<li>The Data Provider shall examine in advance any proposal for dissemination (Publication, Project proposal, Presentation, etc.).</li>
+				<li>Acknowledge as follow: <em>“We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964"</em>.</li>
+				<li>Commercial use is not allowed unless specifically authorized.</li>
+			</ul>
+		</div>
+
+		<p>For more information on our LTSER Site check out our website <a href="http://lter.eurac.edu" target="_blank" rel="noreferrer">lter.eurac.edu</a>.</p>
+
+		<p>Feel free to follow us on Twitter <a href="https://twitter.com/EuracAlpine" target="_blank" rel="noreferrer">@EuracAlpine</a>.</p>
+
+		<p>If you have any question do not esitate to contact us!</p>
+
+		<p><strong>The LTER Match | Mazia Team</strong>!</p>
+
+		<div class="license">
+			{{.Content}}
+		</div>
+
+		{{ if not .User.License }}
+		<p>
+		<form action="/auth/account/license" method="post">
+			<input type="hidden" name="token" value="{{.Token}}">
+  			<label class="radio-inline">
+    				<input type="radio" name="agreement" value="1" checked>
+				{{ T "I agree" .Language }}
+  			</label>
+  			<label class="radio-inline">
+    				<input type="radio" name="agreement" value="0">
+				<small>{{ T "I decline" .Language }}</small>
+  			</label>
+			<br><br>
+			<button type="submit" class="btn btn-primary">{{ T "Submit" .Language }}</button>
+		</form>
+		</p>
+		{{ end }}
+		<p><small>You can review the <a href="/{{ .Language }}/privacy">data privacy policy here</a></small></p>
+	</article>
+</main>
+
+<footer>
+	<a href="http://www.eurac.edu" target="_blank" rel="noreferrer"><img src="/static/images/eurac_research.png" width="70" alt="Eurac Research"></a>
+</footer>
+
+{{if $.AnalyticsCode}}
+<script>
+	$(document).ready(function() {
+		new CookiesEuBanner(function () {
+			var newScript = document.createElement("script");
+			newScript.type = "text/javascript";
+			newScript.setAttribute("async", "true");
+			newScript.setAttribute("src", "https://www.googletagmanager.com/gtag/js?id={{$.AnalyticsCode}}");
+			document.documentElement.firstChild.appendChild(newScript);
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			// https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
+			gtag('set', 'allow_ad_personalization_signals', false);
+			gtag('config', '{{$.AnalyticsCode}}');
+		}, true, true);
+	});
+</script>
+{{end}}
+
+{{end}}
