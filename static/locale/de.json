@@ -51,10 +51,18 @@
 	"welcome to the Data Portal of the long-term socio-ecological research site Matschertal/Val di Mazia!": "willkommen auf dem Datenportal des sozio-ökologischen Langzeitforschungs-Standorts Matschertal!",
 	"In order to complete your registration please agree to the": "Bitte akzeptiere die",
 	"Data usage agreement": "Datennutzungsvereinbarung", 
+	"Data usage agreement in short": "Datennutzungsvereinbarung kurz gefasst", 
 	"I agree": "Ich akzeptiere",
 	"I decline": "Ich akzeptiere nicht",
 	"Submit": "Sende",
 	"Cancel registration": "Registrierung löschen",
 	"Hello": "Hallo",
-	"you are signed from": "du bist abgemelded mit"
+	"you are signed from": "du bist abgemelded mit",
+	"For more information on our LTSER Site check out our website": "Weitere Informationen zum LTSER-Standort Matsch|Mazia finden Sie auf unserer Website",
+	"If you have any question do not esitate to <a href=\"mailto:alpine.environment@eurac.edu\">contact us</a>!": "Für <a href=\"mailto:alpine.environment@eurac.edu\">Rückfragen</a> stehen wir jederzeit gerne zur Verfügung.",
+	"You can review the <a href=\"/{{ .Language }}/privacy\">data privacy policy here</a>": "Sie können die <a href=\"/{{ .Language }}/privacy\"> Datenschutzerklärung hier durchlesen</a>",
+	"Feel free to follow us on Twitter": "Folgen Sie uns auf Twitter unter",
+	"The <strong><mark>Data Provider shall examine in advance</mark></strong> any proposal for dissemination (Publication, Project proposal, Presentation, etc.).": "Der <strong><mark>Datenanbieter prüft im Voraus</mark></strong> jeden Antrag zur Datenverbreitung und -nutzung (Veröffentlichung, Projektvorschlag, Präsentation, usw.).",
+	"<strong><mark>Acknowledge as follow</mark></strong>: <em>\"We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.": "<strong><mark>Wir bitten Sie die Datennutzung wie folgt zu bestätigen</mark></strong>: <em>\"Wir danken Eurac Research's sozio-ökologischen Langzeitforschungs-Standort LT(S)ER IT25 - Matsch/Mazia - Italien, für die Bereitstellung von Daten, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.", 
+	"<strong><mark>Commercial use is not allowed</mark></strong> unless specifically authorized.": "<strong><mark>Eine kommerzielle Nutzung der Daten ist ohne ausdrückliche Genehmigung nicht gestattet.</mark></strong>"
 }

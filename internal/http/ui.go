@@ -206,22 +206,22 @@ func languageFromCookie(r *http.Request) string {
 	return c.Value
 }
 
-func translate(key, lang string) string {
+func translate(key, lang string) template.HTML {
 	j, err := static.File(filepath.Join("locale", fmt.Sprintf("%s.json", lang)))
 	if err != nil {
-		return key
+		return template.HTML(key)
 	}
 
 	var m map[string]string
 	if err := json.Unmarshal([]byte(j), &m); err != nil {
 		log.Printf("translation: %v\n", err)
-		return key
+		return template.HTML(key)
 	}
 
 	v, ok := m[key]
 	if !ok {
-		return key
+		return template.HTML(key)
 	}
 
-	return v
+	return template.HTML(v)
 }

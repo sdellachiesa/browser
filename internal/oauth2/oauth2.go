@@ -56,7 +56,7 @@ func (h *Handler) Register(p Provider) {
 	if h.mux == nil {
 		h.mux = http.NewServeMux()
 		h.mux.HandleFunc("/auth/account/license", h.license())
-		h.mux.HandleFunc("/auth/account/cancel", h.cancel())
+		//h.mux.HandleFunc("/auth/account/cancel", h.cancel())
 	}
 
 	h.mux.HandleFunc("/auth/"+p.Name()+"/login", h.login(p.Config()))
@@ -170,26 +170,28 @@ func (h *Handler) license() http.HandlerFunc {
 	}
 }
 
-func (h *Handler) cancel() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		user, err := h.Auth.Validate(ctx, r)
-		if err != nil {
-			log.Printf("oauth2: cancel: validation failed: %v\n", err)
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-			return
-		}
-		if err := h.Users.Delete(ctx, user); err != nil {
-			log.Printf("oauth2: cancel: error in deleting user: %v\n", err)
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-			return
-		}
-
-		h.Auth.Expire(w)
-
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	}
-}
+// TODO: for now diabled, maybe we will introduce a new super admin role
+// which has the right do cancel account.
+//func (h *Handler) cancel() http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		ctx := r.Context()
+//		user, err := h.Auth.Validate(ctx, r)
+//		if err != nil {
+//			log.Printf("oauth2: cancel: validation failed: %v\n", err)
+//			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+//			return
+//		}
+//		if err := h.Users.Delete(ctx, user); err != nil {
+//			log.Printf("oauth2: cancel: error in deleting user: %v\n", err)
+//			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+//			return
+//		}
+//
+//		h.Auth.Expire(w)
+//
+//		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+//	}
+//}
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

@@ -1,24 +1,26 @@
 {{define "content"}}
 <main class="page">
 	<article class="hello">
-		<h1>{{ T "Dear" .Language }} {{ .User.Name }},</h1>
+		<h1>{{ T "Dear" .Language }} <strong>{{ .User.Name }}</strong>,</h1>
 		<p class="lead">{{ T "welcome to the Data Portal of the long-term socio-ecological research site Matschertal/Val di Mazia!" .Language }}</p>
 		
-		<p>{{ T "In order to complete your registration please agree to the" .Language }} <strong>{{ T "Data usage agreement" .Language }}</strong>. In short:</p>	
-
+		{{ if not .User.License }}
+		<p>{{ T "In order to complete your registration please agree to the" .Language }} <strong>{{ T "Data usage agreement" .Language }}</strong>.</p>	
+		{{ end }}
+		<p><strong>{{ T "Data usage agreement in short" .Language }}:</strong></p>
 		<div class="bs-callout bs-callout-warning">
 			<ul>
-				<li>The Data Provider shall examine in advance any proposal for dissemination (Publication, Project proposal, Presentation, etc.).</li>
-				<li>Acknowledge as follow: <em>“We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964"</em>.</li>
-				<li>Commercial use is not allowed unless specifically authorized.</li>
+				<li>{{ T "The <strong><mark>Data Provider shall examine in advance</mark></strong> any proposal for dissemination (Publication, Project proposal, Presentation, etc.)." .Language }}</li>
+				<li>{{ T "<strong><mark>Acknowledge as follow</mark></strong>: <em>\"We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>." .Language }}</li>
+				<li>{{ T "<strong><mark>Commercial use is not allowed</mark></strong> unless specifically authorized." .Language }}</li>
 			</ul>
 		</div>
 
-		<p>For more information on our LTSER Site check out our website <a href="http://lter.eurac.edu" target="_blank" rel="noreferrer">lter.eurac.edu</a>.</p>
+		<p>{{ T "For more information on our LTSER Site check out our website" .Language }} <a href="http://lter.eurac.edu" target="_blank" rel="noreferrer">lter.eurac.edu</a>.</p>
 
-		<p>Feel free to follow us on Twitter <a href="https://twitter.com/EuracAlpine" target="_blank" rel="noreferrer">@EuracAlpine</a>.</p>
+		<p>{{ T "Feel free to follow us on Twitter" .Language }} <a href="https://twitter.com/EuracAlpine" target="_blank" rel="noreferrer">@EuracAlpine</a>.</p>
 
-		<p>If you have any question do not esitate to contact us!</p>
+		<p>{{ T "If you have any question do not esitate to <a href=\"mailto:alpine.environment@eurac.edu\">contact us</a>!" .Language}}</p>
 
 		<p><strong>The LTER Match | Mazia Team</strong>!</p>
 
@@ -43,7 +45,7 @@
 		</form>
 		</p>
 		{{ end }}
-		<p><small>You can review the <a href="/{{ .Language }}/privacy">data privacy policy here</a></small></p>
+		<p><small>{{ T "You can review the <a href=\"/{{ .Language }}/privacy\">data privacy policy here</a>" .Language }}</small></p>
 	</article>
 </main>
 

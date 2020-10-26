@@ -56,5 +56,14 @@
 	"Submit": "Manda",
 	"Cancel registration": "Annulla registrazione",
 	"Hello": "Ciao",
-	"you are signed from": "sei registrato con"
+	"you are signed from": "sei registrato con",
+	"Data usage agreement in short": "Licenza d´uso dei dati in breve", 
+	"For more information on our LTSER Site check out our website": "Per maggiori informazioni sulla nostra area di ricerca LTSER visitate il nostro sito",
+	"If you have any question do not esitate to <a href=\"mailto:alpine.environment@eurac.edu\">contact us</a>!": "Per qualsiasi domanda non esitare a <a href=\"mailto:alpine.environment@eurac.edu\">contattarci</a>.",
+	"You can review the <a href=\"/{{ .Language }}/privacy\">data privacy policy here</a>": "Puoi consultare <a href=\"/{{ .Language }}/privacy\">l´informativa sulla privacy qui</a>",
+	"Feel free to follow us on Twitter": "Seguici su Twitter",
+	"The <strong><mark>Data Provider shall examine in advance</mark></strong> any proposal for dissemination (Publication, Project proposal, Presentation, etc.).": "Il <strong><mark>Fornitore dei dati esaminerà preventivamente</mark></strong> ogni proposta di disseminazione/divulgazione (Publicazioni, Proposte di Progetto, Presentazioni, ecc.).",
+	"<strong><mark>Acknowledge as follow</mark></strong>: <em>\"We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.": "<strong><mark>Citare nella seguente forma</mark></strong>: <em>\"Ringraziamo Eurac research, sito di ricerca socio-ecologica a lungo termine LT(S)ER IT25 - Matsch/Mazia - Italia, per aver fornito i dati, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.", 
+	"<strong><mark>Commercial use is not allowed</mark></strong> unless specifically authorized.": "<strong><mark>Non è permesso l´uso commerciale</mark></strong> a meno di autorizzazioni specifiche."
+
 }

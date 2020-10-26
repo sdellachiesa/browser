@@ -83,8 +83,8 @@
 									{{ T "Hello" .Language }} <b>{{ .User.Name }}</b>, {{ T "you are signed from" .Language }} <b>{{ .User.Provider }}</b>
 								</li>
 								<li role="separator" class="divider"></li>
-								<li><a href="/{{ .Language }}/license">Data usage agreeement</a></li>
-								<li><a href="/auth/account/cancel" onclick="return confirm('{{ T "Are you sure to delete your registration?" .Language }}')">{{ T "Cancel registration" .Language }}</a></li>
+								<li><a href="/hello">{{ T "Data usage agreement" .Language }}</a></li>
+								<li><a href="#" data-toggle="modal" data-target="#cancelModal">{{ T "Cancel registration" .Language }}</a></li>
 								<li role="separator" class="divider"></li>
 								<li><a href="/auth/{{ .User.Provider }}/logout">{{T "Logout" .Language}}</a></li>
 							</ul>
@@ -120,6 +120,24 @@
 		</div><!-- /.modal -->
 	{{ end }}
 
+	{{- if not (Is .User.Role "Public") -}}
+		<div class="modal fade" tabindex="-1" role="dialog" id="cancelModal">
+			<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title">{{ T "Cancel your registration" .Language}}</h4>
+						</div>
+						<div class="modal-body">
+								<p class="page">{{ T "In order to cancel your registration please write an email to: <a href=\"mailto:alpine.environment@eurac.edu\">alpine.environment@eurac.edu</a>." .Language}} </p>
+						</div>
+						<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+	{{ end }}
 	</body>
 </html>
 
