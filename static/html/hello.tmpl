@@ -5,9 +5,9 @@
 		<p class="lead">{{ T "welcome to the Data Portal of the long-term socio-ecological research site Matschertal/Val di Mazia!" .Language }}</p>
 		
 		{{ if not .User.License }}
-		<p>{{ T "In order to complete your registration please agree to the" .Language }} <strong>{{ T "Data usage agreement" .Language }}</strong>.</p>	
+		<p>{{ T "In order to complete your registration please agree to the" .Language }} {{ T "Data usage agreement" .Language }}.</p>	
 		{{ end }}
-		<p><strong>{{ T "Data usage agreement in short" .Language }}:</strong></p>
+		<h2>{{ T "Data usage agreement in short" .Language }}:</h2>
 		<div class="bs-callout bs-callout-warning">
 			<ul>
 				<li>{{ T "The <strong><mark>Data Provider shall examine in advance</mark></strong> any proposal for dissemination (Publication, Project proposal, Presentation, etc.)." .Language }}</li>
@@ -16,14 +16,7 @@
 			</ul>
 		</div>
 
-		<p>{{ T "For more information on our LTSER Site check out our website" .Language }} <a href="http://lter.eurac.edu" target="_blank" rel="noreferrer">lter.eurac.edu</a>.</p>
-
-		<p>{{ T "Feel free to follow us on Twitter" .Language }} <a href="https://twitter.com/EuracAlpine" target="_blank" rel="noreferrer">@EuracAlpine</a>.</p>
-
-		<p>{{ T "If you have any question do not esitate to <a href=\"mailto:alpine.environment@eurac.edu\">contact us</a>!" .Language}}</p>
-
-		<p><strong>The LTER Match | Mazia Team</strong>!</p>
-
+		<h2>{{ T "Data usage agreement" .Language }} {{ T "full" .Language }}:</h2>
 		<div class="license">
 			{{.Content}}
 		</div>

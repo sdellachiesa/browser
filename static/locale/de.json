@@ -58,11 +58,17 @@
 	"Cancel registration": "Registrierung löschen",
 	"Hello": "Hallo",
 	"you are signed from": "du bist abgemelded mit",
-	"For more information on our LTSER Site check out our website": "Weitere Informationen zum LTSER-Standort Matsch|Mazia finden Sie auf unserer Website",
-	"If you have any question do not esitate to <a href=\"mailto:alpine.environment@eurac.edu\">contact us</a>!": "Für <a href=\"mailto:alpine.environment@eurac.edu\">Rückfragen</a> stehen wir jederzeit gerne zur Verfügung.",
 	"You can review the <a href=\"/{{ .Language }}/privacy\">data privacy policy here</a>": "Sie können die <a href=\"/{{ .Language }}/privacy\"> Datenschutzerklärung hier durchlesen</a>",
-	"Feel free to follow us on Twitter": "Folgen Sie uns auf Twitter unter",
 	"The <strong><mark>Data Provider shall examine in advance</mark></strong> any proposal for dissemination (Publication, Project proposal, Presentation, etc.).": "Der <strong><mark>Datenanbieter prüft im Voraus</mark></strong> jeden Antrag zur Datenverbreitung und -nutzung (Veröffentlichung, Projektvorschlag, Präsentation, usw.).",
 	"<strong><mark>Acknowledge as follow</mark></strong>: <em>\"We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.": "<strong><mark>Wir bitten Sie die Datennutzung wie folgt zu bestätigen</mark></strong>: <em>\"Wir danken Eurac Research's sozio-ökologischen Langzeitforschungs-Standort LT(S)ER IT25 - Matsch/Mazia - Italien, für die Bereitstellung von Daten, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.", 
-	"<strong><mark>Commercial use is not allowed</mark></strong> unless specifically authorized.": "<strong><mark>Eine kommerzielle Nutzung der Daten ist ohne ausdrückliche Genehmigung nicht gestattet.</mark></strong>"
+	"<strong><mark>Commercial use is not allowed</mark></strong> unless specifically authorized.": "<strong><mark>Eine kommerzielle Nutzung der Daten ist ohne ausdrückliche Genehmigung nicht gestattet.</mark></strong>",
+	"full": "in ganz",
+	"we are sorry you want to cancel your registration to the <a href=\"/\">LTER IT25 Mazia | Matsch Data Browser</a>.": "es tut uns leid, dass Sie ihre Registrierung für den <a href=\"/\">LTER IT25 Mazia | Matsch Data Browser</a> stornieren möchten.",
+	"Please be aware that for all the data downloaded, it applies the agreed data usage license.": "Bitte beachten Sie, dass für alle heruntergeladenen Daten die vereinbarte Datennutzungslizenz gilt",
+	"In order to cancel your registration please write an email to: <a href=\"mailto:alpine.environment@eurac.edu\">alpine.environment@eurac.edu</a> as follow:": "Um Ihre Registrierung zu löschen, schreiben Sie bitte eine E-Mail an: <a href=\"mailto:alpine.environment@eurac.edu\">alpine.environment@eurac.edu</a> wie folgt:",
+	"Subject": "Betreff",
+	"Email content": "Inhalt",
+	"Please cancel my user registration and related data.": "Bitte löschen Sie meine Benutzerregistrierung und die zugehörigen Daten.",
+	"Feel free to join us again!": "Fühlen Sie sich frei, sich jederzeit wieder zu registrieren!",
+	"The LTER Match | Mazia Team!": "Das LTER Match | Mazia Team!"
 }

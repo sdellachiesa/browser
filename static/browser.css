@@ -47,6 +47,11 @@ article.hello ul {
 	line-height: 1.8em;
 }
 
+article.hello h2 {
+	font-size: 1.2em;
+	margin-top: 50px;
+}
+
 div.license {
 	margin-top: 25px;
 	padding: 20px;
