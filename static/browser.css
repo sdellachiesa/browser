@@ -50,6 +50,7 @@ article.hello ul {
 article.hello h2 {
 	font-size: 1.2em;
 	margin-top: 50px;
+	font-weight: bold;
 }
 
 div.license {
