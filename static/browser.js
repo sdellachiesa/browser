@@ -117,27 +117,23 @@ function browser(opts) {
 	function toggleDownload() {
 		if ($(opts.sDateEl).val() == "" || $(opts.eDateEl).val() == "") {
 			$(opts.submitEl).attr("disabled", "disabled");
-			$(opts.friendlyEl).attr("disabled", "disabled");
 			return
 		}
 
-		if ($(opts.stationEl).val() == null) {
+		if ($(opts.stationEl).val() == null || $(opts.stationEl).val().length < 1) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			$(opts.codeEl).attr("disabled", "disabled");
-			$(opts.friendlyEl).attr("disabled", "disabled");
 			return
 		}
 
-		if ($(opts.measurementEl).val() == null) {
+		if ($(opts.measurementEl).val() == null || $(opts.measurementEl).val().length < 1) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			$(opts.codeEl).attr("disabled", "disabled");
-			$(opts.friendlyEl).attr("disabled", "disabled");
 			return
 		}
 
 		$(opts.submitEl).removeAttr("disabled");
 		$(opts.codeEl).removeAttr("disabled");
-		$(opts.friendlyEl).removeAttr("disabled");
 	}
 
 	// ToggleOptions enables or disables an option.

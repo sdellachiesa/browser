@@ -45,14 +45,14 @@ func (h *Handler) handleSeries() http.HandlerFunc {
 		w.Header().Set("Content-Description", "File Transfer")
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 
-		switch r.FormValue("submit") {
+		switch r.FormValue("format") {
 		default:
 			writer := csv.NewWriter(w)
 			if err := writer.Write(ts); err != nil {
 				Error(w, err, http.StatusInternalServerError)
 			}
 
-		case "friendly":
+		case "wide":
 			writer := csvf.NewWriter(w)
 			if err := writer.Write(ts); err != nil {
 				Error(w, err, http.StatusInternalServerError)
