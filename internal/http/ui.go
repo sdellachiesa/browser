@@ -133,10 +133,19 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		user := browser.UserFromContext(r.Context())
 		lang := languageFromCookie(r)
-		name := filepath.Base(r.URL.Path)
 
-		p, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
+		p := strings.TrimSuffix(r.URL.Path, "/")
+		name := strings.TrimPrefix(p, fmt.Sprintf("/%s/", lang))
+		filename := strings.ReplaceAll(name, "/", ".")
+
+		// TODO: this is a special case for the info page only.
+		if name == "info" && user.Role != browser.Public {
+			filename = "internal.info"
+		}
+
+		p, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", filename, lang)))
 		if err != nil {
 			Error(w, err, http.StatusNotFound)
 			return
@@ -149,7 +158,7 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 			AnalyticsCode string
 			Content       template.HTML
 		}{
-			browser.UserFromContext(r.Context()),
+			user,
 			lang,
 			name,
 			h.analytics,
@@ -194,10 +203,7 @@ func handleLanguage() http.HandlerFunc {
 	}
 }
 
-func isRole(r browser.Role, s string) bool {
-	return r == browser.NewRole(s)
-}
-
+// languageFromCookie reads the language settings from a cookie.
 func languageFromCookie(r *http.Request) string {
 	c, err := r.Cookie(languageCookieName)
 	if err != nil {
@@ -206,6 +212,12 @@ func languageFromCookie(r *http.Request) string {
 	return c.Value
 }
 
+// isRole is a template helper function for verifying a users role.
+func isRole(r browser.Role, s string) bool {
+	return r == browser.NewRole(s)
+}
+
+// translate is a template helper function for translating text in other languages.
 func translate(key, lang string) template.HTML {
 	j, err := static.File(filepath.Join("locale", fmt.Sprintf("%s.json", lang)))
 	if err != nil {

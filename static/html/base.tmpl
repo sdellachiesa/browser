@@ -51,7 +51,7 @@
 				<div class="collapse navbar-collapse" id="navbar-collapse">
 					<ul class="nav navbar-nav navbar-left">
 						<li {{ if eq .Path "/"}}class="active"{{end}}><a href="/">Home</a></li>
-						{{- if Is .User.Role "Public" -}}<li {{ if eq .Path "info"}}class="active"{{end}}><a href="/{{.Language}}/info/">Info</a></li>{{ end }}
+						<li {{ if eq .Path "info"}}class="active"{{end}}><a href="/{{.Language}}/info/">Info</a></li>
 						<li {{ if eq .Path "impressum"}}class="active"{{end}}><a href="/{{.Language}}/impressum/">Impressum</a></li>
 					</ul>
 

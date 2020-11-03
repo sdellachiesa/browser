@@ -27,7 +27,7 @@ import (
 var (
 	// Exclude defines a slice of file extensions which will
 	// not be served by the ServeContent function.
-	Exclude = []string{".tmpl"}
+	Exclude = []string{".tmpl", ".html"}
 
 	files map[string]string
 )

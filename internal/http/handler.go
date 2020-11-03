@@ -20,6 +20,8 @@ type Handler struct {
 	metadata browser.Metadata
 }
 
+// NewHandler creates a new HTTP handler with the given options and
+// initializes all routes.
 func NewHandler(options ...Option) *Handler {
 	h := new(Handler)
 
@@ -36,6 +38,7 @@ func NewHandler(options ...Option) *Handler {
 	h.mux.HandleFunc("/de/", h.handleStaticPage())
 
 	h.mux.HandleFunc("/l/", handleLanguage())
+	h.mux.HandleFunc("/static/dl/Official_Glossary.xlsx", grantAccess(static.ServeContent, browser.FullAccess, browser.External))
 	h.mux.HandleFunc("/static/", static.ServeContent)
 
 	h.mux.HandleFunc("/api/v1/series", h.handleSeries())
