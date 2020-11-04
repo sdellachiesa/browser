@@ -147,7 +147,7 @@
 				<div class="modal-content">
 					<div class="modal-header">
  						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" id="myModalLabel">Station: {{.Name}}</h4>
+						<h4 class="modal-title" id="myModalLabel">Station: {{.Name}} </h4>
 					</div>
 					<div class="modal-body station">
 						<div class="row">
@@ -164,6 +164,8 @@
 									<dd>{{.Latitude}}</dd>
 									<dt>{{T "Longitude" $lang}}</dt>
 									<dd>{{.Longitude}}</dd>
+									<dt>{{T "Latest data" $lang}}</dt>
+									<dd><a href="{{ .Dashboard }}" target="_blank" rel="noreferrer">Dashboard</a></dd>
 								</dl>
 							</div>
 						</div>
@@ -187,7 +189,7 @@
 							{{- end -}}
 							</div>
 							</div>
-						{{ end }}							
+						{{ end }}
 						</div>
 					</div>
 					<div class="modal-footer">

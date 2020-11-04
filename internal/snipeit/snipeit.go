@@ -118,6 +118,7 @@ func (s *SnipeITService) stations(m *browser.Message, measurements map[string][]
 			ID:           id,
 			Landuse:      l.Currency,
 			Image:        l.Image,
+			Dashboard:    l.City,
 			Elevation:    elevation,
 			Latitude:     latitude,
 			Longitude:    longitude,
