@@ -164,8 +164,10 @@
 									<dd>{{.Latitude}}</dd>
 									<dt>{{T "Longitude" $lang}}</dt>
 									<dd>{{.Longitude}}</dd>
+									{{ if .Dashboard }}
 									<dt>{{T "Latest data" $lang}}</dt>
-									<dd><a href="{{ .Dashboard }}" target="_blank" rel="noreferrer">Dashboard</a></dd>
+									<dd><strong><a href="{{ .Dashboard }}" target="_blank" rel="noreferrer">Dashboard</a></strong></dd>
+									{{ end }}	
 								</dl>
 							</div>
 						</div>
