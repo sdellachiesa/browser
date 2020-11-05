@@ -48,7 +48,6 @@ func main() {
 		microsoftClientID = fs.String("microsoft.clientid", "", "Microsoft OAuth2 client ID.")
 		microsoftSecret   = fs.String("microsoft.secret", "", "Microsoft OAuth2 secret.")
 		microsoftRedirect = fs.String("microsoft.redirect", "", "Microsoft OAuth2 redirect URL.")
-		ssnRedirect       = fs.String("ssn.redirect", "", "ScientificNet OAuth2 redirect URL.")
 		githubClientID    = fs.String("github.clientid", "", "Github OAuth2 client ID.")
 		githubSecret      = fs.String("github.secret", "", "Github OAuth2 secret.")
 		googleClientID    = fs.String("google.clientid", "", "Google OAuth2 client ID.")
@@ -127,17 +126,7 @@ func main() {
 
 	// Initialize OAuth2 providers.
 	handler.Register(&oauth2.Microsoft{
-		Provider:    "azure",
-		Issuer:      "https://login.microsoftonline.com/92513267-03e3-401a-80d4-c58ed6674e3b/v2.0",
-		ClientID:    *microsoftClientID,
-		Secret:      *microsoftSecret,
-		RedirectURL: *ssnRedirect,
-		Nonce:       *oauthNonce,
-	})
-
-	handler.Register(&oauth2.Microsoft{
 		Provider:    "microsoft",
-		Issuer:      "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
 		ClientID:    *microsoftClientID,
 		Secret:      *microsoftSecret,
 		RedirectURL: *microsoftRedirect,

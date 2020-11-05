@@ -5,21 +5,12 @@ package oauth2
 import (
 	"context"
 	"errors"
-	"fmt"
-
-	"gitlab.inf.unibz.it/lter/browser"
 
 	"github.com/coreos/go-oidc"
+	"gitlab.inf.unibz.it/lter/browser"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
-)
-
-const (
-	// MicrosoftIssuer is the ID token issure for microsoft personal accounts.
-	MicrosoftIssuer = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0"
-
-	// ScientificNetIssuer is the ID token issure for ScientificNet accounts.
-	ScientificNetIssuer = "https://login.microsoftonline.com/92513267-03e3-401a-80d4-c58ed6674e3b/v2.0"
 )
 
 // Guarantee we implement Provider.
@@ -27,7 +18,6 @@ var _ Provider = &Microsoft{}
 
 // Microsoft is an OAuth2 provider for signing in using azure AD.
 type Microsoft struct {
-	Issuer      string
 	Provider    string
 	ClientID    string
 	Secret      string
@@ -58,12 +48,13 @@ func (m *Microsoft) User(ctx context.Context, token *oauth2.Token) (*browser.Use
 		return nil, errors.New("no id_token field in oauth2 token")
 	}
 
-	provider, err := oidc.NewProvider(ctx, m.Issuer)
-	if err != nil {
-		return nil, fmt.Errorf("oauth2(azure): error creating oidc provider: %v", err)
-	}
-	verifier := provider.Verifier(&oidc.Config{
+	keySet := oidc.NewRemoteKeySet(ctx, "https://login.microsoftonline.com/common/discovery/v2.0/keys")
+	verifier := oidc.NewVerifier("https://login.microsoftonline.com/common/v2.0", keySet, &oidc.Config{
 		ClientID: m.ClientID,
+
+		// TODO: don't know how to fix this since logins from other
+		// tenants will have different issuer.
+		SkipIssuerCheck: true,
 	})
 
 	// Verify the ID Token signature and nonce.
