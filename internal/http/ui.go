@@ -92,6 +92,8 @@ func (h *Handler) handleHello() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		lang := languageFromCookie(r)
+		ctx := r.Context()
+		user := browser.UserFromContext(ctx)
 
 		const name = "license"
 		license, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
@@ -100,7 +102,14 @@ func (h *Handler) handleHello() http.HandlerFunc {
 			return
 		}
 
+		data, err := h.metadata.Stations(ctx, &browser.Message{})
+		if err != nil {
+			Error(w, err, http.StatusInternalServerError)
+			return
+		}
+
 		err = tmpl.Execute(w, struct {
+			Data          browser.Stations
 			User          *browser.User
 			Language      string
 			Path          string
@@ -108,7 +117,8 @@ func (h *Handler) handleHello() http.HandlerFunc {
 			Token         string
 			Content       template.HTML
 		}{
-			browser.UserFromContext(r.Context()),
+			data,
+			user,
 			lang,
 			name,
 			h.analytics,
@@ -133,7 +143,8 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := browser.UserFromContext(r.Context())
+		ctx := r.Context()
+		user := browser.UserFromContext(ctx)
 		lang := languageFromCookie(r)
 
 		p := strings.TrimSuffix(r.URL.Path, "/")
@@ -151,13 +162,21 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 			return
 		}
 
+		data, err := h.metadata.Stations(ctx, &browser.Message{})
+		if err != nil {
+			Error(w, err, http.StatusInternalServerError)
+			return
+		}
+
 		err = tmpl.Execute(w, struct {
+			Data          browser.Stations
 			User          *browser.User
 			Language      string
 			Path          string
 			AnalyticsCode string
 			Content       template.HTML
 		}{
+			data,
 			user,
 			lang,
 			name,
