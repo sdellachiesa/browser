@@ -149,14 +149,14 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 
 		p := strings.TrimSuffix(r.URL.Path, "/")
 		name := strings.TrimPrefix(p, fmt.Sprintf("/%s/", lang))
-		filename := strings.ReplaceAll(name, "/", ".")
+		filename := fmt.Sprintf("%s.%s.html", strings.ReplaceAll(name, "/", "."), lang)
 
 		// TODO: this is a special case for the info page only.
 		if name == "info" && user.Role != browser.Public {
-			filename = "internal.info"
+			filename = "internal.info.en.html"
 		}
 
-		p, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", filename, lang)))
+		p, err := static.File(filepath.Join("html", name, filename))
 		if err != nil {
 			Error(w, err, http.StatusNotFound)
 			return
@@ -210,7 +210,14 @@ func handleLanguage() http.HandlerFunc {
 		ref := "/"
 		refURL, err := url.Parse(r.Referer())
 		if err == nil && refURL.Path != "" {
-			ref = refURL.Path
+			// The language part has to be replaced with the actual language in the
+			// referer.
+			names := strings.Split(strings.TrimSuffix(refURL.Path, "/"), "/")
+			if len(names) < 1 {
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+				return
+			}
+			ref = fmt.Sprintf("/%s/%s", l, names[len(names)-1])
 		}
 
 		w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
