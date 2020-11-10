@@ -94,7 +94,7 @@
 									{{ T "Hello" .Language }} <b>{{ .User.Name }}</b>, {{ T "you are signed from" .Language }} <b>{{ .User.Provider }}</b>
 								</li>
 								<li role="separator" class="divider"></li>
-								<li><a href="/hello">{{ T "Data usage agreement" .Language }}</a></li>
+								<li><a href="/{{ .Language }}/hello/">{{ T "Data usage agreement" .Language }}</a></li>
 								<li><a href="#" data-toggle="modal" data-target="#cancelModal">{{ T "Cancel registration" .Language }}</a></li>
 								<li role="separator" class="divider"></li>
 								<li><a href="/auth/{{ .User.Provider }}/logout">{{T "Logout" .Language}}</a></li>

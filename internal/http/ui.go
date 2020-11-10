@@ -40,11 +40,12 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		user := browser.UserFromContext(ctx)
+		lang := languageFromCookie(r)
 
 		// If the user is not public and has not signed the data usage
 		// agreement, redirect it to sign it.
 		if user.Role != browser.Public && !user.License {
-			http.Redirect(w, r, "/hello", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, fmt.Sprintf("/%s/hello/", lang), http.StatusTemporaryRedirect)
 			return
 		}
 
@@ -66,7 +67,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 		}{
 			data,
 			user,
-			languageFromCookie(r),
+			lang,
 			r.URL.Path,
 			h.analytics,
 			middleware.XSRFTokenPlaceholder,

@@ -31,7 +31,10 @@ func NewHandler(options ...Option) *Handler {
 
 	h.mux = http.NewServeMux()
 	h.mux.HandleFunc("/", h.handleIndex())
-	h.mux.HandleFunc("/hello", h.handleHello())
+
+	h.mux.HandleFunc("/en/hello/", h.handleHello())
+	h.mux.HandleFunc("/it/hello/", h.handleHello())
+	h.mux.HandleFunc("/de/hello/", h.handleHello())
 
 	h.mux.HandleFunc("/en/", h.handleStaticPage())
 	h.mux.HandleFunc("/it/", h.handleStaticPage())
