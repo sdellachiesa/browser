@@ -154,7 +154,7 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 
 		// TODO: this is a special case for the info page only.
 		if name == "info" && user.Role != browser.Public {
-			filename = "internal.info.en.html"
+			filename = fmt.Sprintf("internal.info.%s.html", lang)
 		}
 
 		p, err := static.File(filepath.Join("html", name, filename))
