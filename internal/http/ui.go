@@ -4,6 +4,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -148,8 +149,11 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 		user := browser.UserFromContext(ctx)
 		lang := languageFromCookie(r)
 
-		p := strings.TrimSuffix(r.URL.Path, "/")
-		name := strings.TrimPrefix(p, fmt.Sprintf("/%s/", lang))
+		name, err := pageNameFromPath(r.URL.Path)
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			return
+		}
 		filename := fmt.Sprintf("%s.%s.html", strings.ReplaceAll(name, "/", "."), lang)
 
 		// TODO: this is a special case for the info page only.
@@ -190,6 +194,19 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 	}
 }
 
+// pageNameFromPath is a helper for extracing the page name from the request URL.
+// It assumes that the page name is alwayse the last part between two "/" in the
+// URL.
+func pageNameFromPath(p string) (string, error) {
+	names := strings.Split(strings.TrimSuffix(p, "/"), "/")
+	// There must be at least two values inside namse, the language and the page name.
+	// Otherwise we assume something is wrong.
+	if len(names) < 2 {
+		return "", errors.New("no name found in url path")
+	}
+	return names[len(names)-1], nil
+}
+
 // TODO: extract to middleware?
 func handleLanguage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -213,12 +230,12 @@ func handleLanguage() http.HandlerFunc {
 		if err == nil && refURL.Path != "" {
 			// The language part has to be replaced with the actual language in the
 			// referer.
-			names := strings.Split(strings.TrimSuffix(refURL.Path, "/"), "/")
-			if len(names) < 1 {
+			name, err := pageNameFromPath(refURL.Path)
+			if err != nil {
 				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 				return
 			}
-			ref = fmt.Sprintf("/%s/%s", l, names[len(names)-1])
+			ref = fmt.Sprintf("/%s/%s", l, name)
 		}
 
 		w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
