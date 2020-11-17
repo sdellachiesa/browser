@@ -162,7 +162,7 @@ func TestAccessBuildInRules(t *testing.T) {
 			},
 			role:    browser.Public,
 			license: true,
-			want:    "air_t_avg-air_rh_avg-wind_dir-wind_speed_avg-wind_speed_max-wind_speed-nr_up_sw_avg-precip_rt_nrt_tot-snow_height_S_L",
+			want:    "air_t_avg-air_rh_avg-wind_dir-wind_speed_avg-wind_speed_max-nr_up_sw_avg-precip_rt_nrt_tot-snow_height_S_L",
 		},
 		"PublicRedac": {
 			in: &browser.Message{
@@ -181,7 +181,7 @@ func TestAccessBuildInRules(t *testing.T) {
 			},
 			role:    browser.Public,
 			license: true,
-			want:    "air_t_avg-air_rh_avg-wind_dir-wind_speed_avg-wind_speed_max-wind_speed-nr_up_sw_avg-precip_rt_nrt_tot-snow_height",
+			want:    "air_t_avg-air_rh_avg-wind_dir-wind_speed_avg-wind_speed_max-nr_up_sw_avg-precip_rt_nrt_tot-snow_height",
 		},
 		"LicesneFalse": {
 			in: &browser.Message{
@@ -191,7 +191,7 @@ func TestAccessBuildInRules(t *testing.T) {
 			},
 			role:    browser.External,
 			license: false,
-			want:    "air_t_avg-air_rh_avg-wind_dir-wind_speed_avg-wind_speed_max-wind_speed-nr_up_sw_avg-precip_rt_nrt_tot-snow_height_S_L",
+			want:    "air_t_avg-air_rh_avg-wind_dir-wind_speed_avg-wind_speed_max-nr_up_sw_avg-precip_rt_nrt_tot-snow_height_S_L",
 		},
 		"FullAccess": {
 			in: &browser.Message{

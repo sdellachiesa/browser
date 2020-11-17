@@ -69,7 +69,6 @@ var (
 				"wind_dir",
 				"wind_speed_avg",
 				"wind_speed_max",
-				"wind_speed",
 				"nr_up_sw_avg",
 				"precip_rt_nrt_tot",
 				"snow_height"},
