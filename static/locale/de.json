@@ -59,7 +59,7 @@
 	"Cancel registration": "Registrierung löschen",
 	"Hello": "Hallo",
 	"you are signed from": "du bist abgemelded mit",
-	"You can review the <a href=\"/{{ .Language }}/privacy\">data privacy policy here</a>": "Sie können die <a href=\"/{{ .Language }}/privacy\"> Datenschutzerklärung hier durchlesen</a>",
+	"You can review the <a href=\"/en/privacy\">data privacy policy here</a>": "Sie können die <a href=\"/de/privacy\"> Datenschutzerklärung hier durchlesen</a>",
 	"The <strong><mark>Data Provider shall examine in advance</mark></strong> any proposal for dissemination (Publication, Project proposal, Presentation, etc.).": "Der <strong><mark>Datenanbieter prüft im Voraus</mark></strong> jeden Antrag zur Datenverbreitung und -nutzung (Veröffentlichung, Projektvorschlag, Präsentation, usw.).",
 	"<strong><mark>Acknowledge as follow</mark></strong>: <em>\"We thank Eurac research, long-term socio-ecological research site LT(S)ER IT25 - Matsch / Mazia - Italy, for providing the data, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.": "<strong><mark>Wir bitten Sie die Datennutzung wie folgt zu bestätigen</mark></strong>: <em>\"Wir danken Eurac Research's sozio-ökologischen Langzeitforschungs-Standort LT(S)ER IT25 - Matsch/Mazia - Italien, für die Bereitstellung von Daten, DEIMS.iD: https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964\"</em>.", 
 	"<strong><mark>Commercial use is not allowed</mark></strong> unless specifically authorized.": "<strong><mark>Eine kommerzielle Nutzung der Daten ist ohne ausdrückliche Genehmigung nicht gestattet.</mark></strong>",
