@@ -75,6 +75,6 @@
 	"The LT(S)ER Matsch | Mazia Team!": "LT(S)ER Matsch | Mazia Team!",
 	"Latest data": "Ultimi dati",
 	"View graphs": "Visualizza grafici",
-	"Welcome to the Data Browser  Matsch | Mazia!": "",
-	"This app provides a user-friendly interface to download meteorological and biophysical variables of the <a href=\"http://lter.eurac.edu/en/\" target=\"blank\" rel=\"noreferrer\">long-term socio-ecological research site Matschertal/Val di Mazia!</a>.": ""
+	"Welcome to the Data Browser  Matsch | Mazia!": "Benvenuti nel Data Browser Matsch | Mazia!",
+	"This app provides a user-friendly interface to download meteorological and biophysical variables of the <a href=\"http://lter.eurac.edu/en/\" target=\"blank\" rel=\"noreferrer\">long-term socio-ecological research site Matschertal/Val di Mazia!</a>.": "Questa WebApp fornisce un interfaccia intuitiva per lo scarico dei dati meteorologici e biofisici del <a href=\"http://lter.eurac.edu/it/\" target=\"blank\" rel=\"noreferrer\">sito di ricerca socio-ecologica a lungo termine Matschertal / Val di Mazia!</a>."
 }
