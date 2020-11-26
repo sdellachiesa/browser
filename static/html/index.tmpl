@@ -1,4 +1,4 @@
-{{define "content"}} 
+{{define "content"}}
 {{ $lang := .Language}}
 
 {{ if  and (not (Is .User.Role "Public")) (not .User.License) }}
@@ -12,6 +12,12 @@
 	<div class="container-fluid layout">
 		<div class="row">
 			<div class="col-lg-5 border sidebar-left">
+				<div class="welcome">
+					<h1>{{ T "Welcome to the Data Browser  Matsch | Mazia!" $lang }}</h1>
+					<p class="lead">
+					{{ T "This app provides a user-friendly interface to download meteorological and biophysical variables of the <a href=\"http://lter.eurac.edu/en/\" target=\"blank\" rel=\"noreferrer\">long-term socio-ecological research site Matschertal/Val di Mazia!</a>." $lang }}
+					</p>
+				</div>
 				<div class="form">
 					<form method="POST" action="/api/v1/series" target="_blank"  id="filters" name="filter">
 						<input type="hidden" name="token" value="{{.Token}}">

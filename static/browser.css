@@ -23,6 +23,20 @@ body {
 	margin: 0;
 }
 
+.welcome {
+	padding: 0 15px 15px 15px;
+	margin-bottom: 20px;
+}
+
+.welcome > h1 {
+	font-size: 1.9em;
+	font-weight: normal;
+}
+
+.welcome > p {
+	font-size: 1.4em;
+}
+
 main {
 	flex: 1;
 }
@@ -178,7 +192,7 @@ footer {
 .navbar-default {
 	border-radius: 0;
 	padding:0;
-	
+
 }
 
 .navbar-header > h1 {
