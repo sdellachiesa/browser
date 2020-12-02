@@ -462,7 +462,9 @@ function browser(opts) {
 		$(opts.dateEl).popover('hide');
 	});
 
-	$(opts.submitEl).click(function(e){
+	$(opts.submitLongBtnEl).click(function(e){
+		$(opts.formatEl).val('long');
+
 		var startDate = new Date($(opts.sDateEl).val());
 		startDate.setHours(0,0,0,0);
 
@@ -472,8 +474,28 @@ function browser(opts) {
 
 		if (maxMeasurementSelected() || (startDate < endDate)) {
 			$(opts.infoModalEl).modal();
-			e.preventDefault();
+			return
 		}
+
+		$(opts.formEl).submit();
+	});
+
+	$(opts.submitWideBtnEl).click(function(e){
+		$(opts.formatEl).val('wide');
+
+		var startDate = new Date($(opts.sDateEl).val());
+		startDate.setHours(0,0,0,0);
+
+		var endDate = new Date($(opts.eDateEl).val());
+		endDate.setFullYear(endDate.getFullYear() - 1);
+		endDate.setHours(0,0,0,0);
+
+		if (maxMeasurementSelected() || (startDate < endDate)) {
+			$(opts.infoModalEl).modal();
+			return
+		}
+
+		$(opts.formEl).submit();
 	});
 
 	$(opts.infoModalEl).find('.btn-primary').click(function(){

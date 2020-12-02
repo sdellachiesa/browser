@@ -92,8 +92,8 @@
 												{{ T "Download CSV" $lang }} <span class="caret"></span>
 											</button>
 											<ul class="dropdown-menu">
-												<li><a onclick="$('#format').val('long'); $('#filters').submit()" href="#">{{T "Long table format" $lang}}</a></li>
-												<li><a onclick="$('#format').val('wide'); $('#filters').submit()" href="#">{{T "Wide table format" $lang}}</a></li>
+												<li><a id="submitLongBtn" href="#">{{T "Long table format" $lang}}</a></li>
+												<li><a id="submitWideBtn" href="#">{{T "Wide table format" $lang}}</a></li>
 											</ul>
  									    </div>
 
@@ -246,6 +246,9 @@
 				'sDateEl':			'#startDate',
 				'eDateEl':			'#endDate',
 				'submitEl':			'#submitBtn',
+				'submitWideBtnEl':	'#submitWideBtn',
+				'submitLongBtnEl':	'#submitLongBtn',
+				'formatEl':			'#format',
 				'formEl':			'#filters',
 				'infoModalEl':		'#infoModal',
 				'codeEl':			'#codeBtn',
