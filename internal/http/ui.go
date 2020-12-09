@@ -151,7 +151,9 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 
 		name, err := pageNameFromPath(r.URL.Path)
 		if err != nil {
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			// On error we assume a language changes is wanted.
+			p := fmt.Sprintf("/l%s", r.URL.Path)
+			http.Redirect(w, r, p, http.StatusTemporaryRedirect)
 			return
 		}
 		filename := fmt.Sprintf("%s.%s.html", strings.ReplaceAll(name, "/", "."), lang)
@@ -198,7 +200,9 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 // It assumes that the page name is alwayse the last part between two "/" in the
 // URL.
 func pageNameFromPath(p string) (string, error) {
-	names := strings.Split(strings.TrimSuffix(p, "/"), "/")
+	p = strings.TrimSuffix(strings.TrimPrefix(p, "/"), "/")
+	names := strings.Split(p, "/")
+
 	// There must be at least two values inside namse, the language and the page name.
 	// Otherwise we assume something is wrong.
 	if len(names) < 2 {
@@ -212,7 +216,8 @@ func handleLanguage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		l := "en"
 
-		switch r.URL.Path[len("/l/"):] {
+		p := strings.TrimSuffix(r.URL.Path, "/")
+		switch p[len("/l/"):] {
 		case "de":
 			l = "de"
 		case "it":
