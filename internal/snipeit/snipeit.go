@@ -6,6 +6,7 @@ package snipeit
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
 
@@ -87,9 +88,13 @@ func (s *SnipeITService) stations(m *browser.Message, measurements map[string][]
 		Limit:  100,
 	}
 
-	locations, _, err := s.client.Locations(opts)
+	locations, resp, err := s.client.Locations(opts)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("SnipeIT API returned an error: %s", resp.Status)
 	}
 
 	var stations browser.Stations
