@@ -1,4 +1,6 @@
 // Copyright 2020 Eurac Research. All rights reserved.
+// Use of this source code is governed by the Apache 2.0
+// license that can be found in the LICENSE file.
 
 // Package middleware implements a simple middleware pattern for HTTP handlers,
 // along with implementation for some common middlewares.

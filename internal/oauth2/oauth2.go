@@ -1,4 +1,6 @@
 // Copyright 2020 Eurac Research. All rights reserved.
+// Use of this source code is governed by the Apache 2.0
+// license that can be found in the LICENSE file.
 
 // Package oauth2 provides an handler for handling OAuth2 authentication flows
 // and the implementation of several OAuth2 providers.

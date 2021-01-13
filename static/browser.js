@@ -1,4 +1,6 @@
-// Copyright 2019 Eurac Research. All rights reserved.
+// Copyright 2019 Eurac Reserach. All rights reserved.
+// Use of this source code is governed by the Apache 2.0
+// license that can be found in the LICENSE file.
 
 // browser sets up the client for filtering and downloading LTER data.
 // opts is an object with these keys data - JSON data object
