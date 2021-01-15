@@ -97,7 +97,7 @@ func TestSeries(t *testing.T) {
 	db := &DB{Client: c, Database: "testdb"}
 	ctx := context.Background()
 
-	// In test we use always the same message since we use a mock implementation
+	// In tests we use always the same message since we use a mock implementation
 	// of the influx client interface which simple returns a client.Reponse from
 	// a give JSON file.
 	testMessage := &browser.Message{

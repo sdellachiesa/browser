@@ -2,8 +2,8 @@
 // Use of this source code is governed by the Apache 2.0
 // license that can be found in the LICENSE file.
 
-// Package browser is the root package for the browser web
-// application and contains all domain types.
+// Package browser is the root package for the browser web application and
+// contains all domain types.
 package browser
 
 import (
@@ -29,14 +29,12 @@ var (
 	ErrUserNotValid      = errors.New("user is not valid")
 	ErrUserAlreadyExists = errors.New("user already exists")
 
-	// Location denotes the time location of the LTER stations, which is
-	// UTC+1.
+	// Location denotes the time location of the LTER stations, which is UTC+1.
 	Location = time.FixedZone("+0100", 60*60)
 )
 
-// Station represents a meteorological station of the LTER
-// project with it's associated metadata and a list of
-// measurements.
+// Station represents a meteorological station of the LTER project with it's
+// associated metadata and a list of measurements.
 type Station struct {
 	ID           string
 	Name         string
@@ -62,9 +60,8 @@ func (s Stations) String() string {
 	return string(j)
 }
 
-// Get returns the station by given id. If no station is
-// found it will return nil and false for indicating that no
-// station was found.
+// Get returns the station by the given id. If no station is found it will
+// return nil and false for indicating that no station was found.
 func (s Stations) Get(id string) (*Station, bool) {
 	for _, station := range s {
 		if id == station.ID {
@@ -74,8 +71,8 @@ func (s Stations) Get(id string) (*Station, bool) {
 	return nil, false
 }
 
-// Landuse returns a sorted list of the landuse of all stations,
-// removing duplicates.
+// Landuse returns a sorted list of the landuse for all stations, removing
+// duplicates.
 func (s Stations) Landuse() []string {
 	var l []string
 
@@ -88,8 +85,8 @@ func (s Stations) Landuse() []string {
 	return l
 }
 
-// Measurements returns a sorted list of all measurements of all
-// stations, removing duplicates.
+// Measurements returns a sorted list of all measurements of all stations,
+// removing duplicates.
 func (s Stations) Measurements() []string {
 	var v []string
 
@@ -104,8 +101,8 @@ func (s Stations) Measurements() []string {
 	return v
 }
 
-// unique removes duplicate values of s from the given slice
-// and returns a new slice.
+// unique removes duplicate values of s from the given slice and returns a new
+// slice.
 func unique(slice []string, s string) []string {
 	for _, el := range slice {
 		if el == s {
@@ -118,7 +115,8 @@ func unique(slice []string, s string) []string {
 // TimeSeries represents a group Measurements.
 type TimeSeries []*Measurement
 
-// Measurement represents a single measurements.
+// Measurement represents a single measurements with metadata and measured
+// points.
 type Measurement struct {
 	Label       string
 	Station     string
@@ -167,8 +165,8 @@ type Message struct {
 	End   time.Time
 }
 
-// Stmt is a query statement composed of the actual query and
-// the database it is performed on.
+// Stmt is a query statement composed of the actual query and the database it is
+// performed on.
 type Stmt struct {
 	Query    string
 	Database string
@@ -214,8 +212,8 @@ func (r *Role) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// NewRole returns a new role from the given string. If the string
-// cannot be parsed to a role the default group will be returned.
+// NewRole returns a new role from the given string. If the string cannot be
+// parsed to a role the default role will be returned.
 func NewRole(s string) Role {
 	switch s {
 	default:
@@ -239,8 +237,8 @@ type User struct {
 	Role     Role
 }
 
-// Valid determinse if a user is a valid one. A valid user must have a username,
-// name and email.
+// Valid determinse if a user is valid. A valid user must have a username, name
+// and email.
 func (u *User) Valid() bool {
 	if u.Name != "" && u.Email != "" && u.Provider != "" {
 		return true
@@ -248,7 +246,7 @@ func (u *User) Valid() bool {
 	return false
 }
 
-// UserService is the Storage and retrivial of authentication information.
+// UserService is the storage and retrivial of authentication information.
 type UserService interface {
 	// Get retrives a user if it exists
 	Get(context.Context, *User) (*User, error)

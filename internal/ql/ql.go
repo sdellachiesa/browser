@@ -4,16 +4,15 @@
 
 // Package ql provides an API for building InfluxQL queries.
 //
-// Currently it only supports 'SELECT' and and 'SHOW TAG VALUES'
-// queries.
+// Currently it only supports 'SELECT' and and 'SHOW TAG VALUES' queries.
 //
-// The builders will not ensure that the query returend will be
-// a valid one in terms of completeness. The user of the package
-// is responsible to compose a full query with the builders.
+// The builders will not ensure that the query returend will be a valid one in
+// terms of completeness. The user of the package is responsible to compose a
+// full query with the builder.
 //
 // An example of a SELECT query:
 //
-//	ql.Select("a", "b").From("c").Where(ql.Eq(ql.And(), "a", "d", "g"))
+//  ql.Select("a", "b").From("c").Where(ql.Eq(ql.And(), "a", "d", "g"))
 //
 // Will return:
 //
@@ -378,7 +377,7 @@ func (o *OperatorBuilder) Query() (string, []interface{}) {
 // Eq returns a query part which compares column to each given value, joining
 // them together with the given OperatorBuilder.
 //
-//	 Eq(And(), "a", "b", "c") -> a='b' AND a='c'
+//   Eq(And(), "a", "b", "c") -> a='b' AND a='c'
 func Eq(join *OperatorBuilder, column string, values ...string) Querier {
 	return QueryFunc(func() (string, []interface{}) {
 		return comp(join, "=", column, values...), nil

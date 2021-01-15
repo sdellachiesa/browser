@@ -1,4 +1,4 @@
-// Copyright 2019 Eurac Reserach. All rights reserved.
+// Copyright 2019 Eurac Research. All rights reserved.
 // Use of this source code is governed by the Apache 2.0
 // license that can be found in the LICENSE file.
 
@@ -112,10 +112,9 @@ function browser(opts) {
 		return selectedOptions.length > maxMeasurement
 	}
 
-	// toggleDownload enables the download botton if at least one
-	// station and one measurement was selected. Moreover it checks
-	// if the time range selected is not ore than a year. Otherwise
-	// it will be disable it.
+	// toggleDownload enables the download botton if at least one station and
+	// one measurement was selected. Moreover it checks if the time range
+	// selected is not ore than a year. Otherwise it will be disable it.
 	function toggleDownload() {
 		if ($(opts.sDateEl).val() == "" || $(opts.eDateEl).val() == "") {
 			$(opts.submitEl).attr("disabled", "disabled");
@@ -138,8 +137,8 @@ function browser(opts) {
 		$(opts.codeEl).removeAttr("disabled");
 	}
 
-	// ToggleOptions enables or disables an option.
-	// arr is an array of objects with these keys:
+	// ToggleOptions enables or disables an option. arr is an array of objects
+	// with these keys:
 	// 	[{ el: "id of select", data: "set of items"}]
 	function toggleOptions(arr) {
 		arr.forEach(function(item) {
@@ -161,8 +160,8 @@ function browser(opts) {
 		});
 	}
 
-	// filterByMeasurements filters the global opts.data object by the
-	// given measurements and returns an object with the following keys:
+	// filterByMeasurements filters the global opts.data object by the given
+	// measurements and returns an object with the following keys:
 	// 	stations - set of stations
 	//	landuse - set of landuses
 	function filterByMeasurements(names) {
@@ -220,8 +219,8 @@ function browser(opts) {
 		return {measurements, landuse};
 	}
 
-	// filterByLanduse filters the global opts.data object by the given
-	// landuses and returns an object with the following keys:
+	// filterByLanduse filters the global opts.data object by the given landuses
+	// and returns an object with the following keys:
 	// 	measurements - set of measurements
 	//	stations - set of stations
 	function filterByLanduse(landuse) {

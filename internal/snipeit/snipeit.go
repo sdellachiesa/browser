@@ -2,7 +2,7 @@
 // Use of this source code is governed by the Apache 2.0
 // license that can be found in the LICENSE file.
 
-// Package snipeit provides
+// Package snipeit provides a service for retriving metadata stored in SnipeIT.
 package snipeit
 
 import (
@@ -141,8 +141,8 @@ func (s *SnipeITService) stations(m *browser.Message, measurements map[string][]
 	return stations, nil
 }
 
-// inArray checks if the given s is in the given slice.
-// If the given slice is empty true will be returned.
+// inArray checks if the given s is in the given slice. If the given slice is
+// empty true will be returned.
 func inArray(s string, a []string) bool {
 	if len(a) == 0 {
 		return true

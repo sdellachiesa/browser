@@ -2,8 +2,8 @@
 // Use of this source code is governed by the Apache 2.0
 // license that can be found in the LICENSE file.
 
-// Package mock provides mock implementations of various interfaces
-// used only for testing.
+// Package mock provides mock implementations of various interfaces used only
+// for testing.
 package mock
 
 import (

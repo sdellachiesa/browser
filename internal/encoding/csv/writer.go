@@ -7,14 +7,14 @@
 //
 // The format looks as follows:
 //
-//	time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
-//	,,,,,,c,km/h,%,mm
-//	2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,0,0,0
-//	2020-01-01 00:30:00,s1,me_s1,1000,3.14159,2.71828,1,1,1,1
-//	2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2,2,2
-//	2020-01-01 00:15:00,s2,me_s2,1000,3.14159,2.71828,0,0,0,0
-//	2020-01-01 00:30:00,s2,me_s2,1000,3.14159,2.71828,1,1,1,1
-//	2020-01-01 00:45:00,s2,me_s2,1000,3.14159,2.71828,2,2,2,2
+//  time,station,landuse,elevation,latitude,longitude,a_avg,wind_speed,air_rh_avg,precip_rt_nrt_tot
+//  ,,,,,,c,km/h,%,mm
+//  2020-01-01 00:15:00,s1,me_s1,1000,3.14159,2.71828,0,0,0,0
+//  2020-01-01 00:30:00,s1,me_s1,1000,3.14159,2.71828,1,1,1,1
+//  2020-01-01 00:45:00,s1,me_s1,1000,3.14159,2.71828,2,2,2,2
+//  2020-01-01 00:15:00,s2,me_s2,1000,3.14159,2.71828,0,0,0,0
+//  2020-01-01 00:30:00,s2,me_s2,1000,3.14159,2.71828,1,1,1,1
+//  2020-01-01 00:45:00,s2,me_s2,1000,3.14159,2.71828,2,2,2,2
 //
 package csv
 
@@ -98,8 +98,8 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 			current := row.start + i
 
 			// If measurements of the same station have differenet lengths of
-			// points, it can happen that we overflow the current row buffer so a
-			// newline must be added rather than appending only the value to a
+			// points, it can happen that we overflow the current row buffer so
+			// a newline must be added rather than appending only the value to a
 			// existing one.
 			if len(w.rows) <= current {
 				w.rows = append(w.rows, w.newLine(m, p))

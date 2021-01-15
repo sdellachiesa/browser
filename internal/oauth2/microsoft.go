@@ -54,8 +54,8 @@ func (m *Microsoft) User(ctx context.Context, token *oauth2.Token) (*browser.Use
 	verifier := oidc.NewVerifier("https://login.microsoftonline.com/common/v2.0", keySet, &oidc.Config{
 		ClientID: m.ClientID,
 
-		// TODO: don't know how to fix this since logins from other
-		// tenants will have different issuer.
+		// TODO: don't know how to fix this since logins from other tenants will
+		// have different issuers.
 		SkipIssuerCheck: true,
 	})
 

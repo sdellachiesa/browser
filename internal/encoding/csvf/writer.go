@@ -8,19 +8,19 @@
 // The friendly format has the header vertical and values in horizontal order.
 // Here is an example of the friendly CSV output:
 //
-//		station,b1,b1,b1,b2,b2
-//		landuse,me,me,me,me,me
-//		latitude,46.6612188656,46.6612188656,46.6612188656,46.6862577024,46.6862577024
-//		longitude,10.5902491243,10.5902491243,10.5902491243,10.5798451965,10.5798451965
-//		elevation,990,990,990,1490,1490
-//		parameter,precip_rt_nrt,snow_height,wind_dir,snow_height,wind_dir
-//		depth,,,,,
-//		aggregation,tot,smp,smp,smp,smp
-//		unit,mm,,degrees,,degrees
-//		2020-01-07 00:00:00,0,0.028,77,0.122,42
-//		2020-01-07 00:15:00,0,0.027,115,0.128,83
-//		2020-01-07 00:30:00,0,0.03,69,0.128,36
-//		...
+//      station,b1,b1,b1,b2,b2
+//      landuse,me,me,me,me,me
+//      latitude,46.6612188656,46.6612188656,46.6612188656,46.6862577024,46.6862577024
+//      longitude,10.5902491243,10.5902491243,10.5902491243,10.5798451965,10.5798451965
+//      elevation,990,990,990,1490,1490
+//      parameter,precip_rt_nrt,snow_height,wind_dir,snow_height,wind_dir
+//      depth,,,,,
+//      aggregation,tot,smp,smp,smp,smp
+//      unit,mm,,degrees,,degrees
+//      2020-01-07 00:00:00,0,0.028,77,0.122,42
+//      2020-01-07 00:15:00,0,0.027,115,0.128,83
+//      2020-01-07 00:30:00,0,0.03,69,0.128,36
+//      ...
 //
 // For more information see:
 // https://gitlab.inf.unibz.it/lter/browser/-/issues/90
@@ -86,10 +86,9 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 		for i, p := range m.Points {
 			current := 9 + i
 
-			// For the first measurement or if the current
-			// measurement has more points than previous ones,
-			// create a new row and write the timestamp and the
-			// value at the specific column.
+			// For the first measurement or if the current measurement has more
+			// points than previous ones, create a new row and write the
+			// timestamp and the value at the specific column.
 			if k == 0 || len(w.rows) <= current {
 				row := make([]string, maxColumns)
 				for j := 0; j < maxColumns; j++ {
@@ -107,12 +106,11 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 				return err
 			}
 
-			// Check if the timestamp of the current row is equal
-			// to the timestamp of the point. If not this means
-			// that the measurements do not have a continuous time
-			// range. This is currently not supported and will
-			// through an error.
-			// TODO: Try to make it handle non continuous time ranges.
+			// Check if the timestamp of the current row is equal to the
+			// timestamp of the point. If not means that the measurements do not
+			// have a continuous time range. This is currently not supported and
+			// will through an error.
+			// TODO: add support for non continuous time ranges.
 			if !p.Timestamp.Equal(t) {
 				return errors.New("not continuous timerange")
 			}
@@ -137,8 +135,8 @@ func (w *Writer) appendRow(line []string) {
 	w.rows = append(w.rows, line)
 }
 
-// appendToRow appends the given data to the end of the given row. If
-// the given row number is out of range a new row will be added.
+// appendToRow appends the given data to the end of the given row. If the given
+// row number is out of range a new row will be added.
 func (w *Writer) appendToRow(row int, data string) {
 	// Check if row is out of range. If so create a new row instead of appending
 	// to an existing one.

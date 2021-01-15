@@ -36,7 +36,7 @@ var (
 	ErrTokenInvalid = errors.New("token is invalid")
 )
 
-// Cookie is an browser.Autenticator using HTTP cookies and JWT tokens.
+// Cookie is an Autenticator using HTTP cookies and JWT tokens.
 type Cookie struct {
 	// Secret used for JWT generation/validation.
 	Secret string
@@ -106,8 +106,8 @@ type claims struct {
 	jwt.StandardClaims
 }
 
-// newJWT creates a new signed JWT token with the given user
-// infomration embedded.
+// newJWT creates a new signed JWT token with the given user infomration
+// embedded.
 func (c *Cookie) newJWT(u *browser.User) (string, error) {
 	if u == nil {
 		return "", errors.New("no user provided")

@@ -37,7 +37,7 @@ func main() {
 		influxPass        = fs.String("influx.password", "", "Influx password")
 		influxDatabase    = fs.String("influx.database", "", "Influx database name")
 		usersDatabase     = fs.String("users.database", "", "Database name for storing user information.")
-		usersEnvironment  = fs.String("users.env", "testing", "The enviroment the app is running.")
+		usersEnvironment  = fs.String("users.env", "testing", "The environment the app is running.")
 		snipeitAddr       = fs.String("snipeit.addr", "", "SnipeIT API URL")
 		snipeitToken      = fs.String("snipeit.token", "", "SnipeIT API Token")
 		jwtKey            = fs.String("jwt.key", "", "Secret key used to create a JWT. Don't share it.")

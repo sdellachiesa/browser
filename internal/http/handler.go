@@ -22,8 +22,8 @@ type Handler struct {
 	metadata browser.Metadata
 }
 
-// NewHandler creates a new HTTP handler with the given options and
-// initializes all routes.
+// NewHandler creates a new HTTP handler with the given options and initializes
+// all routes.
 func NewHandler(options ...Option) *Handler {
 	h := new(Handler)
 

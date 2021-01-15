@@ -13,11 +13,13 @@ import (
 	"golang.org/x/net/xsrftoken"
 )
 
-// XSRFTokenPlaceholder should be used as the value for XSRF in rendered content.
-// It is substituted for the actual token value by the XSRFProtect middleware.
+// XSRFTokenPlaceholder should be used as the value for XSRF in rendered
+// content. It is substituted for the actual token value by the XSRFProtect
+// middleware.
 const XSRFTokenPlaceholder = "$$XSRFTOKEN$$"
 
-// XSRFProtect is a HTTP middlware adding XSRF/CSRF token protection for non-safe HTTP Methods.
+// XSRFProtect is a HTTP middlware adding XSRF/CSRF token protection for
+// non-safe HTTP Methods.
 func XSRFProtect(key string) Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +40,8 @@ func XSRFProtect(key string) Middleware {
 	}
 }
 
-// capturingResponseWriter is an http.ResponseWriter that captures
-// the body for later processing.
+// capturingResponseWriter is an http.ResponseWriter that captures the body for
+// later processing.
 type capturingResponseWriter struct {
 	http.ResponseWriter
 	buf bytes.Buffer
@@ -53,8 +55,8 @@ func (c *capturingResponseWriter) bytes() []byte {
 	return c.buf.Bytes()
 }
 
-// isSafeMethod checks if the given method is considered safe. Safe
-// methods are  GET/HEAD/OPTIONS/TRACE.
+// isSafeMethod checks if the given method is considered safe. Safe methods are
+// GET/HEAD/OPTIONS/TRACE.
 func isSafeMethod(m string) bool {
 	switch m {
 	default:

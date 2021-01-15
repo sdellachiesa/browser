@@ -33,8 +33,7 @@ func Error(w http.ResponseWriter, err error, code int) {
 }
 
 // grantAccess is a HTTP middlware function which grants access to the given
-// handler that the requesting user is allowed to call the provided handler
-// function. If not a http.NotFound will be returned.
+// handler to the given roles.
 func grantAccess(h http.HandlerFunc, roles ...browser.Role) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !isAllowed(r, roles...) {

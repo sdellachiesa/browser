@@ -69,10 +69,10 @@ func (db *DB) Series(ctx context.Context, m *browser.Message) (browser.TimeSerie
 					continue
 				}
 
-				// Fill missing timestamps with NaN values, to return a
-				// time series with a continuous time range. The interval of raw
-				// data in LTER is 15 minutes.
-				// See: https://gitlab.inf.unibz.it/lter/browser/issues/10
+				// Fill missing timestamps with NaN values, to return a time
+				// series with a continuous time range. The interval of raw data
+				// in LTER is 15 minutes. See:
+				// https://gitlab.inf.unibz.it/lter/browser/issues/10
 				for !t.Equal(nTime) {
 					m.Points = append(m.Points, &browser.Point{
 						Timestamp: nTime,
@@ -133,10 +133,9 @@ func seriesQuery(m *browser.Message) ql.Querier {
 			args []interface{}
 		)
 
-		// Data in influx is UTC but LTER data is UTC+1 therefor
-		// we need to adapt start and end times. It will shift the start
-		// time to -1 hour and will set the end time to 22:59:59 in order to
-		// capture a full day.
+		// Data in InfluxDB is UTC but LTER data is UTC+1 therefor we need to adapt
+		// start and end times. It will shift the start time to -1 hour and will set
+		// the end time to 22:59:59 in order to capture a full day.
 		start := m.Start.Add(-1 * time.Hour)
 		end := time.Date(m.End.Year(), m.End.Month(), m.End.Day(), 22, 59, 59, 59, time.UTC)
 
@@ -168,10 +167,9 @@ func (db *DB) Query(ctx context.Context, m *browser.Message) *browser.Stmt {
 	c := []string{"station", "landuse", "altitude as elevation", "latitude", "longitude"}
 	c = append(c, m.Measurements...)
 
-	// Data in influx is UTC but LTER data is UTC+1 therefor
-	// we need to adapt start and end times. It will shift the start
-	// time to -1 hour and will set the end time to 22:59:59 in order to
-	// capture a full day.
+	// Data in InfluxDB is UTC but LTER data is UTC+1 therefor we need to adapt
+	// start and end times. It will shift the start time to -1 hour and will set
+	// the end time to 22:59:59 in order to capture a full day.
 	start := m.Start.Add(-1 * time.Hour)
 	end := time.Date(m.End.Year(), m.End.Month(), m.End.Day(), 22, 59, 59, 59, time.UTC)
 

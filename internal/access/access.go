@@ -52,16 +52,14 @@ var (
 	// Guarantee we implement browser.Metadata.
 	_ browser.Metadata = &Access{}
 
-	// ErrNoRuleFound means that no rule was found for the
-	// given name.
+	// ErrNoRuleFound means that no rule was found for the given name.
 	ErrNoRuleFound = errors.New("access: no rule found")
 
-	// identifier is a regular expression used for checking
-	// if a given user input is a valid influx identifier.
+	// identifier is a regular expression used for checking if a given user
+	// input is a valid identifier.
 	identifier = regexp.MustCompile(`^\w+$`)
 
-	// defaultRule is the rule which will return on any kind
-	// of error, so we always ensure a rule is returned.
+	// defaultRule is the rule which will be returned on any kind of error.
 	defaultRule = &Rule{
 		Name: browser.Public,
 		ACL: &AccessControlList{
@@ -203,8 +201,7 @@ func (a *Access) rule(user *browser.User) *Rule {
 	}
 
 	r := a.ruleByName(user.Role)
-	// If r is the default rule return the public rule. Which also could
-	// be the default rule.
+	// If r is the default rule return the public acl.
 	if r == defaultRule {
 		return p
 	}
@@ -212,8 +209,8 @@ func (a *Access) rule(user *browser.User) *Rule {
 	return r
 }
 
-// ruleByName will return the rule by the given name. If no rule is found the build-in
-// default rule will be returned.
+// ruleByName will return the rule by the given name. If no rule is found the
+// build-in default rule will be returned.
 func (a *Access) ruleByName(name browser.Role) *Rule {
 	a.mu.RLock()
 	rules := a.rules
@@ -264,8 +261,8 @@ func (a *Access) loadRules(file string) error {
 	return nil
 }
 
-// refreshRules refreshes the rules from the given file by
-// the DefautlRefreshInterval.
+// refreshRules refreshes the rules from the given file by the
+// DefautlRefreshInterval.
 func (a *Access) refreshRules(file string) {
 	ticker := time.NewTicker(DefautlRefreshInterval)
 	defer ticker.Stop()

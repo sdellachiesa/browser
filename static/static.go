@@ -40,8 +40,8 @@ var static struct {
 }
 
 // File returns the file rooted at "gitlab.inf.unibz.it/lter/browser/static"
-// either from an in-memory map or, if no map was generated,
-// the contents of the file from disk.
+// either from an in-memory map or, if no map was generated, the contents of the
+// file from disk.
 func File(name string) (string, error) {
 	if files != nil {
 		b, ok := files[name]
@@ -83,9 +83,8 @@ func run(n string, args ...string) (string, error) {
 	return bb.String(), nil
 }
 
-// ServeContent serves static content for HTTP servers.
-// Files matching any file extension defined in Exclude will
-// be excluded from serving.
+// ServeContent serves static content for HTTP servers. Files matching any file
+// extension defined in Exclude will be excluded from serving.
 func ServeContent(w http.ResponseWriter, r *http.Request) {
 	p := strings.TrimPrefix(r.URL.Path[1:], "static/")
 
@@ -105,9 +104,9 @@ func ServeContent(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path.Base(p), time.Now(), strings.NewReader(b))
 }
 
-// ParseTemplates creates a new "html/template" from the given files.
-// If t is not nil it will be used as base template.
-// It is a copy of the parseFiles function of:
+// ParseTemplates creates a new "html/template" from the given files. If t is
+// not nil it will be used as base template. It is a copy of the parseFiles
+// function of:
 // https://github.com/golang/go/blob/master/src/html/template/template.go#L404
 // It reads files from the internal files map instead from disk directly.
 func ParseTemplates(t *template.Template, filenames ...string) (*template.Template, error) {
@@ -146,8 +145,8 @@ func ParseTemplates(t *template.Template, filenames ...string) (*template.Templa
 	return t, nil
 }
 
-// ParseTextTemplates is equivalent to ParseTemplate only that it
-// returns parsed "text/template".
+// ParseTextTemplates is equivalent to ParseTemplate only that it returns parsed
+// "text/template".
 func ParseTextTemplates(t *text.Template, filenames ...string) (*text.Template, error) {
 	if len(filenames) == 0 {
 		return nil, fmt.Errorf("static: no files named in call to ParseTemplates")

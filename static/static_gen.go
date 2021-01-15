@@ -6,10 +6,9 @@
 
 // This file is adapted from augie.upspin.io/cmd/upspin-ui/static/makestatic.go.
 //
-// Command makestatic reads a set of files and writes a Go
-// source file to "files.go" that declares a map of string
-// constants containing contents of the input files. It is
-// intended to be invoked via "go generate".
+// Command makestatic reads a set of files and writes a Go source file to
+// "assets.go" that declares a map of string constants containing contents of the
+// input files. It is intended to be invoked via "go generate".
 package main
 
 import (

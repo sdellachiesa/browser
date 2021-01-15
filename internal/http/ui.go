@@ -198,15 +198,14 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 	}
 }
 
-// pageNameFromPath is a helper for extracing the page name from the request URL.
-// It assumes that the page name is alwayse the last part between two "/" in the
-// URL.
+// pageNameFromPath is a helper for extracing the page name from the request
+// URL. It assumes that the page name is always in the URL.
 func pageNameFromPath(p string) (string, error) {
 	p = strings.TrimSuffix(strings.TrimPrefix(p, "/"), "/")
 	names := strings.Split(p, "/")
 
-	// There must be at least two values inside namse, the language and the page name.
-	// Otherwise we assume something is wrong.
+	// There must be at least two values inside names, the language and the page
+	// name. Otherwise we assume something is wrong.
 	if len(names) < 2 {
 		return "", errors.New("no name found in url path")
 	}
@@ -235,8 +234,8 @@ func handleLanguage() http.HandlerFunc {
 		ref := "/"
 		refURL, err := url.Parse(r.Referer())
 		if err == nil && refURL.Path != "" {
-			// The language part has to be replaced with the actual language in the
-			// referer.
+			// The language part has to be replaced with the actual language in
+			// the referer.
 			name, err := pageNameFromPath(refURL.Path)
 			if err != nil {
 				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -268,7 +267,8 @@ func isRole(r browser.Role, s string) bool {
 	return r == browser.NewRole(s)
 }
 
-// translate is a template helper function for translating text in other languages.
+// translate is a template helper function for translating text to other
+// languages.
 func translate(key, lang string) template.HTML {
 	j, err := static.File(filepath.Join("locale", fmt.Sprintf("%s.json", lang)))
 	if err != nil {

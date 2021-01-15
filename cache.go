@@ -15,13 +15,11 @@ var (
 	// Guarantee we implement browser.Metadata.
 	_ Metadata = &InMemCache{}
 
-	// CacheRefreshInterval is the interval in which the cache
-	// will be refeshed.
+	// CacheRefreshInterval is the interval in which the cache will be refeshed.
 	CacheRefreshInterval = 8 * time.Hour
 )
 
-// InMemCache represents an in memory cache currently for
-// metadata only.
+// InMemCache represents an in memory cache currently for metadata only.
 type InMemCache struct {
 	metadata Metadata
 
@@ -41,10 +39,9 @@ func NewInMemCache(m Metadata) *InMemCache {
 	return c
 }
 
-// loadCache initializes the cache for each Role due to the
-// slow "SHOW TAG VALUES" queries on large datasets inside
-// InfluxDB. Until measurements aren't present in SnipeIT
-// they must be retrieved from InfluxDB.
+// loadCache initializes the cache for each Role due to the slow "SHOW TAG
+// VALUES" queries on large datasets inside InfluxDB. Until measurements aren't
+// present in SnipeIT they must be retrieved from InfluxDB.
 func (c *InMemCache) loadCache() {
 	cache := make(map[Role]Stations)
 

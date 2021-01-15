@@ -30,8 +30,7 @@ type Provider interface {
 
 // Authenticator represents a service for authenticating users.
 type Authenticator interface {
-	// Validate returns an authenticated User if a valid user
-	// session is found.
+	// Validate returns an authenticated User if a valid user session is found.
 	Validate(context.Context, *http.Request) (*browser.User, error)
 
 	// Authorize will create a new user session for authenticated users.
@@ -41,8 +40,7 @@ type Authenticator interface {
 	Expire(http.ResponseWriter)
 }
 
-// Handler handles OAuth2 authorization flows and different account
-// aspects.
+// Handler handles OAuth2 authorization flows and different account aspects.
 type Handler struct {
 	Next  http.Handler
 	State string
@@ -172,27 +170,28 @@ func (h *Handler) license() http.HandlerFunc {
 	}
 }
 
-// TODO: for now diabled, maybe we will introduce a new super admin role
-// which has the right do cancel account.
+// TODO: for now diabled, maybe we will introduce a new super admin role which
+// has the right do delete account data using the web interface. Currently this
+// must be done manually.
 //func (h *Handler) cancel() http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		ctx := r.Context()
-//		user, err := h.Auth.Validate(ctx, r)
-//		if err != nil {
-//			log.Printf("oauth2: cancel: validation failed: %v\n", err)
-//			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-//			return
-//		}
-//		if err := h.Users.Delete(ctx, user); err != nil {
-//			log.Printf("oauth2: cancel: error in deleting user: %v\n", err)
-//			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-//			return
-//		}
+//  return func(w http.ResponseWriter, r *http.Request) {
+//      ctx := r.Context()
+//      user, err := h.Auth.Validate(ctx, r)
+//      if err != nil {
+//          log.Printf("oauth2: cancel: validation failed: %v\n", err)
+//          http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+//          return
+//      }
+//      if err := h.Users.Delete(ctx, user); err != nil {
+//          log.Printf("oauth2: cancel: error in deleting user: %v\n", err)
+//          http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+//          return
+//      }
 //
-//		h.Auth.Expire(w)
+//      h.Auth.Expire(w)
 //
-//		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-//	}
+//      http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+//  }
 //}
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

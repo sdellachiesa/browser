@@ -15,10 +15,10 @@ import (
 	"gitlab.inf.unibz.it/lter/browser/internal/mock"
 )
 
-// We test only Query method since all other public methods are the same and Query
-// is the easiest to test.
+// Note: We test only Query method since all other public methods are the same
+// and Query is the easiest to test.
 
-// TestAccessFile tests the access control with a access file.
+// TestAccessFile tests the access control with an access file.
 func TestAccessFile(t *testing.T) {
 	db := &mock.Database{}
 	db.QueryFn = func(ctx context.Context, m *browser.Message) *browser.Stmt {
@@ -137,8 +137,8 @@ func TestAccessFile(t *testing.T) {
 	}
 }
 
-// TestAccessBuildInRules tests the access controls with no access file provided. So the build-in rules
-// should be applied.
+// TestAccessBuildInRules tests the access controls with no access file
+// provided. So the build-in rules should be applied.
 func TestAccessBuildInRules(t *testing.T) {
 	db := &mock.Database{}
 	db.QueryFn = func(ctx context.Context, m *browser.Message) *browser.Stmt {
@@ -287,8 +287,8 @@ func messageString(t *testing.T, m *browser.Message) string {
 	return strings.Join(s, "_")
 }
 
-// createContext returns a new context with an browser.User embedded with the given
-// role and license.
+// createContext returns a new context with an browser.User embedded with the
+// given role and license.
 func createContext(t *testing.T, role browser.Role, lic bool) context.Context {
 	t.Helper()
 

@@ -24,7 +24,7 @@ var (
 	// testSelectQuery is the query we expect in test to lookup an user.
 	testSelectQuery = "select updated from test where email='jane@example.com' and provider='test' group by provider,fullname,email,picture,license,role"
 
-	// testDeleteQuery is the query we expect to get when delete an	user.
+	// testDeleteQuery is the query we expect to get when delete an user.
 	testDeleteQuery = "delete from test where email='jane@example.com' and provider='test' and time=1603116509454279000"
 )
 
@@ -281,9 +281,10 @@ func userWriteFnHelper(t *testing.T) func(bp client.BatchPoints) error {
 	}
 }
 
-// userQueryFnHelper is a helper which returns a QueryFn needed for the mock.InfluxClient.
-// Depending on the input query it will to a select or delete operation. More over it will
-// validate the input query with the global defined test queries.
+// userQueryFnHelper is a helper which returns a QueryFn needed for the
+// mock.InfluxClient. Depending on the input query it will to a select or delete
+// operation. More over it will validate the input query with the global defined
+// test queries.
 func userQueryFnHelper(t *testing.T) func(q client.Query) (*client.Response, error) {
 	t.Helper()
 	return func(q client.Query) (*client.Response, error) {

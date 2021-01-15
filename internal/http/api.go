@@ -128,8 +128,8 @@ func (h *Handler) handleCodeTemplate() http.HandlerFunc {
 	}
 }
 
-// parseForm parses form values from the given http.Request and returns
-// an request. It performs basic validation for given dates.
+// parseForm parses form values from the given http.Request and returns a
+// browser.Message. It performs basic validation for the given dates.
 func parseMessage(r *http.Request) (*browser.Message, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
