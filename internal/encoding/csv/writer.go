@@ -2,7 +2,7 @@
 // Use of this source code is governed by the Apache 2.0
 // license that can be found in the LICENSE file.
 
-// Package csv writes comma-separted values (CSV) files using the LTER default
+// Package csv writes comma-separated values (CSV) files using the LTER default
 // CSV format.
 //
 // The format looks as follows:
@@ -32,7 +32,7 @@ import (
 // output.
 const DefaultTimeFormat = "2006-01-02 15:04:05"
 
-// Writer writes a browser.TimeSeries as a CSV file. It wrapps a default
+// Writer writes a browser.TimeSeries as a CSV file. It wraps a default
 // csv.Writer.
 type Writer struct {
 	w *csv.Writer
@@ -63,7 +63,7 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 		return browser.ErrDataNotFound
 	}
 	// Sort timeseries by station.
-	sort.Slice(ts, func(i, j int) bool { return ts[i].Station < ts[j].Station })
+	sort.Slice(ts, func(i, j int) bool { return ts[i].Station.Name < ts[j].Station.Name })
 
 	w.writeHeaderAndUnits(ts)
 
@@ -75,7 +75,7 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 		// Sort points by timestamp.
 		sort.Slice(m.Points, func(i, j int) bool { return m.Points[i].Timestamp.Before(m.Points[j].Timestamp) })
 
-		row, ok := stationPosMap[m.Station]
+		row, ok := stationPosMap[m.Station.Name]
 		if !ok {
 			// Station is not present in the row buffer. For each point append a
 			// new line to the buffer.
@@ -85,10 +85,10 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 				// Store the staring row number of the current station on the
 				// first processed point.
 				if i == 0 {
-					stationPosMap[m.Station] = &stationRange{start: len(w.rows) - 1}
+					stationPosMap[m.Station.Name] = &stationRange{start: len(w.rows) - 1}
 				}
 
-				stationPosMap[m.Station].end = len(w.rows)
+				stationPosMap[m.Station.Name].end = len(w.rows)
 			}
 			continue
 		}
@@ -103,7 +103,7 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 			// existing one.
 			if len(w.rows) <= current {
 				w.rows = append(w.rows, w.newLine(m, p))
-				stationPosMap[m.Station].end = len(w.rows)
+				stationPosMap[m.Station.Name].end = len(w.rows)
 				continue
 			}
 
@@ -153,11 +153,11 @@ func (w *Writer) newLine(m *browser.Measurement, p *browser.Point) []string {
 	}
 
 	line[0] = p.Timestamp.Format(DefaultTimeFormat)
-	line[1] = m.Station
-	line[2] = m.Landuse
-	line[3] = fmt.Sprint(m.Elevation)
-	line[4] = fmt.Sprint(m.Latitude)
-	line[5] = fmt.Sprint(m.Longitude)
+	line[1] = m.Station.Name
+	line[2] = m.Station.Landuse
+	line[3] = fmt.Sprint(m.Station.Elevation)
+	line[4] = fmt.Sprint(m.Station.Latitude)
+	line[5] = fmt.Sprint(m.Station.Longitude)
 
 	pos, ok := w.pos[m.Label]
 	if ok {
@@ -191,7 +191,7 @@ func (w *Writer) writeHeaderAndUnits(ts browser.TimeSeries) {
 // the give number is out of range a new line will be added.
 func (w *Writer) appendToLine(row int, content string) {
 	// Check if n is out of range. If so create a new line instead of appending
-	// to an exisiting one.
+	// to an existing one.
 	if row >= len(w.rows) {
 		w.rows = append(w.rows, []string{content})
 		return

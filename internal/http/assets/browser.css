@@ -1,8 +1,9 @@
-/*! 
- * Copyright 2019 Eurac Research. All rights reserved. 
+/*!
+ * Copyright 2019 Eurac Research. All rights reserved.
  * Use of this source code is governed by the Apache 2.0
  * license that can be found in the LICENSE file.
  */
+
 html, body {
 	height: 100%;
 	margin: 0;
@@ -21,6 +22,54 @@ body {
 	padding: 0;
 	display: flex;
 	flex-direction: column;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs {
+	white-space: nowrap;
+}
+
+.none {
+	display: none;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs:hover {
+	background: #f3f3f3;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs>input {
+	margin: 3px 9px 3px 20px;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs>a>label {
+	padding-left: 0;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs>a {
+	display: inline;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs.active {
+	background: #337ab7;
+}
+
+.dropdown-menu>li.multiselect-parent-with-childs.active>a {
+	background: none;
+}
+
+.multiselect-container>li.multiselect-group label {
+	font-weight: normal;
+}
+
+.multiselect-container>li.multiselect-group label>input {
+	margin-right: 5px;
+}
+
+.multiselect-container>li.multiselect-child a {
+	padding-left: 15px;
+}
+
+.multiselect-container>li.multiselect-child label {
+	font-size: small;
 }
 
 .license-warning {
@@ -115,9 +164,6 @@ footer {
 	font-size: small;
 	padding: 0;
 	margin: 0;
-	height: 300px;
-	overflow-y: scroll;
-	overflow-x: hidden;
 }
 
 /* show scrollbars on macOS */

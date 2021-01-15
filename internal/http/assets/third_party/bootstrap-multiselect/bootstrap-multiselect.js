@@ -40,6 +40,9 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Slightly modified version to fit the purpose of the LTER Browser Application.
+ * 	- better handling of <optgroups>
  */
 (function (root, factory) {
     // check to see if 'knockout' AMD module is specified if using requirejs
@@ -561,12 +564,11 @@
                     this.createOptgroup(element);
                 }
                 else if (tag === 'option') {
-
                     if ($element.data('role') === 'divider') {
                         this.createDivider();
                     }
                     else {
-                        this.createOptionValue(element);
+                        this.createOptionValue(element, "multiselect-parent");
                     }
 
                 }
@@ -740,7 +742,7 @@
                     }
 
                     var index = $items.index($items.filter(':focus'));
-                    
+
                     // Navigation up.
                     if (event.keyCode === 38 && index > 0) {
                         index--;
@@ -827,9 +829,39 @@
             }
 
             if (this.options.enableCollapsibleOptGroups && this.options.multiple) {
+			     $("li.multiselect-parent-with-childs input", this.$ul).on("click", $.proxy(function(event) {
+			     	var $li = $(event.target).closest('li');
+					if ($(event.target).prop('checked')) {
+						$li.css('background', '#337ab7');
+					} else {
+						$li.css('background', '#ffffff');
+					}
+            	 }, this));
+
+            	 $("li.multiselect-parent-with-childs a", this.$ul).on("click", $.proxy(function(event) {
+					var $li = $(event.target).closest('li');
+
+                    var $inputs = $li.nextUntil("li.multiselect-parent")
+                            .not('.multiselect-filter-hidden');
+
+                    var visible = true;
+                    $inputs.each(function() {
+                        visible = visible && !$(this).hasClass('multiselect-collapsible-hidden');
+                    });
+
+                    if (visible) {
+                        $inputs.hide()
+                            .addClass('multiselect-collapsible-hidden');
+                    }
+                    else {
+                        $inputs.show()
+                            .removeClass('multiselect-collapsible-hidden');
+                    }
+            	 }, this));
+
                 $("li.multiselect-group .caret-container", this.$ul).on("click", $.proxy(function(event) {
                     var $li = $(event.target).closest('li');
-                    var $inputs = $li.nextUntil("li.multiselect-group")
+                    var $inputs = $li.nextUntil("li.multiselect-parent")
                             .not('.multiselect-filter-hidden');
 
                     var visible = true;
@@ -858,7 +890,7 @@
          *
          * @param {jQuery} element
          */
-        createOptionValue: function(element) {
+        createOptionValue: function(element, elClass) {
             var $element = $(element);
             if ($element.is(':selected')) {
                 $element.prop('selected', true);
@@ -875,6 +907,7 @@
             $label.addClass(inputType);
             $label.attr("title", label);
             $li.addClass(classes);
+			$li.addClass(elClass);
 
             // Hide all children items when collapseOptGroupsByDefault is true
             if (this.options.collapseOptGroupsByDefault && $(element).parent().prop("tagName").toLowerCase() === "optgroup") {
@@ -943,19 +976,19 @@
          *
          * @param {jQuery} group
          */
-        createOptgroup: function(group) {
+        createOptgroup: function(group, cssClass) {
             var label = $(group).attr("label");
             var value = $(group).attr("value");
-            var $li = $('<li class="multiselect-item multiselect-group"><a href="javascript:void(0);"><label><b></b></label></a></li>');
+            var $li = $('<li class="multiselect-item multiselect-group multiselect-parent multiselect-parent-with-childs"><a href="javascript:void(0);"><label></label></a></li>');
 
             var classes = this.options.optionClass(group);
             $li.addClass(classes);
 
             if (this.options.enableHTML) {
-                $('label b', $li).html(" " + label);
+                $('label', $li).html(" " + label);
             }
             else {
-                $('label b', $li).text(" " + label);
+                $('label', $li).text(" " + label);
             }
 
             if (this.options.enableCollapsibleOptGroups && this.options.multiple) {
@@ -963,7 +996,7 @@
             }
 
             if (this.options.enableClickableOptGroups && this.options.multiple) {
-                $('a label', $li).prepend('<input type="checkbox" value="' + value + '"/>');
+                $li.prepend('<input type="checkbox" value="' + value + '"/>');
             }
 
             if ($(group).is(':disabled')) {
@@ -973,8 +1006,9 @@
             this.$ul.append($li);
 
             $("option", group).each($.proxy(function($, group) {
-                this.createOptionValue(group);
+                this.createOptionValue(group, "multiselect-child");
             }, this))
+
         },
 
         /**
@@ -1144,7 +1178,7 @@
                                         else if (filterCandidate.indexOf(this.query) > -1) {
                                             showElement = true;
                                         }
-                                        
+
                                         //regex support
                                         if(this.options.enableRegexFiltering){
                                             try {

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/euracresearch/browser"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestWrite(t *testing.T) {
@@ -145,14 +145,16 @@ unit,c,b,a
 
 func testMeasurement(label, station, unit string, n int) *browser.Measurement {
 	m := &browser.Measurement{
-		Label:       label,
-		Station:     station,
+		Label: label,
+		Station: &browser.Station{
+			Name:      station,
+			Landuse:   "me_" + station,
+			Elevation: 1000,
+			Latitude:  3.14159,
+			Longitude: 2.71828,
+		},
 		Aggregation: "avg",
-		Landuse:     "me_" + station,
 		Unit:        unit,
-		Elevation:   1000,
-		Latitude:    3.14159,
-		Longitude:   2.71828,
 	}
 
 	ts := time.Date(2020, time.January, 1, 0, 0, 0, 0, browser.Location)

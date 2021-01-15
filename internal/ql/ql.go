@@ -6,7 +6,7 @@
 //
 // Currently it only supports 'SELECT' and and 'SHOW TAG VALUES' queries.
 //
-// The builders will not ensure that the query returend will be a valid one in
+// The builders will not ensure that the query returned will be a valid one in
 // terms of completeness. The user of the package is responsible to compose a
 // full query with the builder.
 //

@@ -58,7 +58,7 @@ func Error(w http.ResponseWriter, err error, code int) {
 	http.Error(w, err.Error(), code)
 }
 
-// grantAccess is a HTTP middlware function which grants access to the given
+// grantAccess is a HTTP middleware function which grants access to the given
 // handler to the given roles.
 func grantAccess(h http.HandlerFunc, roles ...browser.Role) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

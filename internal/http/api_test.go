@@ -7,6 +7,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,17 +22,19 @@ import (
 
 type testBackend struct{}
 
-func (tb *testBackend) Series(ctx context.Context, m *browser.Message) (browser.TimeSeries, error) {
+func (tb *testBackend) Series(ctx context.Context, m *browser.SeriesFilter) (browser.TimeSeries, error) {
 	var ts browser.TimeSeries
 
 	measure := &browser.Measurement{
-		Label:     "test",
-		Station:   "station",
-		Landuse:   "me",
-		Unit:      "%",
-		Elevation: 1000,
-		Latitude:  3.14159,
-		Longitude: 2.71828,
+		Label: "test",
+		Station: &browser.Station{
+			Name:      "station",
+			Landuse:   "me",
+			Elevation: 1000,
+			Latitude:  3.14159,
+			Longitude: 2.71828,
+		},
+		Unit: "%",
 	}
 
 	t := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -46,7 +49,15 @@ func (tb *testBackend) Series(ctx context.Context, m *browser.Message) (browser.
 	return append(ts, measure), nil
 }
 
-func (tb *testBackend) Query(ctx context.Context, m *browser.Message) *browser.Stmt {
+func (tb *testBackend) GroupsByStation(ctx context.Context, id int64) ([]browser.Group, error) {
+	return []browser.Group{}, errors.New("not yet implemented")
+}
+
+func (tb *testBackend) Maintenance(ctx context.Context) ([]string, error) {
+	return []string{}, errors.New("not yet implemented")
+}
+
+func (tb *testBackend) Query(ctx context.Context, m *browser.SeriesFilter) *browser.Stmt {
 	return &browser.Stmt{
 		Database: "testdb",
 		Query:    "querytestbackend",

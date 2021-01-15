@@ -1,0 +1,139 @@
+{
+	"total": 4,
+	"rows": [
+		{
+			"id": 1,
+			"name": "LTER",
+			"image": null,
+			"address": null,
+			"address2": null,
+			"city": null,
+			"state": null,
+			"country": null,
+			"zip": null,
+			"assigned_assets_count": 0,
+			"assets_count": 0,
+			"users_count": 0,
+			"currency": null,
+			"created_at": {
+				"datetime": "2019-06-21 08:09:57",
+				"formatted": "2019-06-21 8:09AM"
+			},
+			"updated_at": {
+				"datetime": "2019-06-21 08:09:57",
+				"formatted": "2019-06-21 8:09AM"
+			},
+			"parent": null,
+			"manager": null,
+			"available_actions": {
+				"update": false,
+				"delete": false
+			}
+		},
+		{
+			"id": 2,
+			"name": "P1",
+			"image": "https://alpenv.assets.eurac.edu/uploads/locations/59-img-20160727-114714jpg.jpg",
+			"address": "46.68586300000",
+			"address2": "10.58294569000",
+			"city": "P1/Raw",
+			"state": "P1_2020.dat",
+			"country": null,
+			"zip": "1526",
+			"assigned_assets_count": 0,
+			"assets_count": 12,
+			"users_count": 0,
+			"currency": "pa",
+			"created_at": {
+				"datetime": "2019-05-03 11:10:43",
+				"formatted": "2019-05-03 11:10AM"
+			},
+			"updated_at": {
+				"datetime": "2020-01-07 11:38:40",
+				"formatted": "2020-01-07 11:38AM"
+			},
+			"parent": {
+				"id": 71,
+				"name": "LTER"
+			},
+			"manager": null,
+			"children": [
+
+			],
+			"available_actions": {
+				"update": false,
+				"delete": false
+			}
+        },
+		{
+			"id": 3,
+			"name": "I1",
+			"image": "https://alpenv.assets.eurac.edu/uploads/locations/60-img-20180524-163851-hdrjpg.jpg",
+			"address": "46.68700895770",
+			"address2": "10.57969320620",
+			"city": "I1/Raw",
+			"state": "I1_2020.dat",
+			"country": null,
+			"zip": "1490",
+			"assigned_assets_count": 0,
+			"assets_count": 13,
+			"users_count": 0,
+			"currency": "me",
+			"created_at": {
+				"datetime": "2019-05-03 11:10:43",
+				"formatted": "2019-05-03 11:10AM"
+			},
+			"updated_at": {
+				"datetime": "2020-01-07 11:39:49",
+				"formatted": "2020-01-07 11:39AM"
+			},
+			"parent": {
+				"id": 71,
+				"name": "LTER"
+			},
+			"manager": null,
+			"children": [
+
+			],
+			"available_actions": {
+				"update": false,
+				"delete": false
+			}
+		},
+		{
+			"id": 4,
+			"name": "S3",
+			"image": "https://alpenv.assets.eurac.edu/uploads/locations/3-img-20170913-174958jpg.jpg",
+			"address": "46.76671000000",
+			"address2": "10.71079000000",
+			"city": "S3/Raw",
+			"state": "S3_2020.dat",
+			"country": null,
+			"zip": "2680",
+			"assigned_assets_count": 0,
+			"assets_count": 27,
+			"users_count": 0,
+			"currency": "pa",
+			"created_at": {
+				"datetime": "2019-05-03 11:10:29",
+				"formatted": "2019-05-03 11:10AM"
+			},
+			"updated_at": {
+				"datetime": "2020-01-07 11:38:05",
+				"formatted": "2020-01-07 11:38AM"
+			},
+			"parent": {
+				"id": 71,
+				"name": "LTER"
+			},
+			"manager": null,
+			"children": [
+
+			],
+			"available_actions": {
+				"update": false,
+				"delete": false
+			}
+		}
+	]
+}

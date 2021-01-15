@@ -155,13 +155,15 @@ func TestWrite(t *testing.T) {
 		"not_continuous_time_between_measurements": {
 			browser.TimeSeries{
 				&browser.Measurement{
-					Label:     "a_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "c",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "a_avg",
+					Unit:  "c",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:45:00+01:00", 2),
 						testPoint("2020-01-01T00:15:00+01:00", 0),
@@ -169,13 +171,15 @@ func TestWrite(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:     "b_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "mm",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "b_avg",
+					Unit:  "mm",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:15:00+01:00", 0),
 						testPoint("2020-01-01T00:45:00+01:00", 2),
@@ -194,13 +198,15 @@ func TestWrite(t *testing.T) {
 		"one_station_two_measurements_different_starttime_not_sorted": {
 			browser.TimeSeries{
 				&browser.Measurement{
-					Label:     "a_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "c",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "a_avg",
+					Unit:  "c",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:45:00+01:00", 2),
 						testPoint("2020-01-01T00:15:00+01:00", 0),
@@ -208,13 +214,15 @@ func TestWrite(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:     "c_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "mm",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "c_avg",
+					Unit:  "mm",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:00:00+01:00", 0),
 						testPoint("2020-01-01T00:45:00+01:00", 2),
@@ -234,13 +242,15 @@ func TestWrite(t *testing.T) {
 		"one_station_more_measurements_different_time_intervals_not_sorted": {
 			browser.TimeSeries{
 				&browser.Measurement{
-					Label:     "a_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "c",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "a_avg",
+					Unit:  "c",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:45:00+01:00", 2),
 						testPoint("2020-01-01T00:15:00+01:00", 0),
@@ -248,13 +258,15 @@ func TestWrite(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:     "c_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "mm",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "c_avg",
+					Unit:  "mm",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:02:00+01:00", 0),
 						testPoint("2020-01-01T00:45:00+01:00", 2),
@@ -274,13 +286,15 @@ func TestWrite(t *testing.T) {
 		"more_station_more_measurements_different_time_intervals_not_sorted": {
 			browser.TimeSeries{
 				&browser.Measurement{
-					Label:     "a_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "c",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "a_avg",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
+					Unit: "c",
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:45:00+01:00", 2),
 						testPoint("2020-01-01T00:15:00+01:00", 0),
@@ -288,13 +302,15 @@ func TestWrite(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:     "c_avg",
-					Station:   "s1",
-					Landuse:   "me_s1",
-					Unit:      "mm",
-					Elevation: 1000,
-					Latitude:  3.14159,
-					Longitude: 2.71828,
+					Label: "c_avg",
+					Unit:  "mm",
+					Station: &browser.Station{
+						Name:      "s1",
+						Landuse:   "me_s1",
+						Elevation: 1000,
+						Latitude:  3.14159,
+						Longitude: 2.71828,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:02:00+01:00", 0),
 						testPoint("2020-01-01T00:45:00+01:00", 2),
@@ -302,13 +318,15 @@ func TestWrite(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:     "c_avg",
-					Station:   "s2",
-					Landuse:   "me_s2",
-					Unit:      "mm",
-					Elevation: 50,
-					Latitude:  3,
-					Longitude: 2,
+					Label: "c_avg",
+					Unit:  "mm",
+					Station: &browser.Station{
+						Name:      "s2",
+						Landuse:   "me_s2",
+						Elevation: 50,
+						Latitude:  3,
+						Longitude: 2,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:30:00+01:00", 10),
 						testPoint("2020-01-01T00:45:00+01:00", 22),
@@ -316,13 +334,15 @@ func TestWrite(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:     "x_avg",
-					Station:   "s0",
-					Landuse:   "me_s0",
-					Unit:      "cm",
-					Elevation: 900,
-					Latitude:  3.141,
-					Longitude: 2.71,
+					Label: "x_avg",
+					Unit:  "cm",
+					Station: &browser.Station{
+						Name:      "s0",
+						Landuse:   "me_s0",
+						Elevation: 900,
+						Latitude:  3.141,
+						Longitude: 2.71,
+					},
 					Points: []*browser.Point{
 						testPoint("2020-01-01T00:45:00+01:00", 2),
 						testPoint("2020-01-01T00:15:00+01:00", 0),
@@ -363,13 +383,15 @@ func TestWrite(t *testing.T) {
 
 func testMeasurement(label, station, unit string, n int) *browser.Measurement {
 	m := &browser.Measurement{
-		Label:     label,
-		Station:   station,
-		Landuse:   "me_" + station,
-		Unit:      unit,
-		Elevation: 1000,
-		Latitude:  3.14159,
-		Longitude: 2.71828,
+		Label: label,
+		Unit:  unit,
+		Station: &browser.Station{
+			Name:      station,
+			Landuse:   "me_" + station,
+			Elevation: 1000,
+			Latitude:  3.14159,
+			Longitude: 2.71828,
+		},
 	}
 
 	ts := time.Date(2020, time.January, 1, 0, 0, 0, 0, browser.Location)

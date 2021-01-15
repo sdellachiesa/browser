@@ -26,8 +26,8 @@ type Handler struct {
 	// analytics is a Google Analytics code.
 	analytics string
 
-	db       browser.Database
-	metadata browser.Metadata
+	db             browser.Database
+	stationService browser.StationService
 }
 
 // NewHandler creates a new HTTP handler with the given options and initializes
@@ -52,6 +52,7 @@ func NewHandler(options ...Option) *Handler {
 
 	h.mux.HandleFunc("/l/", handleLanguage())
 
+	h.mux.HandleFunc("/api/v1/stations/", h.handleStations())
 	h.mux.HandleFunc("/api/v1/series", h.handleSeries())
 	h.mux.HandleFunc("/api/v1/templates", grantAccess(h.handleCodeTemplate(), browser.FullAccess))
 
@@ -75,11 +76,11 @@ func WithDatabase(db browser.Database) Option {
 	}
 }
 
-// WithMetadata returns an option function for setting the handlers's metadata
-// backend.
-func WithMetadata(m browser.Metadata) Option {
+// WithStationService returns an option function for setting the handlers's
+// stationService.
+func WithStationService(s browser.StationService) Option {
 	return func(h *Handler) {
-		h.metadata = m
+		h.stationService = s
 	}
 }
 

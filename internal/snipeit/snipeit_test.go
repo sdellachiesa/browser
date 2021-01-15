@@ -6,84 +6,112 @@ package snipeit
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/euracresearch/browser"
-	"github.com/euracresearch/browser/internal/mock"
-
-	client "github.com/influxdata/influxdb1-client/v2"
+	"github.com/google/go-cmp/cmp"
 )
 
 var (
-	mux         *http.ServeMux // mux is the HTTP request multiplexer used with the test server.
-	testBaseURL string
+	mux        *http.ServeMux // mux is the HTTP request multiplexer used with the test server.
+	testClient *StationService
 )
 
-func TestStations(t *testing.T) {
-	ic := &mock.InfluxClient{}
-	ic.QueryFn = func(q client.Query) (*client.Response, error) {
-		var resp *client.Response
-		if err := json.Unmarshal([]byte(influxJSONResponse), &resp); err != nil {
-			return nil, err
-		}
-
-		return resp, nil
-	}
-
-	mux.HandleFunc("/locations", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(snipeITLocationJSON)
-	})
-
-	c, err := NewSnipeITService(testBaseURL, "testtoken", ic, "testdb")
-	if err != nil {
-		t.Fatalf("NewSnipeITService failed: %v", err)
-	}
+func TestStation(t *testing.T) {
 	ctx := context.Background()
 
-	var testCases = []struct {
-		in   *browser.Message
-		want []string // Station ID's
-	}{
-		{
-			&browser.Message{},
-			[]string{"2", "3"},
-		},
-		{
-			&browser.Message{
-				Stations: []string{"2"},
-			},
-			[]string{"2"},
-		},
-		{
-			&browser.Message{
-				Stations: []string{"2", "3"},
-			},
-			[]string{"2", "3"},
-		},
-	}
-	for _, tt := range testCases {
-		t.Run(fmt.Sprintf("%v", tt.in), func(t *testing.T) {
-			got, err := c.Stations(ctx, tt.in)
+	mux.HandleFunc("/locations/", func(w http.ResponseWriter, r *http.Request) {
+		id := path.Base(r.URL.Path)
+
+		switch id {
+		default:
+			http.NotFound(w, r)
+			return
+
+		case "2":
+			b, err := ioutil.ReadFile("testdata/single.json")
 			if err != nil {
-				t.Fatalf("Stations failed: %v", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
 			}
+			w.Write(b)
+		case "4":
+			b, err := ioutil.ReadFile("testdata/single_parse_error.json")
+			if err != nil {
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			w.Write(b)
+		}
+	})
 
-			if len(tt.want) != len(got) {
-				t.Errorf("stations: got %d, want %d", len(got), len(tt.want))
-			}
+	t.Run("OK", func(t *testing.T) {
+		got, err := testClient.Station(ctx, 2)
+		if err != nil {
+			t.Fatalf("Station returned error: %v", err)
+		}
 
-			for _, s := range got {
-				if !inArray(s.ID, tt.want) {
-					t.Errorf("station %q not found", s.ID)
-				}
-			}
-		})
-	}
+		want := &browser.Station{
+			ID:        2,
+			Name:      "T1",
+			Landuse:   "pa",
+			Elevation: 1526,
+			Latitude:  46.685863,
+			Longitude: 10.58294569,
+			Image:     "T1.jpg",
+			Dashboard: "http://grafana/T1",
+		}
+
+		diff := cmp.Diff(want, got)
+		if diff != "" {
+			t.Fatalf("mismatch (-want +got):\n%s", diff)
+		}
+
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		_, err := testClient.Station(ctx, 3)
+		if err == nil {
+			t.Fatalf(": %v", err)
+		}
+	})
+
+	t.Run("ParseError", func(t *testing.T) {
+		_, err := testClient.Station(ctx, 4)
+		if err == nil {
+			t.Fatalf(": %v", err)
+		}
+	})
+
+}
+
+func TestStations(t *testing.T) {
+	mux.HandleFunc("/locations", func(w http.ResponseWriter, r *http.Request) {
+		b, err := ioutil.ReadFile("testdata/multiple.json")
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		w.Write(b)
+	})
+	ctx := context.Background()
+	t.Run("Ok", func(t *testing.T) {
+		stations, err := testClient.Stations(ctx)
+		if err != nil {
+			t.Fatalf("Stations returned error: %v", err)
+		}
+
+		want := 3
+		if got := len(stations); got != want {
+			t.Fatalf("mismatch want %d, got %d", want, got)
+		}
+	})
 }
 
 func TestMain(m *testing.M) {
@@ -91,210 +119,13 @@ func TestMain(m *testing.M) {
 
 	// Run Mock SnipeIT API
 	server := httptest.NewServer(mux)
-	testBaseURL = server.URL
+
+	var err error
+	testClient, err = NewStationService(server.URL, "testtoken")
+	if err != nil {
+		log.Fatalf("NewSnipeITService failed: %v", err)
+	}
 
 	// call flag.Parse() here if TestMain uses flags
 	os.Exit(m.Run())
 }
-
-var influxJSONResponse = []byte(`{
-	"results": [
-		{
-			"series": [
-				{
-					"name": "air_rh_avg",
-					"columns": [
-						"key",
-						"value"
-					],
-					"values": [
-						[
-							"snipeit_location_ref",
-							"2"
-						],
-						[
-							"snipeit_location_ref",
-							"3"
-						]
-					]
-				}
-			]
-		},
-		{
-			"series": [
-				{
-					"name": "air_rh_std",
-					"columns": [
-						"key",
-						"value"
-					],
-					"values": [
-						[
-							"snipeit_location_ref",
-							"2"
-						]
-					]
-				}
-			]
-		},
-		{
-			"series": [
-				{
-					"name": "air_rh_std",
-					"columns": [
-						"key",
-						"value"
-					],
-					"values": [
-						[
-							"snipeit_location_ref",
-							"2"
-						]
-					]
-				}
-			]
-		}
-	]
-}
-`)
-
-var snipeITLocationJSON = []byte(`{
-	"total": 20,
-	"rows": [
-		{
-			"id": 1,
-			"name": "LTER",
-			"image": null,
-			"address": null,
-			"address2": null,
-			"city": null,
-			"state": null,
-			"country": null,
-			"zip": null,
-			"assigned_assets_count": 0,
-			"assets_count": 0,
-			"users_count": 0,
-			"currency": null,
-			"created_at": {
-				"datetime": "2019-06-21 08:09:57",
-				"formatted": "2019-06-21 8:09AM"
-			},
-			"updated_at": {
-				"datetime": "2019-06-21 08:09:57",
-				"formatted": "2019-06-21 8:09AM"
-			},
-			"parent": null,
-			"manager": null,
-			"available_actions": {
-				"update": false,
-				"delete": false
-			}
-		},
-		{
-			"id": 2,
-			"name": "P1",
-			"image": "https://alpenv.assets.eurac.edu/uploads/locations/59-img-20160727-114714jpg.jpg",
-			"address": "46.68586300000",
-			"address2": "10.58294569000",
-			"city": "P1/Raw",
-			"state": "P1_2020.dat",
-			"country": null,
-			"zip": "1526",
-			"assigned_assets_count": 0,
-			"assets_count": 12,
-			"users_count": 0,
-			"currency": "pa",
-			"created_at": {
-				"datetime": "2019-05-03 11:10:43",
-				"formatted": "2019-05-03 11:10AM"
-			},
-			"updated_at": {
-				"datetime": "2020-01-07 11:38:40",
-				"formatted": "2020-01-07 11:38AM"
-			},
-			"parent": {
-				"id": 71,
-				"name": "LTER"
-			},
-			"manager": null,
-			"children": [
-
-			],
-			"available_actions": {
-				"update": false,
-				"delete": false
-			}
-		},
-		{
-			"id": 3,
-			"name": "I1",
-			"image": "https://alpenv.assets.eurac.edu/uploads/locations/60-img-20180524-163851-hdrjpg.jpg",
-			"address": "46.68700895770",
-			"address2": "10.57969320620",
-			"city": "I1/Raw",
-			"state": "I1_2020.dat",
-			"country": null,
-			"zip": "1490",
-			"assigned_assets_count": 0,
-			"assets_count": 13,
-			"users_count": 0,
-			"currency": "me",
-			"created_at": {
-				"datetime": "2019-05-03 11:10:43",
-				"formatted": "2019-05-03 11:10AM"
-			},
-			"updated_at": {
-				"datetime": "2020-01-07 11:39:49",
-				"formatted": "2020-01-07 11:39AM"
-			},
-			"parent": {
-				"id": 71,
-				"name": "LTER"
-			},
-			"manager": null,
-			"children": [
-
-			],
-			"available_actions": {
-				"update": false,
-				"delete": false
-			}
-		},
-		{
-			"id": 4,
-			"name": "S3",
-			"image": "https://alpenv.assets.eurac.edu/uploads/locations/3-img-20170913-174958jpg.jpg",
-			"address": "46.76671000000",
-			"address2": "10.71079000000",
-			"city": "S3/Raw",
-			"state": "S3_2020.dat",
-			"country": null,
-			"zip": "2680",
-			"assigned_assets_count": 0,
-			"assets_count": 27,
-			"users_count": 0,
-			"currency": "pa",
-			"created_at": {
-				"datetime": "2019-05-03 11:10:29",
-				"formatted": "2019-05-03 11:10AM"
-			},
-			"updated_at": {
-				"datetime": "2020-01-07 11:38:05",
-				"formatted": "2020-01-07 11:38AM"
-			},
-			"parent": {
-				"id": 71,
-				"name": "LTER"
-			},
-			"manager": null,
-			"children": [
-
-			],
-			"available_actions": {
-				"update": false,
-				"delete": false
-			}
-		}
-	]
-}
-`)

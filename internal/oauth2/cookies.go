@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/securecookie"
 	"github.com/euracresearch/browser"
+	"github.com/gorilla/securecookie"
 )
 
 const (
@@ -36,7 +36,7 @@ var (
 	ErrTokenInvalid = errors.New("token is invalid")
 )
 
-// Cookie is an Autenticator using HTTP cookies and JWT tokens.
+// Cookie is an Authenticator using HTTP cookies and JWT tokens.
 type Cookie struct {
 	// Secret used for JWT generation/validation.
 	Secret string
@@ -81,7 +81,7 @@ func (c *Cookie) Expire(w http.ResponseWriter) {
 }
 
 // Validate validates the JWT token stored in the cookie and return the user
-// information. It will not validate the user againtst the user service.
+// information. It will not validate the user against the user service.
 func (c *Cookie) Validate(ctx context.Context, r *http.Request) (*browser.User, error) {
 	cookie, err := r.Cookie(DefaultCookieName)
 	if err != nil {
@@ -106,7 +106,7 @@ type claims struct {
 	jwt.StandardClaims
 }
 
-// newJWT creates a new signed JWT token with the given user infomration
+// newJWT creates a new signed JWT token with the given user information
 // embedded.
 func (c *Cookie) newJWT(u *browser.User) (string, error) {
 	if u == nil {

@@ -24,14 +24,14 @@ func (h *Handler) handleSeries() http.HandlerFunc {
 			return
 		}
 
-		m, err := parseMessage(r)
+		f, err := browser.ParseSeriesFilterFromRequest(r)
 		if err != nil {
 			Error(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		ctx := r.Context()
-		ts, err := h.db.Series(ctx, m)
+		ts, err := h.db.Series(ctx, f)
 		if errors.Is(err, browser.ErrDataNotFound) {
 			Error(w, err, http.StatusBadRequest)
 			return
@@ -102,14 +102,14 @@ func (h *Handler) handleCodeTemplate() http.HandlerFunc {
 			return
 		}
 
-		m, err := parseMessage(r)
+		f, err := browser.ParseSeriesFilterFromRequest(r)
 		if err != nil {
 			Error(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		ctx := r.Context()
-		stmt := h.db.Query(ctx, m)
+		stmt := h.db.Query(ctx, f)
 
 		filename := fmt.Sprintf("LTSER_IT25_Matsch_Mazia_%d.%s", time.Now().Unix(), ext)
 		w.Header().Set("Content-Description", "File Transfer")
@@ -125,42 +125,4 @@ func (h *Handler) handleCodeTemplate() http.HandlerFunc {
 			Error(w, err, http.StatusInternalServerError)
 		}
 	}
-}
-
-// parseForm parses form values from the given http.Request and returns a
-// browser.Message. It performs basic validation for the given dates.
-func parseMessage(r *http.Request) (*browser.Message, error) {
-	if err := r.ParseForm(); err != nil {
-		return nil, err
-	}
-
-	start, err := time.ParseInLocation("2006-01-02", r.FormValue("startDate"), browser.Location)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse start date %v", err)
-	}
-
-	end, err := time.ParseInLocation("2006-01-02", r.FormValue("endDate"), browser.Location)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse end date %v", err)
-	}
-
-	if end.After(time.Now()) {
-		return nil, errors.New("error: end date is in the future")
-	}
-
-	if r.Form["measurements"] == nil {
-		return nil, errors.New("at least one measurement must be given")
-	}
-
-	if r.Form["stations"] == nil {
-		return nil, errors.New("at least one station must be given")
-	}
-
-	return &browser.Message{
-		Measurements: r.Form["measurements"],
-		Stations:     r.Form["stations"],
-		Landuse:      r.Form["landuse"],
-		Start:        start,
-		End:          end,
-	}, nil
 }

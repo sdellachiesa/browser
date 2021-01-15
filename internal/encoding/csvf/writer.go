@@ -32,6 +32,8 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/euracresearch/browser"
@@ -63,20 +65,20 @@ func (w *Writer) Write(ts browser.TimeSeries) error {
 	}
 
 	// Sort time series by station.
-	sort.Slice(ts, func(i, j int) bool { return ts[i].Station < ts[j].Station })
+	sort.Slice(ts, func(i, j int) bool { return ts[i].Station.Name < ts[j].Station.Name })
 
 	w.writeHeader("station", "landuse", "latitude", "longitude", "elevation", "parameter", "depth", "aggregation", "unit")
 
 	// maxColumns is the length of the time series plus the header.
 	maxColumns := len(ts) + 1
 	for k, m := range ts {
-		w.appendToRow(0, m.Station)
-		w.appendToRow(1, m.Landuse)
-		w.appendToRow(2, fmt.Sprint(m.Latitude))
-		w.appendToRow(3, fmt.Sprint(m.Longitude))
-		w.appendToRow(4, fmt.Sprint(m.Elevation))
-		w.appendToRow(5, m.Name())
-		w.appendToRow(6, m.DepthToString())
+		w.appendToRow(0, m.Station.Name)
+		w.appendToRow(1, m.Station.Landuse)
+		w.appendToRow(2, fmt.Sprint(m.Station.Latitude))
+		w.appendToRow(3, fmt.Sprint(m.Station.Longitude))
+		w.appendToRow(4, fmt.Sprint(m.Station.Elevation))
+		w.appendToRow(5, name(m))
+		w.appendToRow(6, depth(m.Depth))
 		w.appendToRow(7, m.Aggregation)
 		w.appendToRow(8, m.Unit)
 
@@ -146,4 +148,22 @@ func (w *Writer) appendToRow(row int, data string) {
 	}
 
 	w.rows[row] = append(w.rows[row], data)
+}
+
+// name removes the depth and aggregation from the raw label.
+func name(m *browser.Measurement) string {
+	// Remove depth from the label if the measurement has a depth.
+	if m.Depth > 0 {
+		return strings.ReplaceAll(m.Label, fmt.Sprintf("_%02d_%s", m.Depth, m.Aggregation), "")
+	}
+	return strings.ReplaceAll(m.Label, "_"+m.Aggregation, "")
+}
+
+// depth will return the depth as string.
+func depth(d int64) string {
+	if d == 0 {
+		return ""
+	}
+
+	return strconv.FormatInt(d, 10)
 }

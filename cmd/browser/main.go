@@ -11,8 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/euracresearch/browser"
-	"github.com/euracresearch/browser/internal/access"
 	"github.com/euracresearch/browser/internal/http"
 	"github.com/euracresearch/browser/internal/influx"
 	"github.com/euracresearch/browser/internal/middleware"
@@ -44,7 +42,6 @@ func main() {
 		snipeitToken      = fs.String("snipeit.token", "", "SnipeIT API Token")
 		jwtKey            = fs.String("jwt.key", "", "Secret key used to create a JWT. Don't share it.")
 		xsrfKey           = fs.String("xsrf.key", "d71404b42640716b0050ad187489c128ec3d611179cf14a29ddd6ea0d536a2c1", "Random string used for generating XSRF token.")
-		accessFile        = fs.String("access.file", "/etc/browser/access.json", "Access file.")
 		analyticsCode     = fs.String("analytics.code", "", "Google Analytics Code")
 		cookieHashKey     = fs.String("cookie.hash", "3998130314e70d9037e05bf872881156da20e07f344f6d9ae58f92e4be85a07dbdb8949c2eee7e0498247176df3d7785200e586c1b52b7f87210119297f77552", "Hash key used for securing the HTTP cookie. Should be at least 32 bytes long.")
 		cookieBlockKey    = fs.String("cookie.block", "e48f59d35c3871586f68d788bcff6c45", "Block keys should be 16 bytes (AES-128) or 32 bytes (AES-256) long. Shorter keys may weaken the encryption used.")
@@ -91,25 +88,20 @@ func main() {
 	}
 
 	// Initialize services.
-	db := influx.NewDB(ic, *influxDatabase)
-	metadata, err := snipeit.NewSnipeITService(*snipeitAddr, *snipeitToken, ic, *influxDatabase)
+	db, err := influx.NewDB(ic, *influxDatabase)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Decorating the Database and Metadata with an ACL service.
-	acl, err := access.New(*accessFile, db, metadata)
+	stationService, err := snipeit.NewStationService(*snipeitAddr, *snipeitToken)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Decorating the Metadata service with an in memory cache service.
-	cache := browser.NewInMemCache(acl)
 
 	// Initialize HTTP endpoints.
 	frontend := http.NewHandler(
-		http.WithDatabase(acl),
-		http.WithMetadata(cache),
+		http.WithDatabase(db),
+		http.WithStationService(stationService),
 		http.WithAnalyticsCode(*analyticsCode),
 	)
 

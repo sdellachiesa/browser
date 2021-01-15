@@ -1,0 +1,35 @@
+{
+    "id": 4,
+    "name": "T1",
+    "image": "T1.jpg",
+    "address": "not a number",
+    "address2": "10.58294569000",
+    "city": "http://grafana/T1",
+    "state": "",
+    "country": null,
+    "zip": "1526",
+    "assigned_assets_count": 0,
+    "assets_count": 12,
+    "users_count": 0,
+    "currency": "pa",
+    "created_at": {
+        "datetime": "2019-05-03 11:10:43",
+        "formatted": "2019-05-03 11:10AM"
+    },
+    "updated_at": {
+        "datetime": "2020-01-07 11:38:40",
+        "formatted": "2020-01-07 11:38AM"
+    },
+    "parent": {
+        "id": 1,
+        "name": "LTER"
+    },
+    "manager": null,
+    "children": [
+
+    ],
+    "available_actions": {
+        "update": false,
+        "delete": false
+    }
+}

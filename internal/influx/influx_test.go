@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,68 +22,102 @@ import (
 )
 
 func TestQuery(t *testing.T) {
-	var (
-		dbName = "testdb"
-		db     = &DB{Database: dbName}
-		ctx    = context.Background()
-	)
+	dbName := "testdb"
 
 	testCases := map[string]struct {
-		in   *browser.Message
+		in   *browser.SeriesFilter
+		ctx  context.Context
 		want *browser.Stmt
 	}{
 		"empty": {
-			&browser.Message{},
-			&browser.Stmt{
+			in:  &browser.SeriesFilter{},
+			ctx: context.Background(),
+			want: &browser.Stmt{
 				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude FROM /.*/ WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
 		"measurement": {
-			&browser.Message{Measurements: []string{"A"}},
-			&browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, A FROM A WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.WindSpeed}},
+			ctx: context.Background(),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_speed_avg, wind_speed_max FROM wind_speed_avg, wind_speed_max WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
-		"measurements": {
-			&browser.Message{Measurements: []string{"A", "B"}},
-			&browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, A, B FROM A, B WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+		"subgroup": {
+			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.WindSpeedAvg}},
+			ctx: context.Background(),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_speed_avg FROM wind_speed_avg WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+				Database: dbName,
+			},
+		},
+		"measurements_public_false": {
+			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.AirTemperature, browser.SoilTemperature}},
+			ctx: createContext(t, browser.Public, false),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, air_t_avg FROM air_t_avg WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+				Database: dbName,
+			},
+		},
+		"measurements_public_true": {
+			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.AirTemperature, browser.SoilTemperature}},
+			ctx: createContext(t, browser.Public, true),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, air_t_avg FROM air_t_avg WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+				Database: dbName,
+			},
+		},
+		"measurements_fullaccess": {
+			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.WindSpeed, browser.SunshineDuration}, WithSTD: true},
+			ctx: createContext(t, browser.FullAccess, true),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, sun_count_tot, wind_speed, wind_speed_avg, wind_speed_max, wind_speed_std FROM sun_count_tot, wind_speed, wind_speed_avg, wind_speed_max, wind_speed_std WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
 		"station": {
-			&browser.Message{Stations: []string{"s1"}},
-			&browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude FROM /.*/ WHERE snipeit_location_ref='s1' AND time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+			in:  &browser.SeriesFilter{Stations: []string{"1"}},
+			ctx: context.Background(),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude FROM /.*/ WHERE snipeit_location_ref='1' AND time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
 		"stations": {
-			&browser.Message{Stations: []string{"s1", "s2"}},
-			&browser.Stmt{
+			in:  &browser.SeriesFilter{Stations: []string{"s1", "s2"}},
+			ctx: context.Background(),
+			want: &browser.Stmt{
 				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude FROM /.*/ WHERE snipeit_location_ref='s1' OR snipeit_location_ref='s2' AND time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
 		"full": {
-			&browser.Message{
-				Measurements: []string{"A", "B", "C"},
-				Stations:     []string{"s1", "s2"},
-				Start:        time.Date(2020, 1, 1, 0, 0, 0, 0, browser.Location),
-				End:          time.Date(2020, 1, 1, 0, 0, 0, 0, browser.Location),
+			in: &browser.SeriesFilter{
+				Groups:   []browser.Group{browser.AirTemperature, browser.WindSpeed, browser.SnowHeight},
+				Stations: []string{"s1", "s2"},
+				Start:    time.Date(2020, 1, 1, 0, 0, 0, 0, browser.Location),
+				End:      time.Date(2020, 1, 1, 0, 0, 0, 0, browser.Location),
 			},
-			&browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, A, B, C FROM A, B, C WHERE snipeit_location_ref='s1' OR snipeit_location_ref='s2' AND time >= '2019-12-31T23:00:00Z' AND time <= '2020-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+			ctx: createContext(t, browser.FullAccess, true),
+			want: &browser.Stmt{
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, air_t_avg, snow_height, wind_speed, wind_speed_avg, wind_speed_max FROM air_t_avg, snow_height, wind_speed, wind_speed_avg, wind_speed_max WHERE snipeit_location_ref='s1' OR snipeit_location_ref='s2' AND time >= '2019-12-31T23:00:00Z' AND time <= '2020-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
 	}
 
+	db, err := NewDB(&mock.InfluxClient{
+		QueryFn: queryFnTestHelper(t, ""),
+	}, dbName)
+	if err != nil {
+		t.Fatalf("TestQuery: error in NewDB: %v", err)
+	}
+
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			got := db.Query(ctx, tc.in)
+			got := db.Query(tc.ctx, tc.in)
 
 			diff := cmp.Diff(tc.want, got)
 			if diff != "" {
@@ -93,22 +128,19 @@ func TestQuery(t *testing.T) {
 }
 
 func TestSeries(t *testing.T) {
-	c := &mock.InfluxClient{}
-	db := &DB{Client: c, Database: "testdb"}
-	ctx := context.Background()
 
 	// In tests we use always the same message since we use a mock implementation
-	// of the influx client interface which simple returns a client.Reponse from
+	// of the influx client interface which simple returns a client.Response from
 	// a give JSON file.
-	testMessage := &browser.Message{
-		Measurements: []string{"air_rh_avg", "air_t_avg", "snow_height"},
-		Stations:     []string{"39", "4"},
-		Start:        time.Date(2020, 5, 4, 0, 0, 0, 0, browser.Location),
-		End:          time.Date(2020, 5, 4, 0, 0, 0, 0, browser.Location),
+	testMessage := &browser.SeriesFilter{
+		Groups:   []browser.Group{browser.AirTemperature, browser.RelativeHumidity, browser.SnowHeight},
+		Stations: []string{"39", "4"},
+		Start:    time.Date(2020, 5, 4, 0, 0, 0, 0, browser.Location),
+		End:      time.Date(2020, 5, 4, 0, 0, 0, 0, browser.Location),
 	}
 
 	testCases := map[string]struct {
-		in      *browser.Message
+		in      *browser.SeriesFilter
 		queryFn func(q client.Query) (*client.Response, error)
 		want    browser.TimeSeries
 	}{
@@ -119,17 +151,19 @@ func TestSeries(t *testing.T) {
 		},
 		"missing points": {
 			in:      testMessage,
-			queryFn: queryTestHelper(t, "missing.json"),
+			queryFn: queryFnTestHelper(t, "missing.json"),
 			want: browser.TimeSeries{
 				&browser.Measurement{
-					Label:       "air_rh_avg",
-					Station:     "b1",
+					Label: "air_rh_avg",
+					Station: &browser.Station{
+						Name:      "b1",
+						Landuse:   "me",
+						Elevation: 990,
+						Latitude:  46.6612188656,
+						Longitude: 10.5902491243,
+					},
 					Aggregation: "avg",
-					Landuse:     "me",
 					Unit:        "%",
-					Elevation:   990,
-					Latitude:    46.6612188656,
-					Longitude:   10.5902491243,
 					Points: []*browser.Point{
 						testPoint(t, "2020-05-04T00:00:00+01:00", math.NaN()),
 						testPoint(t, "2020-05-04T00:15:00+01:00", math.NaN()),
@@ -151,17 +185,19 @@ func TestSeries(t *testing.T) {
 		},
 		"multiple measurements": {
 			in:      testMessage,
-			queryFn: queryTestHelper(t, "multiple.json"),
+			queryFn: queryFnTestHelper(t, "multiple.json"),
 			want: browser.TimeSeries{
 				&browser.Measurement{
 					Label:       "air_rh_avg",
-					Station:     "b1",
 					Aggregation: "avg",
-					Landuse:     "me",
 					Unit:        "%",
-					Elevation:   990,
-					Latitude:    46.6612188656,
-					Longitude:   10.5902491243,
+					Station: &browser.Station{
+						Name:      "b1",
+						Landuse:   "me",
+						Elevation: 990,
+						Latitude:  46.6612188656,
+						Longitude: 10.5902491243,
+					},
 					Points: []*browser.Point{
 						testPoint(t, "2020-05-04T00:00:00+01:00", math.NaN()),
 						testPoint(t, "2020-05-04T00:15:00+01:00", 48.1),
@@ -171,14 +207,16 @@ func TestSeries(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:       "air_rh_avg",
-					Station:     "b2",
+					Label: "air_rh_avg",
+					Station: &browser.Station{
+						Name:      "b2",
+						Landuse:   "me",
+						Elevation: 1490,
+						Latitude:  46.6862577024,
+						Longitude: 10.5798451965,
+					},
 					Aggregation: "avg",
-					Landuse:     "me",
 					Unit:        "%",
-					Elevation:   1490,
-					Latitude:    46.6862577024,
-					Longitude:   10.5798451965,
 					Points: []*browser.Point{
 						testPoint(t, "2020-05-04T00:00:00+01:00", 44.91),
 						testPoint(t, "2020-05-04T00:15:00+01:00", 44.54),
@@ -189,13 +227,15 @@ func TestSeries(t *testing.T) {
 				},
 				&browser.Measurement{
 					Label:       "air_t_avg",
-					Station:     "b1",
 					Aggregation: "avg",
-					Landuse:     "me",
 					Unit:        "deg c",
-					Elevation:   990,
-					Latitude:    46.6612188656,
-					Longitude:   10.5902491243,
+					Station: &browser.Station{
+						Name:      "b1",
+						Landuse:   "me",
+						Elevation: 990,
+						Latitude:  46.6612188656,
+						Longitude: 10.5902491243,
+					},
 					Points: []*browser.Point{
 						testPoint(t, "2020-05-04T00:00:00+01:00", 10.05),
 						testPoint(t, "2020-05-04T00:15:00+01:00", 9.46),
@@ -205,14 +245,16 @@ func TestSeries(t *testing.T) {
 					},
 				},
 				&browser.Measurement{
-					Label:       "air_t_avg",
-					Station:     "b2",
+					Label: "air_t_avg",
+					Station: &browser.Station{
+						Name:      "b2",
+						Landuse:   "me",
+						Elevation: 1490,
+						Latitude:  46.6862577024,
+						Longitude: 10.5798451965,
+					},
 					Aggregation: "avg",
-					Landuse:     "me",
 					Unit:        "deg c",
-					Elevation:   1490,
-					Latitude:    46.6862577024,
-					Longitude:   10.5798451965,
 					Points: []*browser.Point{
 						testPoint(t, "2020-05-04T00:00:00+01:00", 7.379),
 						testPoint(t, "2020-05-04T00:15:00+01:00", 6.933),
@@ -222,13 +264,15 @@ func TestSeries(t *testing.T) {
 				},
 				&browser.Measurement{
 					Label:       "snow_height",
-					Station:     "b1",
 					Aggregation: "smp",
-					Landuse:     "me",
 					Unit:        "",
-					Elevation:   990,
-					Latitude:    46.6612188656,
-					Longitude:   10.5902491243,
+					Station: &browser.Station{
+						Name:      "b1",
+						Landuse:   "me",
+						Elevation: 990,
+						Latitude:  46.6612188656,
+						Longitude: 10.5902491243,
+					},
 					Points: []*browser.Point{
 						testPoint(t, "2020-05-04T00:00:00+01:00", 0.723),
 						testPoint(t, "2020-05-04T00:15:00+01:00", 0.716),
@@ -240,6 +284,15 @@ func TestSeries(t *testing.T) {
 			},
 		},
 	}
+
+	c := &mock.InfluxClient{
+		QueryFn: queryFnTestHelper(t, ""),
+	}
+	db, err := NewDB(c, "testdb")
+	if err != nil {
+		t.Fatalf("NewDB returned an error: %v", err)
+	}
+	ctx := context.Background()
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -256,6 +309,91 @@ func TestSeries(t *testing.T) {
 	}
 }
 
+func TestGroupsByStation(t *testing.T) {
+	db, err := NewDB(&mock.InfluxClient{
+		QueryFn: queryFnTestHelper(t, ""),
+	}, "test")
+	if err != nil {
+		t.Fatalf("TestQuery: error in NewDB: %v", err)
+	}
+
+	t.Run("notfound", func(t *testing.T) {
+		ctx := context.Background()
+		_, err := db.GroupsByStation(ctx, 8888)
+		if err == nil {
+			t.Fatal("expected an error")
+		}
+	})
+
+	t.Run("public", func(t *testing.T) {
+		want := []browser.Group{
+			browser.RelativeHumidity,
+			browser.AirTemperature,
+			browser.ShortWaveRadiation,
+			browser.SnowHeight,
+			browser.WindDirection,
+			browser.WindSpeed,
+		}
+
+		// Test with user public user embedded in the ctx.
+		ctx := createContext(t, browser.Public, false)
+		got, err := db.GroupsByStation(ctx, 3)
+		if err != nil {
+			t.Fatal("got error")
+		}
+
+		diff := cmp.Diff(want, got)
+		if diff != "" {
+			t.Fatalf("mismatch (-want +got):\n%s", diff)
+		}
+
+		// Test with general context.
+		ctx = context.Background()
+		got, err = db.GroupsByStation(ctx, 3)
+		if err != nil {
+			t.Fatal("got error")
+		}
+
+		diff = cmp.Diff(want, got)
+		if diff != "" {
+			t.Fatalf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("fullaccess", func(t *testing.T) {
+		want := []browser.Group{
+			browser.RelativeHumidity,
+			browser.AirTemperature,
+			browser.NDVIRadiations,
+			browser.LongWaveRadiation,
+			browser.ShortWaveRadiation,
+			browser.PhotosyntheticallyActiveRadiation,
+			browser.PRIRadiations,
+			browser.SoilHeatFlux,
+			browser.SnowHeight,
+			browser.SunshineDuration,
+			browser.SoilDielectricPermittivity,
+			browser.SoilElectricalConductivity,
+			browser.SoilTemperature,
+			browser.SoilWaterContent,
+			browser.SoilWaterPotential,
+			browser.WindDirection,
+			browser.WindSpeed,
+		}
+
+		ctx := createContext(t, browser.FullAccess, true)
+		got, err := db.GroupsByStation(ctx, 3)
+		if err != nil {
+			t.Fatal("got error")
+		}
+
+		diff := cmp.Diff(want, got)
+		if diff != "" {
+			t.Fatalf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
 func testPoint(t *testing.T, s string, value float64) *browser.Point {
 	t.Helper()
 
@@ -269,10 +407,19 @@ func testPoint(t *testing.T, s string, value float64) *browser.Point {
 	}
 }
 
-func queryTestHelper(t *testing.T, filename string) func(q client.Query) (*client.Response, error) {
+func queryFnTestHelper(t *testing.T, filename string) func(q client.Query) (*client.Response, error) {
 	t.Helper()
 
 	return func(q client.Query) (*client.Response, error) {
+		inQuery := strings.ToLower(q.Command)
+
+		switch {
+		case strings.HasPrefix(inQuery, "show measurements"):
+			filename = "measurements.json"
+		case strings.HasPrefix(inQuery, "show tag"):
+			filename = "tags.json"
+		}
+
 		f, err := os.Open(filepath.Join("testdata", filename))
 		if err != nil {
 			return nil, err
@@ -289,4 +436,16 @@ func queryTestHelper(t *testing.T, filename string) func(q client.Query) (*clien
 
 		return resp, nil
 	}
+}
+
+// createContext returns a new context with an browser.User embedded with the
+// given role and license.
+func createContext(t *testing.T, role browser.Role, lic bool) context.Context {
+	t.Helper()
+
+	u := &browser.User{
+		Role:    role,
+		License: lic,
+	}
+	return context.WithValue(context.Background(), browser.UserContextKey, u)
 }

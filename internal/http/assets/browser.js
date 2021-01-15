@@ -16,9 +16,9 @@
 //	dlMapAreaEl - area for download links on the map
 //	mapEl - map element
 //	scrollToTopEl - element for scrolling back to top
+//	stationModal - modal dialog for showing station information
 function browser(opts) {
 	const mapMarkers = {};
-	const maxMeasurement = 30;
 
 	function getMaxElevation() {
 		let a = 0;
@@ -76,13 +76,14 @@ function browser(opts) {
 			let item = opts.data[k];
 
 			let marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
-
-			marker.on('click', function() {
-				$("#s"+item.ID).modal('toggle');
+			marker.on('click', function(e) {
+				$('.modal-content').load("/api/v1/stations/"+item.ID, function(result) {
+					$(opts.stationModal).modal({show: true});
+				});
 			});
 
-			marker.bindTooltip(document.getElementById("s"+item.ID).getAttribute("data-name"))
-			mapMarkers[item.ID] = marker
+			marker.bindTooltip(document.getElementById("s"+item.ID).textContent);
+			mapMarkers[item.ID] = marker;
 		});
 
 		map.fitBounds(catchment.getBounds());
@@ -102,14 +103,8 @@ function browser(opts) {
 		}
 
 		L.control.downloadArea({position: 'topleft'}).addTo(map);
-		//L.control.attribution({position: 'topright'}).addTo(map);
 		L.control.zoom({position: "topright"}).addTo(map);
 		L.control.scale({position: "topright"}).addTo(map);
-	}
-
-	function maxMeasurementSelected() {
-		const selectedOptions = $(opts.measurementEl + ' option:selected');
-		return selectedOptions.length > maxMeasurement
 	}
 
 	// toggleDownload enables the download botton if at least one station and
@@ -152,6 +147,11 @@ function browser(opts) {
 					return
 				}
 
+				// Some sets have integers as values.
+				if (item.data.has(parseInt(this.value))) {
+					$(this).prop('disabled', false);
+					return
+				}
 				$(this).prop('disabled', true);
 				$(this).prop('selected', false);
 			});
@@ -160,75 +160,14 @@ function browser(opts) {
 		});
 	}
 
-	// filterByMeasurements filters the global opts.data object by the given
-	// measurements and returns an object with the following keys:
-	// 	stations - set of stations
-	//	landuse - set of landuses
-	function filterByMeasurements(names) {
-		const stations = new Set();
-		const landuse = new Set();
-
-		if (! Array.isArray(names)) {
-				return {stations, landuse}
-		}
-
-		opts.data.forEach(function(o) {
-			if (! Array.isArray(o.Measurements)) {
-				return {stations, landuse}
-			}
-
-			let result = names.every(function(val) {
-				return o.Measurements.indexOf(val) >= 0
-			});
-			if (result) {
-				stations.add(o.ID);
-				landuse.add(o.Landuse);
-			}
-		});
-
-		return {stations, landuse};
-	}
-
-	// filterByStations filters the global opts.data object by the given
-	// stations and returns an object with the following keys:
-	// 	measurements - set of measurements
-	//	landuse - set of landuses
-	function filterByStations(stations) {
-		let measurements = new Set();
-		const landuse = new Set();
-
-		if (! Array.isArray(stations)) {
-			return {measurements, landuse};
-		}
-
-		opts.data.forEach(function(o, i) {
-			if (stations.indexOf(o.ID) < 0) {
-				return;
-			}
-
-			if (Array.isArray(o.Measurements)) {
-				if (measurements.size === 0) {
-					o.Measurements.forEach(m => measurements.add(m));
-					return;
-				}
-				measurements = new Set(o.Measurements.filter(x => measurements.has(x)));
-			}
-			landuse.add(o.Landuse);
-		});
-
-		return {measurements, landuse};
-	}
-
 	// filterByLanduse filters the global opts.data object by the given landuses
 	// and returns an object with the following keys:
-	// 	measurements - set of measurements
 	//	stations - set of stations
 	function filterByLanduse(landuse) {
-		const measurements = new Set();
 		const stations = new Set();
 
 		if (! Array.isArray(landuse)) {
-			return {measurements, stations};
+			return {stations};
 		}
 
 		opts.data.forEach(function(o) {
@@ -236,14 +175,12 @@ function browser(opts) {
 				return;
 			}
 
-			if (Array.isArray(o.Measurements)) {
-				o.Measurements.forEach(m => measurements.add(m));
-			}
 			stations.add(o.ID);
 		});
 
-		return {measurements, stations};
+		return {stations};
 	}
+
 
 	function toggleMapMarkers() {
 		const blue = L.icon({
@@ -280,24 +217,7 @@ function browser(opts) {
 		});
 	}
 
-	function handleUpdateMeasurement() {
-		const m = filterByMeasurements($(opts.measurementEl).val());
-
-		toggleOptions([
-			{el: opts.stationEl, data: m.stations},
-			{el: opts.landuseEl, data: m.landuse}
-		]);
-		toggleDownload();
-		toggleMapMarkers();
-	}
-
-	function handleUpdateStation() {
-		const s = filterByStations($(opts.stationEl).val());
-
-		toggleOptions([
-			{el: opts.measurementEl, data: s.measurements},
-			{el: opts.landuseEl, data: s.landuse}
-		]);
+	function handleUpdate() {
 		toggleDownload();
 		toggleMapMarkers();
 	}
@@ -306,47 +226,32 @@ function browser(opts) {
 		const l = filterByLanduse($(opts.landuseEl).val());
 
 		toggleOptions([
-			{el: opts.measurementEl, data: l.measurements},
 			{el: opts.stationEl, data: l.stations}
 		]);
 		toggleDownload();
 		toggleMapMarkers();
 	}
 
-	let stdOptions = [];
-
-	function hideStdOptions() {
-		stdOptions = [];
-		$(opts.measurementEl).children('option').map(function() {
-			let el = $(this);
-			let v = el.val();
-
-			if (v.endsWith("_std")) {
-				stdOptions.push(el.remove());
-			}
-		});
-	}
-
-	// Hide all standard deviations.
-	hideStdOptions();
-
 	// Initialize UI elements
 	$(opts.measurementEl).multiselect({
-		maxHeight: 400,
 		buttonWidth: "100%",
 		enableFiltering: true,
 		filterBehavior: "both",
 		enableRegexFiltering: true,
 		enableCaseInsensitiveFiltering: true,
-		includeSelectAllOption: true,
+		includeSelectAllOption: false,
+		enableClickableOptGroups: true,
+		enableCollapsibleOptGroups: true,
+		collapseOptGroupsByDefault: true,
+		indentGroupOptions: true,
 		onChange: function() {
-			handleUpdateMeasurement();
+			handleUpdate();
 		},
 		onSelectAll: function() {
-			handleUpdateMeasurement();
+			handleUpdate();
 		},
 		onDeselectAll: function() {
-			handleUpdateMeasurement();
+			handleUpdate();
 			$(opts.measurementEl).popover('hide');
 		},
 	});
@@ -368,7 +273,7 @@ function browser(opts) {
 			hideStdOptions();
 		}
 		$(opts.measurementEl).multiselect("rebuild");
-		handleUpdateStation();
+		handleUpdate();
 	});
 
 	$(opts.stationEl).multiselect({
@@ -381,13 +286,13 @@ function browser(opts) {
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: true,
 		onChange: function() {
-			handleUpdateStation();
+			handleUpdate();
 		},
 		onSelectAll: function() {
-			handleUpdateStation();
+			handleUpdate();
 		},
 		onDeselectAll: function() {
-			handleUpdateStation();
+			handleUpdate();
 		},
 	});
 
@@ -427,9 +332,6 @@ function browser(opts) {
 				if (item.Elevation >= data.from && item.Elevation <= data.to) {
 					stations.add(item.ID);
 					landuse.add(item.Landuse);
-					if (Array.isArray(item.Measurements)) {
-						item.Measurements.forEach(m => measurements.add(m));
-					}
 
 					marker.setOpacity(1.0);
 				} else {
@@ -438,7 +340,6 @@ function browser(opts) {
 			});
 
 			toggleOptions([
-				{el: opts.measurementEl, data: measurements},
 				{el: opts.stationEl, data: stations},
 				{el: opts.landuse, data: landuse},
 			]);
@@ -473,7 +374,7 @@ function browser(opts) {
 		endDate.setFullYear(endDate.getFullYear() - 1);
 		endDate.setHours(0,0,0,0);
 
-		if (maxMeasurementSelected() || (startDate < endDate)) {
+		if (startDate < endDate) {
 			$(opts.infoModalEl).modal();
 			return
 		}
@@ -491,7 +392,7 @@ function browser(opts) {
 		endDate.setFullYear(endDate.getFullYear() - 1);
 		endDate.setHours(0,0,0,0);
 
-		if (maxMeasurementSelected() || (startDate < endDate)) {
+		if (startDate < endDate) {
 			$(opts.infoModalEl).modal();
 			return
 		}

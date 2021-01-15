@@ -11,8 +11,8 @@ import (
 	"errors"
 	"time"
 
-	client "github.com/influxdata/influxdb1-client/v2"
 	"github.com/euracresearch/browser"
+	client "github.com/influxdata/influxdb1-client/v2"
 )
 
 // InfluxClient represents a mock implementation of client.Client.
@@ -49,14 +49,14 @@ func (c *InfluxClient) Query(q client.Query) (*client.Response, error) {
 
 // Database represents a mock implementation of browser.Database.
 type Database struct {
-	QueryFn  func(ctx context.Context, m *browser.Message) *browser.Stmt
+	QueryFn  func(ctx context.Context, m *browser.SeriesFilter) *browser.Stmt
 	SeriesFn func() (browser.TimeSeries, error)
 }
 
-func (db *Database) Series(ctx context.Context, m *browser.Message) (browser.TimeSeries, error) {
+func (db *Database) Series(ctx context.Context, m *browser.SeriesFilter) (browser.TimeSeries, error) {
 	return db.SeriesFn()
 }
 
-func (db *Database) Query(ctx context.Context, m *browser.Message) *browser.Stmt {
+func (db *Database) Query(ctx context.Context, m *browser.SeriesFilter) *browser.Stmt {
 	return db.QueryFn(ctx, m)
 }

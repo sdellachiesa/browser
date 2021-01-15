@@ -1,0 +1,50 @@
+<!--
+	Copyright 2021 Eurac Research. All rights reserved.
+	Use of this source code is governed by the Apache 2.0
+	license that can be found in the LICENSE file.
+-->
+
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	<h4 class="modal-title" id="myModalLabel">Station: {{.Station.Name}} </h4>
+</div>
+<div class="modal-body station">
+	<div class="row">
+		<div class="col-md-7">
+			<img src="{{.Station.Image}}" width="100%">
+		</div>
+		<div class="col-md-5">
+			<dl>
+				<dt>{{T "Elevation" .Language}}</dt>
+				<dd>{{.Station.Elevation}}m</dd>
+				<dt>{{T "Landuse" .Language}}</dt>
+				<dd>{{ T .Station.Landuse .Language}}</dd>
+				<dt>{{T "Latitude" .Language}}</dt>
+				<dd>{{.Station.Latitude}}</dd>
+				<dt>{{T "Longitude" .Language}}</dt>
+				<dd>{{.Station.Longitude}}</dd>
+				{{ if .Station.Dashboard }}
+				<dt>{{T "Latest data" .Language}}</dt>
+				<dd><strong><a href="{{ .Station.Dashboard }}" target="_blank" rel="noreferrer">{{ T "View graphs" .Language }}</a></strong></dd>
+				{{ end }}
+			</dl>
+		</div>
+	</div>
+	<div>
+		{{ if .Groups }}<h4>{{T "Measurements" .Language }}</h4>{{end}}
+		<div class="list">
+			<div class="row">
+			{{- range $i, $el := .Groups -}}
+				<div class="col-md-6">{{ $el }}</div>
+				{{ if Mod $i }}
+				</div>
+				<div class="row">
+				{{ end }}
+			{{- end -}}
+			</div>
+			</div>
+	</div>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+</div>

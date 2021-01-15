@@ -170,7 +170,7 @@ func (h *Handler) license() http.HandlerFunc {
 	}
 }
 
-// TODO: for now diabled, maybe we will introduce a new super admin role which
+// TODO: for now disabled, maybe we will introduce a new super admin role which
 // has the right do delete account data using the web interface. Currently this
 // must be done manually.
 //func (h *Handler) cancel() http.HandlerFunc {

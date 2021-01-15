@@ -8,8 +8,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/euracresearch/go-snipeit v0.0.0-20200407145731-6fe8bb4eed83 h1:tDChKbVZCtp/0DG0U7G2105CLueYTXrazrhXSWLn28I=
-github.com/euracresearch/go-snipeit v0.0.0-20200407145731-6fe8bb4eed83/go.mod h1:6B+3QyEdnUsWIxsgc2sYoNqCx0NDYT2s9I8CZnc+coU=
+github.com/euracresearch/go-snipeit v0.0.0-20210129072900-94012b727361 h1:p/XYp6KuXoomFxM7Hx7w9BXKmxiOa5Y0qUxe8WJVNtQ=
+github.com/euracresearch/go-snipeit v0.0.0-20210129072900-94012b727361/go.mod h1:6B+3QyEdnUsWIxsgc2sYoNqCx0NDYT2s9I8CZnc+coU=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.3.2 h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

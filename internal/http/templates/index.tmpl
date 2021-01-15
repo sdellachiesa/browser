@@ -33,22 +33,31 @@
 									<div class="form-group">
 										<label for="measurements">{{T "Select measurement:" $lang}}</label>
 										<select multiple class="form-control" id="measurements" name="measurements">
-											{{- range .Data.Measurements -}}
-												{{if Is $.User.Role "Public" -}}
-													<option value="{{ . }}">{{ T . $lang}}</option>
-												{{else if not $.User.License }}
-													<option value="{{ . }}">{{ T . $lang}}</option>
-												{{else -}}
-													<option value="{{.}}">{{ . }}</option>
-												{{end -}}
-											{{- end -}}
+										{{ range .Groups -}}
+											{{ if .SubGroups -}}
+                                            	<optgroup value="{{ printf "%d" .}}" label="{{ T .String $lang}}">
+                                            	{{ range .SubGroups -}}
+                                            		<option value="{{ printf "%d" .}}">{{ T .String $lang}}</option>
+                                            	{{ end -}}
+                                            	</optgroup>
+                                        	{{ else -}}
+                                            	<option value="{{ printf "%d" .}}">{{ T .String $lang}}</option>
+											{{end -}}
+										{{end -}}
+										{{if Is $.User.Role "FullAccess" -}}
+										<optgroup label="Maintenance">
+											{{ range .Maintenance -}}
+												<option value="{{.}}">{{.}}</option>
+											{{ end -}}
+										</optgroup>
+										{{end -}}
 										</select>
 										{{if not (Is $.User.Role "Public") -}}
 										<div class="showHide">
 											<input type="checkbox" name="showStd" id="showStd"> {{T "Show standard deviations" $lang}}
 										</div>
-										{{end}}
-									</div>
+										{{end -}}
+																			</div>
 								</div>
 								<div class="col-lg-4">
 									<div class="form-group">
@@ -153,66 +162,13 @@
 	</div>
 </main>
 
-	{{ range .Data -}}
-	<div class="modal fade" tabindex="-1" role="dialog" id="s{{.ID}}" data-name="{{.Name}} - {{ T .Landuse $lang }} - {{ .Elevation}} m">
-	<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
- 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" id="myModalLabel">Station: {{.Name}} </h4>
-					</div>
-					<div class="modal-body station">
-						<div class="row">
-							<div class="col-md-7">
-								<img src="{{.Image}}" width="100%">
-							</div>
-							<div class="col-md-5">
-								<dl>
-									<dt>{{T "Elevation" $lang}}</dt>
-									<dd>{{.Elevation}}m</dd>
-									<dt>{{T "Landuse" $lang}}</dt>
-									<dd>{{ T .Landuse $lang}}</dd>
-									<dt>{{T "Latitude" $lang}}</dt>
-									<dd>{{.Latitude}}</dd>
-									<dt>{{T "Longitude" $lang}}</dt>
-									<dd>{{.Longitude}}</dd>
-									{{ if .Dashboard }}
-									<dt>{{T "Latest data" $lang}}</dt>
-									<dd><strong><a href="{{ .Dashboard }}" target="_blank" rel="noreferrer">{{ T "View graphs" $lang }}</a></strong></dd>
-									{{ end }}
-								</dl>
-							</div>
-						</div>
-						<div>
-						<h4>{{T "Measurements" $lang}}:</h4>
-						{{ if Is $.User.Role "Public" -}}
-							{{$c := len .Measurements}}
-							{{- range $i, $el := .Measurements -}}
-								{{- T $el $lang -}}
-								{{- if not (Last $i $c)}}, {{end}}
-							{{- end -}}
-						{{ else }}
-							<div class="list">
-							<div class="row">
-							{{- range $i, $el := .Measurements -}}
-								<div class="col-md-6">{{ $el }}</div>
-								{{ if Mod $i }}
-								</div>
-								<div class="row">
-								{{ end }}
-							{{- end -}}
-							</div>
-							</div>
-						{{ end }}
-						</div>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					</div>
-				</div>
+	<div class="modal fade" tabindex="-1" role="dialog" id="stationModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
 			</div>
+		</div>
 	</div>
-	{{ end -}}
+
 	<div class="modal fade" tabindex="-1" role="dialog" id="infoModal">
   		<div class="modal-dialog" role="document">
     			<div class="modal-content">
@@ -236,6 +192,10 @@
   		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
 
+	{{ range .Data }}
+	<div id="s{{.ID}}" class="none">{{ .Name }} - {{ T .Landuse $lang }} - {{ .Elevation }}</div>
+	{{ end }}
+
 	<script src="/assets/third_party/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
 	<script src="/assets/third_party/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 	<script src="/assets/third_party/ion-rangeslider/ion.rangeSlider.min.js"></script>
@@ -248,20 +208,21 @@
 				'measurementEl':	'#measurements',
 				'landuseEl':		'#landuse',
 				'elevationEl':		'#elevation',
-				'dateEl':			'#datepicker',
-				'sDateEl':			'#startDate',
-				'eDateEl':			'#endDate',
-				'submitEl':			'#submitBtn',
+				'dateEl':		'#datepicker',
+				'sDateEl':		'#startDate',
+				'eDateEl':		'#endDate',
+				'submitEl':		'#submitBtn',
 				'submitWideBtnEl':	'#submitWideBtn',
 				'submitLongBtnEl':	'#submitLongBtn',
-				'formatEl':			'#format',
-				'formEl':			'#filters',
+				'formatEl':		'#format',
+				'formEl':		'#filters',
 				'infoModalEl':		'#infoModal',
-				'codeEl':			'#codeBtn',
+				'codeEl':		'#codeBtn',
 				'dlMapAreaEl':		'dlMapArea',
-				'mapEl':			'map',
+				'mapEl':		'map',
 				'scrollToTopEl':	'.scroll-to-top',
-				'data':				JSON.parse('{{.Data}}'),
+				'stationModal':		'#stationModal',
+				'data':			JSON.parse('{{.Data}}'),
 			});
 
 
