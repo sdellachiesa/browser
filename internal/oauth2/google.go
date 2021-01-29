@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"github.com/coreos/go-oidc"
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )

@@ -23,7 +23,7 @@
 //      ...
 //
 // For more information see:
-// https://gitlab.inf.unibz.it/lter/browser/-/issues/90
+// https://github.com/euracresearch/browser/-/issues/90
 package csvf
 
 import (
@@ -34,7 +34,7 @@ import (
 	"sort"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 )
 
 // DefaultTimeFormat defines the default format to timestamp in the CSV output.

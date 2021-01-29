@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/securecookie"

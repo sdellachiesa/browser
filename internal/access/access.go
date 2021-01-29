@@ -40,7 +40,7 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 )
 
 const DefautlRefreshInterval = 10 * time.Minute

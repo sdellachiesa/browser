@@ -25,7 +25,7 @@ import (
 	"sort"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 )
 
 // DefaultTimeFormat defines the default format for timestamps in the CSV

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser/static"
+	"github.com/euracresearch/browser/static"
 )
 
 // A Middleware is a func that wraps an http.Handler.

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 )
 
 func TestWrite(t *testing.T) {

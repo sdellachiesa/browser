@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/mock"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/internal/mock"
 )
 
 // Note: We test only Query method since all other public methods are the same

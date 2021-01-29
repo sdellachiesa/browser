@@ -39,7 +39,7 @@ var static struct {
 	dir  string
 }
 
-// File returns the file rooted at "gitlab.inf.unibz.it/lter/browser/static"
+// File returns the file rooted at "github.com/euracresearch/browser/static"
 // either from an in-memory map or, if no map was generated, the contents of the
 // file from disk.
 func File(name string) (string, error) {
@@ -52,7 +52,7 @@ func File(name string) (string, error) {
 	}
 
 	static.once.Do(func() {
-		b, err := run("go", "list", "-f", "{{.Dir}}", "gitlab.inf.unibz.it/lter/browser/static")
+		b, err := run("go", "list", "-f", "{{.Dir}}", "github.com/euracresearch/browser/static")
 		if err != nil {
 			return
 		}

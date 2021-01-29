@@ -14,7 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 )
 
 const (

@@ -182,7 +182,7 @@ type Metadata interface {
 type Database interface {
 	// Series returns a TimeSeries from the given Message. Points in a
 	// TimeSeries should always have a continuous time range as for
-	// https://gitlab.inf.unibz.it/lter/browser/issues/10
+	// https://github.com/euracresearch/browser/issues/10
 	Series(ctx context.Context, m *Message) (TimeSeries, error)
 
 	// Query returns a query Stmt for the given Message.

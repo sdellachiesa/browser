@@ -12,10 +12,10 @@ import (
 	"text/template"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/encoding/csv"
-	"gitlab.inf.unibz.it/lter/browser/internal/encoding/csvf"
-	"gitlab.inf.unibz.it/lter/browser/static"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/internal/encoding/csv"
+	"github.com/euracresearch/browser/internal/encoding/csvf"
+	"github.com/euracresearch/browser/static"
 )
 
 func (h *Handler) handleSeries() http.HandlerFunc {

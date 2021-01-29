@@ -16,8 +16,8 @@ import (
 	"text/template"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/static"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/static"
 )
 
 type testBackend struct{}

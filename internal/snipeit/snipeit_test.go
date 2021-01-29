@@ -13,8 +13,8 @@ import (
 	"os"
 	"testing"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/mock"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/internal/mock"
 
 	client "github.com/influxdata/influxdb1-client/v2"
 )

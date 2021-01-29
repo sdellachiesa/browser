@@ -1,4 +1,4 @@
-module gitlab.inf.unibz.it/lter/browser
+module github.com/euracresearch/browser
 
 go 1.15
 

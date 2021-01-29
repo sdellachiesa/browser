@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"

@@ -23,11 +23,11 @@ This repository contains the frontend code and the HTML/JavaScript client.
 
 ## Issues 
 
-If you encounter a bug or have a feature suggestion, please first check the [open issues](https://gitlab.inf.unibz.it/lter/browser/-/issues) to see if your request is already being discussed. If an issue does not already exit, feel free to [file an issue](https://gitlab.inf.unibz.it/lter/browser/-/issues/new).
+If you encounter a bug or have a feature suggestion, please first check the [open issues](https://github.com/euracresearch/browser/issues) to see if your request is already being discussed. If an issue does not already exit, feel free to [file an issue](https://github.com/euracresearch/browser/issues/new).
 
 ## Contributing
 
-If you would like to contribute, please first check the [open issues](https://gitlab.inf.unibz.it/lter/browser/-/issues) to see if the feature or bug is already being discussed or worked on. If not please feel free to [file an issue](https://gitlab.inf.unibz.it/lter/browser/-/issues/new) before sending any code.
+If you would like to contribute, please first check the [open issues](https://github.com/euracresearch/browser/issues) to see if the feature or bug is already being discussed or worked on. If not please feel free to [file an issue](https://github.com/euracresearch/browser/issues/new) before sending any code.
 
 To finally contribute fork the repository, create a dedicated feature branch containing the appropriate changes and make a Merge Request for review.
 

@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strconv"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/ql"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/internal/ql"
 
 	"github.com/euracresearch/go-snipeit"
 	client "github.com/influxdata/influxdb1-client/v2"

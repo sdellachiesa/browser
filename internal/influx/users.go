@@ -11,7 +11,7 @@ import (
 	"time"
 
 	client "github.com/influxdata/influxdb1-client/v2"
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 )
 
 // Guarantee we implement browser.UserService.

@@ -15,8 +15,8 @@ import (
 	"math"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/ql"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/internal/ql"
 
 	client "github.com/influxdata/influxdb1-client/v2"
 )
@@ -72,7 +72,7 @@ func (db *DB) Series(ctx context.Context, m *browser.Message) (browser.TimeSerie
 				// Fill missing timestamps with NaN values, to return a time
 				// series with a continuous time range. The interval of raw data
 				// in LTER is 15 minutes. See:
-				// https://gitlab.inf.unibz.it/lter/browser/issues/10
+				// https://github.com/euracresearch/browser/issues/10
 				for !t.Equal(nTime) {
 					m.Points = append(m.Points, &browser.Point{
 						Timestamp: nTime,

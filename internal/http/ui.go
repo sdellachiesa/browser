@@ -16,9 +16,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/internal/middleware"
-	"gitlab.inf.unibz.it/lter/browser/static"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/internal/middleware"
+	"github.com/euracresearch/browser/static"
 )
 
 func (h *Handler) handleIndex() http.HandlerFunc {

@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	"gitlab.inf.unibz.it/lter/browser"
+	"github.com/euracresearch/browser"
 	"golang.org/x/net/xsrftoken"
 )
 

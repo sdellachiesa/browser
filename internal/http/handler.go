@@ -7,8 +7,8 @@ package http
 import (
 	"net/http"
 
-	"gitlab.inf.unibz.it/lter/browser"
-	"gitlab.inf.unibz.it/lter/browser/static"
+	"github.com/euracresearch/browser"
+	"github.com/euracresearch/browser/static"
 )
 
 // Handler serves various HTTP endpoints.
