@@ -1,5 +1,8 @@
 # Data Browser Matsch | Mazia
 
+[![DOI](https://zenodo.org/badge/334079676.svg)](https://zenodo.org/badge/latestdoi/334079676)
+![GitHub](https://img.shields.io/github/license/euracresearch/browser)
+
 ## Introduction
 
 **[Data Browser Matsch | Mazia](https://browser.lter.eurac.edu/)**  is a user-friendly web-based application to visualize and download micrometeorological and biophysical time series of the [Long-Term Socio-Ecological Research site Matsch | Mazia in South Tyrol, Italy](http://lter.eurac.edu/en/). It is designed both for the general public and researchers. The Data Browser Matsch | Mazia drop-down menus allow the user to query the InfluxDB database in the backend by selecting the measurements, time range, land use and elevation. Interactive Grafana dashboards show dynamic graphs of the time series.
