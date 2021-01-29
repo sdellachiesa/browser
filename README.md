@@ -2,6 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/334079676.svg)](https://zenodo.org/badge/latestdoi/334079676)
 ![GitHub](https://img.shields.io/github/license/euracresearch/browser)
+![tests](https://github.com/euracresearch/browser/workflows/test/badge.svg)
 
 ## Introduction
 
