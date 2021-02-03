@@ -1,0 +1,16 @@
+name: browser
+arch: amd64
+platform: linux
+version: "${BROWSER_VERSION}"
+section: "default"
+priority: "extra"
+maintainer: "Eurac Research"
+description: User-friendly web-based application to visualize and download micrometeorological and biophysical time series of the Long-Term Socio-Ecological Research site Matsch | Mazia in South Tyrol, Italy.
+homepage: "https://github.com/euracresearch/browser"
+license: "Apache License 2.0"
+contents:
+- src: ./browser
+  dst: /usr/bin/browser
+- src: ./browser.service
+  dst: /usr/lib/systemd/system/browser.service
+  type: config
