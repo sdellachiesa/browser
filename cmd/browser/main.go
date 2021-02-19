@@ -31,7 +31,9 @@ func main() {
 
 	fs := flag.NewFlagSet("browser", flag.ExitOnError)
 	var (
-		httpAddr          = fs.String("http", defaultAddr, "HTTP service address.")
+		listenAddr        = fs.String("listen", defaultAddr, "Server listen address.")
+		https             = fs.Bool("https", false, "Serve HTTPS.")
+		domain            = fs.String("domain", "", "Domain used for getting LetsEncrypt certificate.")
 		influxAddr        = fs.String("influx.addr", "http://127.0.0.1:8086", "Influx (http:https)://host:port")
 		influxUser        = fs.String("influx.username", "", "Influx username")
 		influxPass        = fs.String("influx.password", "", "Influx password")
@@ -155,8 +157,12 @@ func main() {
 		middleware.Robots("robots.txt"),
 	)
 
-	log.Printf("Starting server on %s\n", *httpAddr)
-	log.Fatal(http.ListenAndServe(*httpAddr, mw(handler)))
+	log.Printf("Starting server on %s\n", *listenAddr)
+	if *https && *domain != "" {
+		log.Fatal(http.ServeAutoCert(*listenAddr, mw(handler), *domain))
+	}
+
+	log.Fatal(http.ListenAndServe(*listenAddr, mw(handler)))
 }
 
 func required(name, value string) {

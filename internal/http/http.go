@@ -7,9 +7,11 @@ package http
 
 import (
 	"log"
+	"net"
 	"net/http"
 
 	"github.com/euracresearch/browser"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 const languageCookieName = "browser_lter_lang"
@@ -17,6 +19,30 @@ const languageCookieName = "browser_lter_lang"
 // ListenAndServe is a wrapper for http.ListenAndServe.
 func ListenAndServe(addr string, handler http.Handler) error {
 	return http.ListenAndServe(addr, handler)
+}
+
+// ServeAutoCert will serve on the standard TLS port (443) with LetsEncrypt
+// certificates for the provided domain or domains. Incoming traffic on port 80
+// will be automatically forwared to 443.
+func ServeAutoCert(addr string, handler http.Handler, domains ...string) error {
+	go func() {
+		host, _, err := net.SplitHostPort(addr)
+		if err != nil || host == "" {
+			host = "0.0.0.0"
+		}
+		log.Println("Redirecting traffic from HTTP to HTTPS.")
+		log.Fatal(http.ListenAndServe(host+":80", redirectHandler()))
+	}()
+
+	return http.Serve(autocert.NewListener(domains...), handler)
+}
+
+func redirectHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Connection", "close")
+		url := "https://" + r.Host + r.URL.String()
+		http.Redirect(w, r, url, http.StatusMovedPermanently)
+	})
 }
 
 // Error writes an error message to the response.
