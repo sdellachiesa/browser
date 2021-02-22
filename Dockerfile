@@ -1,11 +1,10 @@
-FROM golang:1.15.2 as builder
+FROM golang:1.16 as builder
 
 ENV BUILD_DIR /tmp/browser
 
 ADD . ${BUILD_DIR}
 WORKDIR ${BUILD_DIR}
 
-RUN go generate github.com/euracresearch/browser/static
 RUN CGO_ENABLED=0 GOOS=linux go build -o browser cmd/browser/main.go
 
 FROM alpine:latest

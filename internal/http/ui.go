@@ -18,7 +18,6 @@ import (
 
 	"github.com/euracresearch/browser"
 	"github.com/euracresearch/browser/internal/middleware"
-	"github.com/euracresearch/browser/static"
 )
 
 func (h *Handler) handleIndex() http.HandlerFunc {
@@ -35,7 +34,7 @@ func (h *Handler) handleIndex() http.HandlerFunc {
 		},
 	}
 
-	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/index.tmpl")
+	tmpl, err := template.New("base.tmpl").Funcs(funcMap).ParseFS(templateFS, "templates/base.tmpl", "templates/index.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -89,7 +88,7 @@ func (h *Handler) handleHello() http.HandlerFunc {
 		"Is": isRole,
 	}
 
-	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/hello.tmpl")
+	tmpl, err := template.New("base.tmpl").Funcs(funcMap).ParseFS(templateFS, "templates/base.tmpl", "templates/hello.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,7 +99,7 @@ func (h *Handler) handleHello() http.HandlerFunc {
 		user := browser.UserFromContext(ctx)
 
 		const name = "license"
-		license, err := static.File(filepath.Join("html", name, fmt.Sprintf("%s.%s.html", name, lang)))
+		license, err := templateFS.ReadFile(filepath.Join("templates", name, fmt.Sprintf("%s.%s.html", name, lang)))
 		if err != nil {
 			Error(w, err, http.StatusNotFound)
 			return
@@ -141,7 +140,7 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 		"Is": isRole,
 	}
 
-	tmpl, err := static.ParseTemplates(template.New("base.tmpl").Funcs(funcMap), "html/base.tmpl", "html/page.tmpl")
+	tmpl, err := template.New("base.tmpl").Funcs(funcMap).ParseFS(templateFS, "templates/base.tmpl", "templates/page.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -165,7 +164,7 @@ func (h *Handler) handleStaticPage() http.HandlerFunc {
 			filename = fmt.Sprintf("internal.info.%s.html", lang)
 		}
 
-		p, err := static.File(filepath.Join("html", name, filename))
+		p, err := templateFS.ReadFile(filepath.Join("templates", name, filename))
 		if err != nil {
 			Error(w, err, http.StatusNotFound)
 			return
@@ -270,13 +269,14 @@ func isRole(r browser.Role, s string) bool {
 // translate is a template helper function for translating text to other
 // languages.
 func translate(key, lang string) template.HTML {
-	j, err := static.File(filepath.Join("locale", fmt.Sprintf("%s.json", lang)))
+	j, err := templateFS.ReadFile(filepath.Join("locale", fmt.Sprintf("%s.json", lang)))
 	if err != nil {
+		log.Println(err)
 		return template.HTML(key)
 	}
 
 	var m map[string]string
-	if err := json.Unmarshal([]byte(j), &m); err != nil {
+	if err := json.Unmarshal(j, &m); err != nil {
 		log.Printf("translation: %v\n", err)
 		return template.HTML(key)
 	}

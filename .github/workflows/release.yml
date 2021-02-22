@@ -10,6 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
 
       - id: release
         uses: bruceadams/get-release@v1.2.2
@@ -26,7 +28,6 @@ jobs:
           mkdir -p dist
           cp release/browser.service dist
           cat release/nfpm.yml | BROWSER_VERSION=${{ steps.release.outputs.tag_name }} envsubst > dist/nfpm.yml
-          go generate github.com/euracresearch/browser/static
           go build -o dist/browser ./cmd/browser/main.go
 
           cd dist

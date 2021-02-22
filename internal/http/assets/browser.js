@@ -247,24 +247,24 @@ function browser(opts) {
 
 	function toggleMapMarkers() {
 		const blue = L.icon({
-    			iconUrl: '/static/third_party/leaflet/images/marker-icon.png',
-    			iconRetinaUrl: '/static/third_party/leaflet/images/marker-icon-2x.png',
+    			iconUrl: '/assets/third_party/leaflet/images/marker-icon.png',
+    			iconRetinaUrl: '/assets/third_party/leaflet/images/marker-icon-2x.png',
     			iconSize: [25, 41],
    			iconAnchor: [12, 41],
     			popupAnchor: [1, -34],
     			tooltipAnchor: [16, -28],
-    			shadowUrl: '/static/third_party/leaflet/images/marker-shadow.png',
+    			shadowUrl: '/assets/third_party/leaflet/images/marker-shadow.png',
     			shadowSize: [41, 41],
 		});
 
 		const yellow = L.icon({
-    			iconUrl: '/static/third_party/leaflet/images/marker-icon-yellow.png',
-    			iconRetinaUrl: '/static/third_party/leaflet/images/marker-icon-2x-yellow.png',
+    			iconUrl: '/assets/third_party/leaflet/images/marker-icon-yellow.png',
+    			iconRetinaUrl: '/assets/third_party/leaflet/images/marker-icon-2x-yellow.png',
     			iconSize: [25, 41],
    			iconAnchor: [12, 41],
     			popupAnchor: [1, -34],
     			tooltipAnchor: [16, -28],
-    			shadowUrl: '/static/third_party/leaflet/images/marker-shadow.png',
+    			shadowUrl: '/assets/third_party/leaflet/images/marker-shadow.png',
     			shadowSize: [41, 41],
 		});
 

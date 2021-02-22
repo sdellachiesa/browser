@@ -7,12 +7,7 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
-	"strings"
-	"time"
-
-	"github.com/euracresearch/browser/static"
 )
 
 // A Middleware is a func that wraps an http.Handler.
@@ -48,26 +43,6 @@ func SecureHeaders() Middleware {
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			// Block cross-site scripting attacks.
 			w.Header().Set("X-XSS-Protection", "1; mode=block")
-
-			h.ServeHTTP(w, r)
-		})
-	}
-}
-
-// Robots is a middleware which serves the given filename as "/robots.txt".
-func Robots(filename string) Middleware {
-	s, err := static.File(filename)
-	if err != nil {
-		log.Fatalf("robots.txt: %v", err)
-	}
-
-	const RobotsFilePathName = "robots.txt"
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasSuffix(r.URL.Path, RobotsFilePathName) {
-				http.ServeContent(w, r, RobotsFilePathName, time.Now(), strings.NewReader(s))
-				return
-			}
 
 			h.ServeHTTP(w, r)
 		})

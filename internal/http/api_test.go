@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/euracresearch/browser"
-	"github.com/euracresearch/browser/static"
 )
 
 type testBackend struct{}
@@ -117,12 +116,12 @@ func TestHandleTemplate(t *testing.T) {
 		h.db = new(testBackend)
 	})
 
-	tmplPython, err := static.ParseTextTemplates(nil, "templates/python.tmpl")
+	tmplPython, err := template.ParseFS(templateFS, "templates/python.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tmplRlang, err := static.ParseTextTemplates(nil, "templates/r.tmpl")
+	tmplRlang, err := template.ParseFS(templateFS, "templates/r.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
