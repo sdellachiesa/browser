@@ -4,10 +4,6 @@
 
 package browser
 
-import (
-	"strconv"
-)
-
 const (
 	AirTemperature Group = iota
 	RelativeHumidity
@@ -343,23 +339,6 @@ func GroupsByRole(r Role) []Group {
 	}
 
 	return GroupsByType(ParentGroup)
-}
-
-// parseGroup parses the given string slice into a slice of Group and will
-// remove duplicates.
-func parseGroup(str ...string) []Group {
-	var g []Group
-
-	for _, s := range str {
-		i, err := strconv.ParseUint(s, 10, 8)
-		if err != nil {
-			continue
-		}
-
-		g = AppendGroupIfMissing(g, Group(i))
-	}
-
-	return g
 }
 
 // AppendGroupIfMissing will append the given to group to the given slice if it

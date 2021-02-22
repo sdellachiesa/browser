@@ -326,6 +326,7 @@ func (db *DB) Series(ctx context.Context, filter *browser.SeriesFilter) (browser
 }
 
 func (db *DB) seriesQuery(ctx context.Context, filter *browser.SeriesFilter) ql.Querier {
+	log.Println(filter)
 	return ql.QueryFunc(func() (string, []interface{}) {
 		var (
 			buf          bytes.Buffer
@@ -338,8 +339,10 @@ func (db *DB) seriesQuery(ctx context.Context, filter *browser.SeriesFilter) ql.
 		// If the users has full access and the filter contains maintenance
 		// measurements add them to the slice.
 		if user.Role == browser.FullAccess && user.License {
-			measurements = append(measurements, filter.Maintenance...)
+			measurements = appendMaintenance(measurements, filter.Maintenance...)
 		}
+
+		log.Println(measurements)
 
 		for _, measure := range measurements {
 			columns := []string{measure, "altitude as elevation", "latitude", "longitude", "depth"}
@@ -365,6 +368,20 @@ func (db *DB) seriesQuery(ctx context.Context, filter *browser.SeriesFilter) ql.
 	})
 }
 
+// appendMaintenance appends the given labels to s if the label is present in
+// the maintenance slice.
+func appendMaintenance(s []string, label ...string) []string {
+	for _, l := range label {
+		for _, m := range maintenace {
+			if strings.EqualFold(l, m) {
+				s = append(s, l)
+			}
+		}
+	}
+
+	return s
+}
+
 // Data in InfluxDB is UTC but LTER data is UTC+1 therefor we need to adapt
 // start and end times. It will shift the start time to -1 hour and will set
 // the end time to 22:59:59 in order to capture a full day.
@@ -379,6 +396,8 @@ func (db *DB) Query(ctx context.Context, filter *browser.SeriesFilter) *browser.
 	if len(filter.Groups) > 0 {
 		measures = db.parseMeasurements(ctx, filter)
 	}
+
+	measures = appendMaintenance(measures, filter.Maintenance...)
 
 	c := []string{"station", "landuse", "altitude as elevation", "latitude", "longitude"}
 	c = append(c, measures...)
