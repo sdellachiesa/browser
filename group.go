@@ -156,6 +156,22 @@ func (g Group) String() string {
 	}
 }
 
+// Public returns the group name as string for the public user.
+func (g Group) Public() string {
+	switch g {
+	default:
+		return g.String()
+	case WindSpeedAvg:
+		return "Wind Speed"
+	case WindSpeedMax:
+		return "Wind Gust"
+	case ShortWaveRadiationOutgoing:
+		return "Global Radiation"
+	case PrecipitationTotal:
+		return "Precipitation"
+	}
+}
+
 // SubGroups will return a list of sub groups. An empty slice indicates that no
 // sub groups are defined.
 func (g Group) SubGroups() []Group {
@@ -331,9 +347,10 @@ func GroupsByRole(r Role) []Group {
 			AirTemperature,
 			RelativeHumidity,
 			WindDirection,
-			WindSpeed,
-			ShortWaveRadiation,
-			Precipitation,
+			WindSpeedAvg,
+			WindSpeedMax,
+			ShortWaveRadiationOutgoing,
+			PrecipitationTotal,
 			SnowHeight,
 		}
 	}

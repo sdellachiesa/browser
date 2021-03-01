@@ -35,7 +35,11 @@
 		<div class="list">
 			<div class="row">
 			{{- range $i, $el := .Groups -}}
-				<div class="col-md-6">{{ $el }}</div>
+				{{ if Is $.User.Role "Public"}}
+					<div class="col-md-6">{{ T $el.Public $.Language }}</div>
+				{{ else }}
+					<div class="col-md-6">{{ $el }}</div>
+				{{ end }}
 				{{ if Mod $i }}
 				</div>
 				<div class="row">

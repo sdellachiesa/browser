@@ -150,30 +150,25 @@ func (db *DB) loadCache() error {
 		for _, series := range result.Series {
 			// add series name to list of measurements if it doesn't belong to
 			// maintenance.
-			if redact(series.Name, maintenace) {
+			if isAllowed(series.Name, maintenace) {
 				continue
 			}
 
+			// Match series.Name parent groups
 			g := matchGroupByType(series.Name, browser.ParentGroup)
-			if g == browser.NoGroup {
-				continue
-			}
+
+			// Match series.Name to sub groups too.
+			sg := matchGroupByType(series.Name, browser.SubGroup)
 
 			for _, value := range series.Values {
 				id, err := strconv.ParseInt(value[1].(string), 10, 64)
 				if err == nil {
 					gCache[id] = browser.AppendGroupIfMissing(gCache[id], g)
+					gCache[id] = browser.AppendGroupIfMissing(gCache[id], sg)
 				}
 			}
 
 			mCache[g] = browser.AppendStringIfMissing(mCache[g], series.Name)
-
-			// We have to check the measurement (series.Name) also against the
-			// sub groups for the group to measurement cache.
-			sg := matchGroupByType(series.Name, browser.SubGroup)
-			if sg == browser.NoGroup {
-				continue
-			}
 			mCache[sg] = browser.AppendStringIfMissing(mCache[sg], series.Name)
 		}
 	}
@@ -326,7 +321,6 @@ func (db *DB) Series(ctx context.Context, filter *browser.SeriesFilter) (browser
 }
 
 func (db *DB) seriesQuery(ctx context.Context, filter *browser.SeriesFilter) ql.Querier {
-	log.Println(filter)
 	return ql.QueryFunc(func() (string, []interface{}) {
 		var (
 			buf          bytes.Buffer
@@ -341,8 +335,6 @@ func (db *DB) seriesQuery(ctx context.Context, filter *browser.SeriesFilter) ql.
 		if user.Role == browser.FullAccess && user.License {
 			measurements = appendMaintenance(measurements, filter.Maintenance...)
 		}
-
-		log.Println(measurements)
 
 		for _, measure := range measurements {
 			columns := []string{measure, "altitude as elevation", "latitude", "longitude", "depth"}
@@ -439,7 +431,7 @@ func (db *DB) parseMeasurements(ctx context.Context, filter *browser.SeriesFilte
 			// continue. This is the minimum on access control which is present.
 			// Only registered and signed users have access to the full data
 			// set.
-			if user.Role == browser.Public && !redact(m, publicAllowed) {
+			if user.Role == browser.Public && !isAllowed(m, publicAllowed) {
 				continue
 			}
 
@@ -476,9 +468,9 @@ func (db *DB) exec(q ql.Querier) (*client.Response, error) {
 	return resp, nil
 }
 
-func redact(name string, fields []string) bool {
-	for _, f := range fields {
-		if strings.EqualFold(name, f) {
+func isAllowed(label string, allowed []string) bool {
+	for _, f := range allowed {
+		if strings.EqualFold(label, f) {
 			return true
 		}
 	}

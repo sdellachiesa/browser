@@ -329,15 +329,17 @@ func TestGroupsByStation(t *testing.T) {
 		want := []browser.Group{
 			browser.RelativeHumidity,
 			browser.AirTemperature,
-			browser.ShortWaveRadiation,
+			browser.ShortWaveRadiationOutgoing,
+			browser.PrecipitationTotal,
 			browser.SnowHeight,
 			browser.WindDirection,
-			browser.WindSpeed,
+			browser.WindSpeedAvg,
+			browser.WindSpeedMax,
 		}
 
 		// Test with user public user embedded in the ctx.
 		ctx := createContext(t, browser.Public, false)
-		got, err := db.GroupsByStation(ctx, 3)
+		got, err := db.GroupsByStation(ctx, 6)
 		if err != nil {
 			t.Fatal("got error")
 		}
@@ -349,7 +351,7 @@ func TestGroupsByStation(t *testing.T) {
 
 		// Test with general context.
 		ctx = context.Background()
-		got, err = db.GroupsByStation(ctx, 3)
+		got, err = db.GroupsByStation(ctx, 6)
 		if err != nil {
 			t.Fatal("got error")
 		}

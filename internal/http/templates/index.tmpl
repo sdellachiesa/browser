@@ -41,7 +41,13 @@
                                             	{{ end -}}
                                             	</optgroup>
                                         	{{ else -}}
-                                            	<option value="{{ printf "%d" .}}">{{ T .String $lang}}</option>
+                                            	<option value="{{ printf "%d" .}}">
+												{{- if Is $.User.Role "Public" -}}
+													{{ T .Public $lang}}
+												{{- else -}}
+													{{ T .String $lang}}
+												{{- end -}}
+												</option>
 											{{end -}}
 										{{end -}}
 										{{if Is $.User.Role "FullAccess" -}}
