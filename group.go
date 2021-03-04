@@ -133,7 +133,7 @@ func (g Group) String() string {
 	case WindSpeedAvg:
 		return "Average"
 	case WindSpeedMax:
-		return "Gust"
+		return "Max"
 	case PrecipitationTotal:
 		return "Total"
 	case PrecipitationIntensity:
@@ -159,7 +159,7 @@ func (g Group) Public() string {
 	case WindSpeedAvg:
 		return "Wind Speed"
 	case WindSpeedMax:
-		return "Wind Gust"
+		return "Wind Max"
 	case ShortWaveRadiationOutgoing:
 		return "Global Radiation"
 	case PrecipitationTotal:
