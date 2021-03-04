@@ -16,34 +16,25 @@ const (
 	SoilTemperatureDepth40
 	SoilTemperatureDepth50
 	SoilWaterContent
-	SoilWaterContentDepth00
 	SoilWaterContentDepth02
 	SoilWaterContentDepth05
-	SoilWaterContentDepth10
 	SoilWaterContentDepth20
 	SoilWaterContentDepth40
 	SoilWaterContentDepth50
 	SoilElectricalConductivity
-	SoilElectricalConductivityDepth00
 	SoilElectricalConductivityDepth02
 	SoilElectricalConductivityDepth05
-	SoilElectricalConductivityDepth10
 	SoilElectricalConductivityDepth20
 	SoilElectricalConductivityDepth40
-	SoilElectricalConductivityDepth50
+	SoilElectricalConductivityDepth51
 	SoilDielectricPermittivity
-	SoilDielectricPermittivityDepth00
 	SoilDielectricPermittivityDepth02
 	SoilDielectricPermittivityDepth05
-	SoilDielectricPermittivityDepth10
 	SoilDielectricPermittivityDepth20
 	SoilDielectricPermittivityDepth40
-	SoilDielectricPermittivityDepth50
+	SoilDielectricPermittivityDepth52
 	SoilWaterPotential
-	SoilWaterPotentialDepth00
-	SoilWaterPotentialDepth02
 	SoilWaterPotentialDepth05
-	SoilWaterPotentialDepth10
 	SoilWaterPotentialDepth20
 	SoilWaterPotentialDepth40
 	SoilWaterPotentialDepth50
@@ -121,20 +112,24 @@ func (g Group) String() string {
 		return "Short Wave Radiation"
 	case LongWaveRadiation:
 		return "Long Wave Radiation"
-	case SoilTemperatureDepth00, SoilWaterContentDepth00, SoilElectricalConductivityDepth00, SoilDielectricPermittivityDepth00, SoilWaterPotentialDepth00:
+	case SoilTemperatureDepth00:
 		return "0 cm"
-	case SoilTemperatureDepth02, SoilWaterContentDepth02, SoilElectricalConductivityDepth02, SoilDielectricPermittivityDepth02, SoilWaterPotentialDepth02:
+	case SoilTemperatureDepth02, SoilWaterContentDepth02, SoilElectricalConductivityDepth02, SoilDielectricPermittivityDepth02:
 		return "2 cm"
 	case SoilTemperatureDepth05, SoilWaterContentDepth05, SoilElectricalConductivityDepth05, SoilDielectricPermittivityDepth05, SoilWaterPotentialDepth05:
 		return "5 cm"
-	case SoilTemperatureDepth10, SoilWaterContentDepth10, SoilElectricalConductivityDepth10, SoilDielectricPermittivityDepth10, SoilWaterPotentialDepth10:
+	case SoilTemperatureDepth10:
 		return "10 cm"
 	case SoilTemperatureDepth20, SoilWaterContentDepth20, SoilElectricalConductivityDepth20, SoilDielectricPermittivityDepth20, SoilWaterPotentialDepth20:
 		return "20 cm"
 	case SoilTemperatureDepth40, SoilWaterContentDepth40, SoilElectricalConductivityDepth40, SoilDielectricPermittivityDepth40, SoilWaterPotentialDepth40:
 		return "40 cm"
-	case SoilTemperatureDepth50, SoilWaterContentDepth50, SoilElectricalConductivityDepth50, SoilDielectricPermittivityDepth50, SoilWaterPotentialDepth50:
+	case SoilTemperatureDepth50, SoilWaterContentDepth50, SoilWaterPotentialDepth50:
 		return "50 cm"
+	case SoilElectricalConductivityDepth51:
+		return "51 cm"
+	case SoilDielectricPermittivityDepth52:
+		return "52 cm"
 	case WindSpeedAvg:
 		return "Average"
 	case WindSpeedMax:
@@ -192,10 +187,8 @@ func (g Group) SubGroups() []Group {
 
 	case SoilWaterContent:
 		return []Group{
-			SoilWaterContentDepth00,
 			SoilWaterContentDepth02,
 			SoilWaterContentDepth05,
-			SoilWaterContentDepth10,
 			SoilWaterContentDepth20,
 			SoilWaterContentDepth40,
 			SoilWaterContentDepth50,
@@ -203,32 +196,25 @@ func (g Group) SubGroups() []Group {
 
 	case SoilElectricalConductivity:
 		return []Group{
-			SoilElectricalConductivityDepth00,
 			SoilElectricalConductivityDepth02,
 			SoilElectricalConductivityDepth05,
-			SoilElectricalConductivityDepth10,
 			SoilElectricalConductivityDepth20,
 			SoilElectricalConductivityDepth40,
-			SoilElectricalConductivityDepth50,
+			SoilElectricalConductivityDepth51,
 		}
 
 	case SoilDielectricPermittivity:
 		return []Group{
-			SoilDielectricPermittivityDepth00,
 			SoilDielectricPermittivityDepth02,
 			SoilDielectricPermittivityDepth05,
-			SoilDielectricPermittivityDepth10,
 			SoilDielectricPermittivityDepth20,
 			SoilDielectricPermittivityDepth40,
-			SoilDielectricPermittivityDepth50,
+			SoilDielectricPermittivityDepth52,
 		}
 
 	case SoilWaterPotential:
 		return []Group{
-			SoilWaterPotentialDepth00,
-			SoilWaterPotentialDepth02,
 			SoilWaterPotentialDepth05,
-			SoilWaterPotentialDepth10,
 			SoilWaterPotentialDepth20,
 			SoilWaterPotentialDepth40,
 			SoilWaterPotentialDepth50,
@@ -297,31 +283,22 @@ func GroupsByType(t GroupType) []Group {
 			SoilTemperatureDepth20,
 			SoilTemperatureDepth40,
 			SoilTemperatureDepth50,
-			SoilWaterContentDepth00,
 			SoilWaterContentDepth02,
 			SoilWaterContentDepth05,
-			SoilWaterContentDepth10,
 			SoilWaterContentDepth20,
 			SoilWaterContentDepth40,
 			SoilWaterContentDepth50,
-			SoilElectricalConductivityDepth00,
 			SoilElectricalConductivityDepth02,
 			SoilElectricalConductivityDepth05,
-			SoilElectricalConductivityDepth10,
 			SoilElectricalConductivityDepth20,
 			SoilElectricalConductivityDepth40,
-			SoilElectricalConductivityDepth50,
-			SoilDielectricPermittivityDepth00,
+			SoilElectricalConductivityDepth51,
 			SoilDielectricPermittivityDepth02,
 			SoilDielectricPermittivityDepth05,
-			SoilDielectricPermittivityDepth10,
 			SoilDielectricPermittivityDepth20,
 			SoilDielectricPermittivityDepth40,
-			SoilDielectricPermittivityDepth50,
-			SoilWaterPotentialDepth00,
-			SoilWaterPotentialDepth02,
+			SoilDielectricPermittivityDepth52,
 			SoilWaterPotentialDepth05,
-			SoilWaterPotentialDepth10,
 			SoilWaterPotentialDepth20,
 			SoilWaterPotentialDepth40,
 			SoilWaterPotentialDepth50,

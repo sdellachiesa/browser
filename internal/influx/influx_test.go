@@ -102,7 +102,7 @@ func TestQuery(t *testing.T) {
 			},
 			ctx: createContext(t, browser.FullAccess, true),
 			want: &browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, air_t_avg, snow_height, wind_speed, wind_speed_avg, wind_speed_max FROM air_t_avg, snow_height, wind_speed, wind_speed_avg, wind_speed_max WHERE snipeit_location_ref='s1' OR snipeit_location_ref='s2' AND time >= '2019-12-31T23:00:00Z' AND time <= '2020-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, air_t_avg, snow_air_t, snow_height, wind_speed, wind_speed_avg, wind_speed_max FROM air_t_avg, snow_air_t, snow_height, wind_speed, wind_speed_avg, wind_speed_max WHERE snipeit_location_ref='s1' OR snipeit_location_ref='s2' AND time >= '2019-12-31T23:00:00Z' AND time <= '2020-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
