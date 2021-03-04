@@ -859,25 +859,6 @@
                     }
             	 }, this));
 
-                $("li.multiselect-group .caret-container", this.$ul).on("click", $.proxy(function(event) {
-                    var $li = $(event.target).closest('li');
-                    var $inputs = $li.nextUntil("li.multiselect-parent")
-                            .not('.multiselect-filter-hidden');
-
-                    var visible = true;
-                    $inputs.each(function() {
-                        visible = visible && !$(this).hasClass('multiselect-collapsible-hidden');
-                    });
-
-                    if (visible) {
-                        $inputs.hide()
-                            .addClass('multiselect-collapsible-hidden');
-                    }
-                    else {
-                        $inputs.show()
-                            .removeClass('multiselect-collapsible-hidden');
-                    }
-                }, this));
 
                 $("li.multiselect-all", this.$ul).css('background', '#f3f3f3').css('border-bottom', '1px solid #eaeaea');
                 $("li.multiselect-all > a > label.checkbox", this.$ul).css('padding', '3px 20px 3px 35px');
