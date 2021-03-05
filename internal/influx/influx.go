@@ -357,7 +357,7 @@ func appendMaintenance(s []string, label ...string) []string {
 	for _, l := range label {
 		for _, m := range maintenace {
 			if strings.EqualFold(l, m) {
-				s = append(s, l)
+				s = append(s, strings.ToLower(l))
 			}
 		}
 	}

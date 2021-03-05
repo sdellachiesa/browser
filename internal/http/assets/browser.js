@@ -256,24 +256,30 @@ function browser(opts) {
 		},
 	});
 
-	$('#showStd').on('change', function() {
+	$(opts.maintenanceEl).multiselect({
+		buttonWidth: "100%",
+		enableFiltering: true,
+		filterBehavior: "both",
+		enableRegexFiltering: true,
+		enableCaseInsensitiveFiltering: true,
+		includeSelectAllOption: false,
+		enableClickableOptGroups: true,
+		enableCollapsibleOptGroups: true,
+		collapseOptGroupsByDefault: true,
+		indentGroupOptions: true,
+	});
+	
+	$('#maintCheckbox').on('change', function() {
 		if (this.checked) {
-			stdOptions.forEach(function(o) {
-				$(opts.measurementEl).append(o);
-			});
-
-			const options = $("#measurements option");
-			options.detach().sort(function(a,b) {
-   				let at = $(a).text();
-    				let bt = $(b).text();
-    				return (at > bt)?1:((at < bt)?-1:0);
-			});
-			options.appendTo(opts.measurementEl);
+			$(opts.maintFormGroupEl).show()
 		} else {
-			hideStdOptions();
+			$('option', $(opts.maintenanceEl)).each(function(element) {
+               $(this).removeAttr('selected').prop('selected', false);
+				
+            });
+			$(opts.maintenanceEl).multiselect('refresh');
+			$(opts.maintFormGroupEl).hide();
 		}
-		$(opts.measurementEl).multiselect("rebuild");
-		handleUpdate();
 	});
 
 	$(opts.stationEl).multiselect({

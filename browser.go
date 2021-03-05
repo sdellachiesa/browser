@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -126,37 +125,31 @@ func ParseSeriesFilterFromRequest(r *http.Request) (*SeriesFilter, error) {
 		return nil, errors.New("at least one station must be given")
 	}
 
-	groups, maint := parseGroupsAndMaintenance(r.Form["measurements"])
-
 	return &SeriesFilter{
-		Groups:      groups,
+		Groups:      parseGroups(r.Form["measurements"]),
 		Stations:    r.Form["stations"],
 		Landuse:     r.Form["landuse"],
 		Start:       start,
 		End:         end,
-		Maintenance: maint,
+		Maintenance: r.Form["maintenance"],
 	}, nil
 }
 
-// parseGroupsAndMaintenance will parse each string in the given string slice
-// into a group and return a unique slice of Groups. If parsing to a group fails
-// it will assume the string is a maintenance parameter and add it to the
-// returning string slice.
-func parseGroupsAndMaintenance(str []string) ([]Group, []string) {
+// parseGroups will parse each string in the given string slice into a group and
+// return a unique slice of Groups.
+func parseGroups(str []string) []Group {
 	var g []Group
-	var m []string
 
 	for _, s := range str {
 		i, err := strconv.ParseUint(s, 10, 8)
 		if err != nil {
-			m = append(m, strings.ToLower(s))
 			continue
 		}
 
 		g = AppendGroupIfMissing(g, Group(i))
 	}
 
-	return g, m
+	return g
 }
 
 // Role represents a role a User is part of.

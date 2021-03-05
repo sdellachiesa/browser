@@ -50,15 +50,20 @@
 												</option>
 											{{end -}}
 										{{end -}}
-										{{if Is $.User.Role "FullAccess" -}}
-										<optgroup label="Maintenance">
-											{{ range .Maintenance -}}
-												<option value="{{.}}">{{.}}</option>
-											{{ end -}}
-										</optgroup>
-										{{end -}}
 										</select>
 									</div>
+									{{if Is $.User.Role "FullAccess" -}}
+									<div class="showHideMaint">
+											<input type="checkbox" id="maintCheckbox"> <span>{{T "Show maintenance" $lang}}</span>
+									</div>
+									<div class="form-group" id="maintFormGroup">
+										<select multiple class="form-control" id="maintenance" name="maintenance">
+										{{ range .Maintenance -}}
+											<option value="{{.}}">{{.}}</option>
+										{{ end -}}
+										</select>
+									</div>
+									{{end -}}
 								</div>
 								<div class="col-lg-4">
 									<div class="form-group">
@@ -102,7 +107,7 @@
 							<div class="row">
 								<div class="col-lg-12">
 									{{if not (Is $.User.Role "Public") -}}
-										<div class="showHide">
+										<div class="stdCheckBox">
 											<input type="checkbox" name="showStd" id="showStd"> {{T "Include standard deviations in download" $lang}}
 										</div>
 									{{end -}}
@@ -211,23 +216,25 @@
 			new browser({
 				'stationEl':		'#stations',
 				'measurementEl':	'#measurements',
+				'maintenanceEl':	'#maintenance',
+				'maintFormGroupEl':	'#maintFormGroup',
 				'landuseEl':		'#landuse',
 				'elevationEl':		'#elevation',
-				'dateEl':		'#datepicker',
-				'sDateEl':		'#startDate',
-				'eDateEl':		'#endDate',
-				'submitEl':		'#submitBtn',
+				'dateEl':			'#datepicker',
+				'sDateEl':			'#startDate',
+				'eDateEl':			'#endDate',
+				'submitEl':			'#submitBtn',
 				'submitWideBtnEl':	'#submitWideBtn',
 				'submitLongBtnEl':	'#submitLongBtn',
-				'formatEl':		'#format',
-				'formEl':		'#filters',
+				'formatEl':			'#format',
+				'formEl':			'#filters',
 				'infoModalEl':		'#infoModal',
-				'codeEl':		'#codeBtn',
+				'codeEl':			'#codeBtn',
 				'dlMapAreaEl':		'dlMapArea',
-				'mapEl':		'map',
+				'mapEl':			'map',
 				'scrollToTopEl':	'.scroll-to-top',
 				'stationModal':		'#stationModal',
-				'data':			JSON.parse('{{.Data}}'),
+				'data':				JSON.parse('{{.Data}}'),
 			});
 
 
