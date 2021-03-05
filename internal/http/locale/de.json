@@ -40,7 +40,7 @@
 	"Eu banner Reject": "Absprechen",
 	"Eu banner Read more": "Datenschutzaufklärung lesen",
 	"To get full data access please sign in using one of the supported providers:": "Um vollen Datenzugriff zu erhalten, melden Sie sich bitte bei einem der unterstützten Anbieter an:",
-	"Show standard deviations": "Standard deviation anzeigen",
+	"Include standard deviations in download": "Standard deviation im Download inkludieren",
 	"Notice": "Mitteilung",
 	"Downloading a large data set may take some time to finish or will even timeout.": "Das Herunterladen eines großen Datensatzes kann einige Zeit in anspruch nehmen oder sogar einen Timeout verursachen.",
 	"We are aware of the issue and are working on it. Tools like R or Python are more appropriate to use for such requests.": "Wir arbeiten an einer Verbesserung des Services. Tools wie R oder Python eignen sich besser für solche Anfragen.",
