@@ -74,7 +74,7 @@ var (
 		browser.SoilWaterPotentialDepth50:                    regexp.MustCompile(`^swp.[^_st_].*_50_.*$`),
 		browser.SoilHeatFlux:                                 regexp.MustCompile(`^shf.*$`),
 		browser.SoilSurfaceTemperature:                       regexp.MustCompile(`.*surf_t.*$`), // TODO: "surf_t_" and not("mv")
-		browser.WindSpeed:                                    regexp.MustCompile(`^wind_speed.*$`),
+		browser.Wind:                                         regexp.MustCompile(`^wind.*$`),
 		browser.WindSpeedAvg:                                 regexp.MustCompile(`^wind_speed.*_avg$`),
 		browser.WindSpeedMax:                                 regexp.MustCompile(`^wind_speed.*_max$`),
 		browser.WindDirection:                                regexp.MustCompile(`^wind_dir`),
