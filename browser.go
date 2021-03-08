@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -125,6 +126,11 @@ func ParseSeriesFilterFromRequest(r *http.Request) (*SeriesFilter, error) {
 		return nil, errors.New("at least one station must be given")
 	}
 
+	showStd := false
+	if len(r.Form["showStd"]) == 1 && strings.EqualFold(r.Form["showStd"][0], "on") {
+		showStd = true
+	}
+
 	return &SeriesFilter{
 		Groups:      parseGroups(r.Form["measurements"]),
 		Stations:    r.Form["stations"],
@@ -132,6 +138,7 @@ func ParseSeriesFilterFromRequest(r *http.Request) (*SeriesFilter, error) {
 		Start:       start,
 		End:         end,
 		Maintenance: r.Form["maintenance"],
+		WithSTD:     showStd,
 	}, nil
 }
 
