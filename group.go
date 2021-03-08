@@ -26,13 +26,13 @@ const (
 	SoilElectricalConductivityDepth05
 	SoilElectricalConductivityDepth20
 	SoilElectricalConductivityDepth40
-	SoilElectricalConductivityDepth51
+	SoilElectricalConductivityDepth50
 	SoilDielectricPermittivity
 	SoilDielectricPermittivityDepth02
 	SoilDielectricPermittivityDepth05
 	SoilDielectricPermittivityDepth20
 	SoilDielectricPermittivityDepth40
-	SoilDielectricPermittivityDepth52
+	SoilDielectricPermittivityDepth50
 	SoilWaterPotential
 	SoilWaterPotentialDepth05
 	SoilWaterPotentialDepth20
@@ -124,12 +124,8 @@ func (g Group) String() string {
 		return "20 cm"
 	case SoilTemperatureDepth40, SoilWaterContentDepth40, SoilElectricalConductivityDepth40, SoilDielectricPermittivityDepth40, SoilWaterPotentialDepth40:
 		return "40 cm"
-	case SoilTemperatureDepth50, SoilWaterContentDepth50, SoilWaterPotentialDepth50:
+	case SoilTemperatureDepth50, SoilWaterContentDepth50, SoilWaterPotentialDepth50, SoilElectricalConductivityDepth50, SoilDielectricPermittivityDepth50:
 		return "50 cm"
-	case SoilElectricalConductivityDepth51:
-		return "51 cm"
-	case SoilDielectricPermittivityDepth52:
-		return "52 cm"
 	case WindSpeedAvg:
 		return "Average"
 	case WindSpeedMax:
@@ -200,7 +196,7 @@ func (g Group) SubGroups() []Group {
 			SoilElectricalConductivityDepth05,
 			SoilElectricalConductivityDepth20,
 			SoilElectricalConductivityDepth40,
-			SoilElectricalConductivityDepth51,
+			SoilElectricalConductivityDepth50,
 		}
 
 	case SoilDielectricPermittivity:
@@ -209,7 +205,7 @@ func (g Group) SubGroups() []Group {
 			SoilDielectricPermittivityDepth05,
 			SoilDielectricPermittivityDepth20,
 			SoilDielectricPermittivityDepth40,
-			SoilDielectricPermittivityDepth52,
+			SoilDielectricPermittivityDepth50,
 		}
 
 	case SoilWaterPotential:
@@ -292,12 +288,12 @@ func GroupsByType(t GroupType) []Group {
 			SoilElectricalConductivityDepth05,
 			SoilElectricalConductivityDepth20,
 			SoilElectricalConductivityDepth40,
-			SoilElectricalConductivityDepth51,
+			SoilElectricalConductivityDepth50,
 			SoilDielectricPermittivityDepth02,
 			SoilDielectricPermittivityDepth05,
 			SoilDielectricPermittivityDepth20,
 			SoilDielectricPermittivityDepth40,
-			SoilDielectricPermittivityDepth52,
+			SoilDielectricPermittivityDepth50,
 			SoilWaterPotentialDepth05,
 			SoilWaterPotentialDepth20,
 			SoilWaterPotentialDepth40,
