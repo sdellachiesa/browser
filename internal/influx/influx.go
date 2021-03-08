@@ -85,7 +85,7 @@ var (
 		browser.LeafWetnessDuration:                          regexp.MustCompile(`^lwm`),
 		browser.SunshineDuration:                             regexp.MustCompile(`^sun`),
 		browser.PhotosyntheticallyActiveRadiation:            regexp.MustCompile(`^par_.*$`),
-		browser.PhotosyntheticallyActiveRadiationTotal:       regexp.MustCompile(`^par_.*(dif_|soil_).*$`),
+		browser.PhotosyntheticallyActiveRadiationTotal:       regexp.MustCompile(`^par_[^dif|soil].*$|par_std`),
 		browser.PhotosyntheticallyActiveRadiationDiffuse:     regexp.MustCompile(`^par_.*dif_.*$`),
 		browser.PhotosyntheticallyActiveRadiationAtSoilLevel: regexp.MustCompile(`^par_.*soil_.*$`),
 		browser.NDVIRadiations:                               regexp.MustCompile(`^ndvi_.*`),
