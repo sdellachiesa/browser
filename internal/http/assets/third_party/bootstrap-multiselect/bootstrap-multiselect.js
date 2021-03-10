@@ -778,12 +778,11 @@
                     var checked = $target.prop('checked') || false;
 
                     var $li = $(event.target).closest('li');
-                    var $group = $li.nextUntil("li.multiselect-group")
+                    var $group = $li.nextUntil("li.multiselect-parent")
                         .not('.multiselect-filter-hidden')
                         .not('.disabled');
 
                     var $inputs = $group.find("input");
-
                     var values = [];
                     var $options = [];
 
@@ -829,20 +828,20 @@
             }
 
             if (this.options.enableCollapsibleOptGroups && this.options.multiple) {
-			     $("li.multiselect-parent-with-childs input", this.$ul).on("click", $.proxy(function(event) {
-			     	var $li = $(event.target).closest('li');
-					if ($(event.target).prop('checked')) {
-						$li.css('background', '#337ab7');
-					} else {
-						$li.css('background', '#ffffff');
-					}
+		$("li.multiselect-parent-with-childs input", this.$ul).on("click", $.proxy(function(event) {
+			var $li = $(event.target).closest('li');
+			
+			if ($(event.target).prop('checked')) {
+				$li.css('background', '#337ab7');
+			} else {
+				$li.css('background', '#ffffff');
+			}
             	 }, this));
 
             	 $("li.multiselect-parent-with-childs a", this.$ul).on("click", $.proxy(function(event) {
-					var $li = $(event.target).closest('li');
+			var $li = $(event.target).closest('li');
 
-                    var $inputs = $li.nextUntil("li.multiselect-parent")
-                            .not('.multiselect-filter-hidden');
+			var $inputs = $li.nextUntil("li.multiselect-parent").not('.multiselect-filter-hidden');
 
                     var visible = true;
                     $inputs.each(function() {
