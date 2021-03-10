@@ -41,7 +41,7 @@ const (
 	SoilHeatFlux
 	SoilSurfaceTemperature
 	Wind
-	WindSpeedAvg
+	WindSpeed
 	WindSpeedMax
 	WindDirection
 	Precipitation
@@ -126,10 +126,10 @@ func (g Group) String() string {
 		return "40 cm"
 	case SoilTemperatureDepth50, SoilWaterContentDepth50, SoilWaterPotentialDepth50, SoilElectricalConductivityDepth50, SoilDielectricPermittivityDepth50:
 		return "50 cm"
-	case WindSpeedAvg:
-		return "Average"
+	case WindSpeed:
+		return "Speed"
 	case WindSpeedMax:
-		return "Max"
+		return "Speed Max"
 	case PrecipitationTotal:
 		return "Total"
 	case PrecipitationIntensity:
@@ -152,10 +152,12 @@ func (g Group) Public() string {
 	switch g {
 	default:
 		return g.String()
-	case WindSpeedAvg:
+	case WindSpeed:
 		return "Wind Speed"
 	case WindSpeedMax:
-		return "Wind Max"
+		return "Wind Speed Max"
+	case WindDirection:
+		return "Wind Direction"
 	case ShortWaveRadiationOutgoing:
 		return "Global Radiation"
 	case PrecipitationTotal:
@@ -217,7 +219,7 @@ func (g Group) SubGroups() []Group {
 		}
 
 	case Wind:
-		return []Group{WindDirection, WindSpeedAvg, WindSpeedMax}
+		return []Group{WindSpeed, WindSpeedMax, WindDirection}
 
 	case Precipitation:
 		return []Group{PrecipitationTotal, PrecipitationIntensity}
@@ -298,7 +300,7 @@ func GroupsByType(t GroupType) []Group {
 			SoilWaterPotentialDepth40,
 			SoilWaterPotentialDepth50,
 			WindDirection,
-			WindSpeedAvg,
+			WindSpeed,
 			WindSpeedMax,
 			PrecipitationTotal,
 			PrecipitationIntensity,
@@ -320,7 +322,7 @@ func GroupsByRole(r Role) []Group {
 			AirTemperature,
 			RelativeHumidity,
 			WindDirection,
-			WindSpeedAvg,
+			WindSpeed,
 			WindSpeedMax,
 			ShortWaveRadiationOutgoing,
 			PrecipitationTotal,

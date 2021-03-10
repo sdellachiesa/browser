@@ -46,7 +46,7 @@ func TestQuery(t *testing.T) {
 			},
 		},
 		"subgroup": {
-			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.WindSpeedAvg}},
+			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.WindSpeed}},
 			ctx: context.Background(),
 			want: &browser.Stmt{
 				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_speed_avg FROM wind_speed_avg WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
@@ -333,7 +333,7 @@ func TestGroupsByStation(t *testing.T) {
 			browser.PrecipitationTotal,
 			browser.SnowHeight,
 			browser.WindDirection,
-			browser.WindSpeedAvg,
+			browser.WindSpeed,
 			browser.WindSpeedMax,
 		}
 
