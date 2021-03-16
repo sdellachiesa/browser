@@ -257,16 +257,13 @@ function browser(opts) {
 	});
 
 	$(opts.maintenanceEl).multiselect({
+		maxHeight: 400,
 		buttonWidth: "100%",
 		enableFiltering: true,
 		filterBehavior: "both",
 		enableRegexFiltering: true,
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: false,
-		enableClickableOptGroups: true,
-		enableCollapsibleOptGroups: true,
-		collapseOptGroupsByDefault: true,
-		indentGroupOptions: true,
 	});
 	
 	$('#maintCheckbox').on('change', function() {
