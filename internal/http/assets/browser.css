@@ -339,6 +339,10 @@ footer {
 	font-size: 0.9em;
 }
 
+.small-font {
+	font-size: 0.9em;
+}
+
 #maintFormGroup {
 	display: none;
 }

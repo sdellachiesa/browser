@@ -256,6 +256,28 @@ function browser(opts) {
 		},
 	});
 
+	let stdMaintOptions = [];
+
+	function hideMaintStdOptions() {
+		// Check if element exists.
+		if ($(opts.maintenanceEl).length <= 0) {
+			return
+		}
+		
+		stdMaintOptions = [];
+		$(opts.maintenanceEl).children('option').map(function() {
+			let el = $(this);
+			let v = el.val().toLowerCase();
+
+			if (v.endsWith("_std")) {
+				stdMaintOptions.push(el.remove());
+			}
+		});
+	}
+
+	// Hide all standard deviations from maintenanceEl.
+	hideMaintStdOptions();
+
 	$(opts.maintenanceEl).multiselect({
 		maxHeight: 400,
 		buttonWidth: "100%",
@@ -264,6 +286,25 @@ function browser(opts) {
 		enableRegexFiltering: true,
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: false,
+	});
+
+	$('#showMaintSTD').on('change', function() {
+		if (this.checked) {
+			stdMaintOptions.forEach(function(o) {
+				$(opts.maintenanceEl).append(o);
+			});
+
+			const options = $(opts.maintenanceEl + " option");
+			options.detach().sort(function(a,b) {
+   				let at = $(a).text();
+    				let bt = $(b).text();
+    				return (at > bt)?1:((at < bt)?-1:0);
+			});
+			options.appendTo(opts.maintenanceEl);
+		} else {
+			hideMaintStdOptions();
+		}
+		$(opts.maintenanceEl).multiselect("rebuild");
 	});
 	
 	$('#maintCheckbox').on('change', function() {
