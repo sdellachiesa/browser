@@ -118,7 +118,7 @@ func ParseSeriesFilterFromRequest(r *http.Request) (*SeriesFilter, error) {
 		return nil, errors.New("error: end date is in the future")
 	}
 
-	if r.Form["measurements"] == nil {
+	if r.Form["measurements"] == nil && r.Form["maintenance"] == nil {
 		return nil, errors.New("at least one measurement must be given")
 	}
 

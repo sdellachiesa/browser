@@ -107,7 +107,7 @@ function browser(opts) {
 		L.control.scale({position: "topright"}).addTo(map);
 	}
 
-	// toggleDownload enables the download botton if at least one station and
+	// toggleDownload enables the download button if at least one station and
 	// one measurement was selected. Moreover it checks if the time range
 	// selected is not ore than a year. Otherwise it will be disable it.
 	function toggleDownload() {
@@ -122,11 +122,11 @@ function browser(opts) {
 			return
 		}
 
-		if ($(opts.measurementEl).val() == null || $(opts.measurementEl).val().length < 1) {
+		if (($(opts.measurementEl).val() == null || $(opts.measurementEl).val().length < 1) && ($(opts.maintenanceEl).val() == null || $(opts.maintenanceEl).val().length < 1)) {
 			$(opts.submitEl).attr("disabled", "disabled");
 			$(opts.codeEl).attr("disabled", "disabled");
 			return
-		}
+		} 
 
 		$(opts.submitEl).removeAttr("disabled");
 		$(opts.codeEl).removeAttr("disabled");
@@ -286,6 +286,15 @@ function browser(opts) {
 		enableRegexFiltering: true,
 		enableCaseInsensitiveFiltering: true,
 		includeSelectAllOption: false,
+		onChange: function() {
+			toggleDownload();
+		},
+		onSelectAll: function() {
+			toggleDownload();
+		},
+		onDeselectAll: function() {
+			toggleDownload();
+		},
 	});
 
 	$('#showMaintSTD').on('change', function() {
@@ -317,6 +326,7 @@ function browser(opts) {
             });
 			$(opts.maintenanceEl).multiselect('refresh');
 			$(opts.maintFormGroupEl).hide();
+			toggleDownload()
 		}
 	});
 
