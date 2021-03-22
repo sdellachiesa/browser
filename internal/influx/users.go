@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	client "github.com/influxdata/influxdb1-client/v2"
 	"github.com/euracresearch/browser"
+	client "github.com/influxdata/influxdb1-client/v2"
 )
 
 // Guarantee we implement browser.UserService.

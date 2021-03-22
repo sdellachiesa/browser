@@ -54,12 +54,12 @@ func (h *Handler) handleStations() http.HandlerFunc {
 			Station  *browser.Station
 			Groups   []browser.Group
 			Language string
-			User *browser.User
+			User     *browser.User
 		}{
 			Station:  station,
 			Groups:   groups,
 			Language: languageFromCookie(r),
-			User: browser.UserFromContext(ctx),
+			User:     browser.UserFromContext(ctx),
 		})
 		if err != nil {
 			Error(w, err, http.StatusInternalServerError)
