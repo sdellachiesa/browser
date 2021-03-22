@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/euracresearch/browser"
 	"github.com/euracresearch/browser/internal/http"
 	"github.com/euracresearch/browser/internal/influx"
 	"github.com/euracresearch/browser/internal/middleware"
@@ -23,6 +25,12 @@ import (
 )
 
 const defaultAddr = "localhost:8888" // default webserver address
+
+// Build version, injected during build.
+var (
+	version string
+	commit  string
+)
 
 func main() {
 	log.SetPrefix("browser: ")
@@ -70,6 +78,10 @@ func main() {
 	required("snipeit.addr", *snipeitAddr)
 	required("snipeit.token", *snipeitToken)
 	required("jwt.key", *jwtKey)
+
+	// Propagate build information to root package to share globally.
+	browser.Version = strings.TrimPrefix(version, "")
+	browser.Commit = commit
 
 	// Initialize influx v1 client.
 	ic, err := client.NewHTTPClient(client.HTTPConfig{

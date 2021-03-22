@@ -60,6 +60,10 @@ func NewHandler(options ...Option) *Handler {
 		http.Redirect(w, r, "/assets/robots.txt", http.StatusMovedPermanently)
 	})
 
+	// Setup endpoint to display deployed version.
+	h.mux.HandleFunc("/debug/version", h.handleVersion)
+	h.mux.HandleFunc("/debug/commit", h.handleCommit)
+
 	h.mux.Handle("/assets/", http.FileServer(http.FS(publicFS)))
 
 	return h
@@ -89,6 +93,16 @@ func WithAnalyticsCode(analytics string) Option {
 	return func(h *Handler) {
 		h.analytics = analytics
 	}
+}
+
+func (h *Handler) handleVersion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(browser.Version))
+}
+
+func (h *Handler) handleCommit(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(browser.Commit))
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

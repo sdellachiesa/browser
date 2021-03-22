@@ -33,6 +33,10 @@ var (
 
 	// Location denotes the time location of the LTER stations, which is UTC+1.
 	Location = time.FixedZone("+0100", 60*60)
+
+	// Build version & commit SHA.
+	Version string
+	Commit  string
 )
 
 // Measurement represents a single measurements with metadata and its points.
