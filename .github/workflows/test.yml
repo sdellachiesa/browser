@@ -26,6 +26,9 @@ jobs:
     - name: Run misspell
       run: misspell cmd/**/*.{go,sh} internal/**/* README.md
 
+    - name: Check formatting
+      run: diff -u <(echo -n) <(gofmt -d -s .)
+
     - name: Run go vet
       run: go vet -all ./...
 
