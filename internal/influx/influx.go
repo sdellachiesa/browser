@@ -60,7 +60,7 @@ var (
 		browser.SoilElectricalConductivityDepth05:            regexp.MustCompile(`^swc_ec_.*05_.*$`),
 		browser.SoilElectricalConductivityDepth20:            regexp.MustCompile(`^swc_ec_.*20_.*$`),
 		browser.SoilElectricalConductivityDepth40:            regexp.MustCompile(`^swc_ec_.*40_.*$`),
-		browser.SoilElectricalConductivityDepth50:            regexp.MustCompile(`^swc_ec_.*51_.*$`),
+		browser.SoilElectricalConductivityDepth50:            regexp.MustCompile(`^swc_ec_.*50_.*$`),
 		browser.SoilDielectricPermittivity:                   regexp.MustCompile(`^swc_dp_.*$`),
 		browser.SoilDielectricPermittivityDepth02:            regexp.MustCompile(`^swc_dp_.*02_.*$`),
 		browser.SoilDielectricPermittivityDepth05:            regexp.MustCompile(`^swc_dp_.*05_.*$`),
@@ -75,7 +75,7 @@ var (
 		browser.SoilHeatFlux:                                 regexp.MustCompile(`^shf.*$`),
 		browser.SoilSurfaceTemperature:                       regexp.MustCompile(`.*surf_t.*$`), // TODO: "surf_t_" and not("mv")
 		browser.Wind:                                         regexp.MustCompile(`^wind.*$`),
-		browser.WindSpeed:                                 regexp.MustCompile(`^wind_speed.*_(avg|std)$`),
+		browser.WindSpeed:                                    regexp.MustCompile(`^wind_speed$|wind_speed.*_(avg|std)$`),
 		browser.WindSpeedMax:                                 regexp.MustCompile(`^wind_speed.*_max$`),
 		browser.WindDirection:                                regexp.MustCompile(`^wind_dir.*`),
 		browser.Precipitation:                                regexp.MustCompile(`^precip.*(_tot|_int).*$`),
