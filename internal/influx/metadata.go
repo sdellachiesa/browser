@@ -9,6 +9,7 @@ var publicAllowed = []string{
 	"air_t_avg",
 	"air_rh_avg",
 	"wind_dir",
+	"wind_speed",
 	"wind_speed_avg",
 	"wind_speed_max",
 	"nr_up_sw_avg",

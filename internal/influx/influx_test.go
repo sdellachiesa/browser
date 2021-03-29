@@ -41,7 +41,7 @@ func TestQuery(t *testing.T) {
 			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.Wind}},
 			ctx: context.Background(),
 			want: &browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_dir, wind_speed_avg, wind_speed_max FROM wind_dir, wind_speed_avg, wind_speed_max WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_dir, wind_speed, wind_speed_avg, wind_speed_max FROM wind_dir, wind_speed, wind_speed_avg, wind_speed_max WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
@@ -49,7 +49,7 @@ func TestQuery(t *testing.T) {
 			in:  &browser.SeriesFilter{Groups: []browser.Group{browser.WindSpeed}},
 			ctx: context.Background(),
 			want: &browser.Stmt{
-				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_speed_avg FROM wind_speed_avg WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
+				Query:    "SELECT station, landuse, altitude as elevation, latitude, longitude, wind_speed, wind_speed_avg FROM wind_speed, wind_speed_avg WHERE time >= '0000-12-31T23:00:00Z' AND time <= '0001-01-01T22:59:59Z' ORDER BY time ASC TZ('Etc/GMT-1')",
 				Database: dbName,
 			},
 		},
