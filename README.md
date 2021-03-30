@@ -13,6 +13,7 @@
 - [DEIMS ID](https://deims.org/11696de6-0ab9-4c94-a06b-7ce40f56c964)
 - [LTER Italy Val Mazia](http://www.lteritalia.it/?q=macrositi/it25-val-di-mazia)
 - [Homepage Public Dahshboards](https://dashboard.alpenv.eurac.edu/d/pv9WwNWGk/homepage-public?orgId=1)
+- [Software Description Paper](https://riojournal.com/article/63748/)
 
 ## Components
 
